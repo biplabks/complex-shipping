@@ -3,6 +3,52 @@ import cellEditFactory from 'react-bootstrap-table2-editor';
 import React from 'react';
 import { Container } from 'react-bootstrap';
 
+const columns = [
+  {
+    dataField: 'id',
+    text: 'Id'
+  },
+  {
+    dataField: 'item',
+    text: 'Item',
+    validator: (newValue, row, column) => {
+      // console.log("this.state.items in validator: ", this.state.items);
+      // var exists = Object.keys(this.props.orderDetails).some(function(k) {
+      //   return this.props.orderDetails[k]['item'] === newValue;
+      // });
+
+      // console.log("exists: ", exists)
+    
+      // if (exists) {
+      //   return {
+      //     valid: false,
+      //     message: "Duplicated entry found!"
+      //   };
+      // }
+      return true;
+    }
+  },
+  {
+    dataField: 'order_qty',
+    text: 'Order Quantity',
+    validator: (newValue, row, column) => {
+      if (isNaN(newValue)) {
+        return {
+          valid: false,
+          message: "Order quantity should be numeric"
+        };
+      }
+      if (newValue > 1000) {
+        return {
+          valid: false,
+          message: "Order quantity should less than 1000"
+        };
+      }
+      return true;
+    }
+  }
+];
+
 class TableTest extends React.Component {
   constructor(props) {
     super(props);
@@ -91,6 +137,7 @@ class TableTest extends React.Component {
       );
     }
 };
+
 
 
 export default TableTest;

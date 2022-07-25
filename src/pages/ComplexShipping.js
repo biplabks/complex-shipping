@@ -2,95 +2,88 @@ import { Container, Button } from 'react-bootstrap';
 import React from 'react';
 import AccordionTest from './AccordionTest';
 import SearchForm from './SearchForm';
+import MyContext from './MyContext';
+import AccordionData from './AccordionData';
 
-class ComplexShipping extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {orderNumber1: ''};
+// class ComplexShipping extends React.Component {
+//     constructor(props) {
+//         super(props);
+//         this.state = {orderNumber1: ''};
+//     }
 
-        // this.childToParent = this.childToParent.bind(this);
-    }
+//     childToParent = (event) => {
+//         this.setState({ orderNumber1: event.target.order_number.value }, () => console.log("state value:", this.state.orderNumber1));
+//      };
     
-    // this.handleFilterTextChange = this.handleFilterTextChange.bind(this);
-    // }
+//     render() {
+//       const { orderNumber1 } = this.state;
 
-    // handleFilterTextChange(filterText) {
-    //     this.setState({
-    //         filterText: filterText
-    //     });
-    // }
-
-    // childToParent(event, data){
-    //     event.preventDefault();
-    //     console.log("This is an alert from the Child Component: ", data);
-    //     this.setState({orderNumber: data});
-    //     console.log("Hey dude, state is hit: ", this.state.orderNumber);
-    // };
-
-    // childToParent(event){
-    //     // event.preventDefault();
-    //     console.log("This is an alert from the Child Component: ",  event.target.order_number.value);
-    //     this.setState({orderNumber:  event.target.order_number.value});
-    //     console.log("Hey dude, state is hit: ",  event.target.order_number.value, ", state: ", this.state.orderNumber);
-    // };
-
-    childToParent = (event) => {
-        // event.preventDefault();
-        // console.log("This is an alert from the Child Component: ",  event.target.order_number.value);
-        // this.setState({orderNumber1:  event.target.order_number.value});
-
-        this.setState({ orderNumber1: event.target.order_number.value }, () => console.log("state value:", this.state.orderNumber1));
-
-        // console.log("Hey dude, state is hit: ",  event.target.order_number.value, ", state: ", this.state.orderNumber1);
-    };
-    
-    render() {
-      const { orderNumber1 } = this.state;
-    //   console.log("calling from complexshipping render, orderNumber1: ", orderNumber1)
-
-      let accordinTest;
-      if (orderNumber1.length === 7) {
-        accordinTest = <AccordionTest orderNumber={this.state.orderNumber1}/>;
-      }
-
-    //   let accordinTest = [];
-    //   if (orderNumber1.length === 7) {
-    //     accordinTest.push(<AccordionTest orderNumber={this.state.orderNumber1}/>);
-    //     accordinTest.push(<AccordionTest orderNumber={this.state.orderNumber1}/>);
-    //   }
+//       let accordinTest;
+//       if (orderNumber1.length === 7) {
+//         accordinTest = <AccordionTest orderNumber={this.state.orderNumber1}/>;
+//       }
       
-      return (
-        // <div>
-        //     <SearchForm
-        //         filterText={this.state.filterText}
-        //         onFilterTextChange={this.handleFilterTextChange}
-        //     />
+//       return (
+//         <div>
+//           <Container className="p-3">
+//               <h1 className="header">Welcome To Complex Shipping</h1>
+//           </Container>
+//           <SearchForm childToParent={this.childToParent}/>
+//           { accordinTest }
+//           <Button variant="primary" size="lg">
+//               Submit Data
+//           </Button>
+//         </div>
 
-        //     <ProductTable
-        //         products={this.props.products}
-        //         filterText={this.state.filterText}
-        //         inStockOnly={this.state.inStockOnly}
-        //     />
-        // </div>
-        <div>
+//         // <MyContext.Consumer>
+//         //   {context => (
+//         //       <React.Fragment>
+//                 // <div>
+//                 //   <Container className="p-3">
+//                 //       <h1 className="header">Welcome To Complex Shipping</h1>
+//                 //   </Container>
+//                 //   <SearchForm childToParent={this.childToParent}/>
+//                 //   { accordinTest }
+//                 //   <Button variant="primary" size="lg">
+//                 //       Submit Data
+//                 //   </Button>
+//                 // </div>
+    
+//         //       </React.Fragment>
+//         //   )}
+//         // </MyContext.Consumer>
+        
+//       );
+//     }
+//   }
+
+  const ComplexShipping = () => (
+    // if (context.error) {
+    //   <div>Error: {context.error}</div>
+    // } else if (!context.isLoaded) {
+    //   <div>Loading...</div>
+    // } else {
+    //   <AccordionTest orderNumber={context.orderNumber} />
+    // }
+
+    <MyContext.Consumer>
+      {context => (
+        <React.Fragment>
+          <div>
             <Container className="p-3">
-                <h1 className="header">Welcome To Complex Shipping</h1>
+              <h1 className="header">Welcome To Complex Shipping</h1>
             </Container>
-            <SearchForm childToParent={this.childToParent}/>
-            {/* <AccordionTest orderNumber="L210636"/> */}
-            {/* <AccordionTest orderNumber={this.state.orderNumber1}/> */}
-            { accordinTest }
-            {/* <div className="d-grid gap-2">
-                <Button variant="primary" size="lg">
-                    Submit Data
-                </Button>
-            </div> */}
-            <Button variant="primary" size="lg">
+            {/* <SearchForm setOrderNumber={() => context.setOrderNumber(context.orderNumber)} searchOrderDetails={context.searchOrderDetails}/> */}
+            <SearchForm setOrderNumber={context.setOrderNumber} searchOrderDetails={context.searchOrderDetails}/>
+            {/* <AccordionTest /> */}
+            <AccordionData />
+            <Button onClick={context.submitOrderDetailsToQAD} variant="primary" size="lg">
                 Submit Data
             </Button>
-        </div>
-      );
-    }
-  }
+          </div>
+        </React.Fragment>
+      )}
+    </MyContext.Consumer>
+  )
 
   export default ComplexShipping;
