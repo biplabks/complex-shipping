@@ -3,6 +3,8 @@ import React from 'react';
 import TableTest from './TableTest';
 import moment from 'moment';
 import MyContext from './MyContext';
+import BootstrapTable from 'react-bootstrap-table-next';
+import cellEditFactory from 'react-bootstrap-table2-editor';
 
 // class AccordionData extends React.Component {
 //   constructor(props) {
@@ -96,14 +98,16 @@ const AccordionData = () => (
                   <Accordion.Header>
                     <Form>
                       <Form.Group className="mb-3" controlId="formGroupEmail">
-                        <Form.Control disabled type="date" value={moment(element.key).utc().format('YYYY-MM-DD')} placeholder="Enter date" />
+                        {/* <Form.Control disabled={!element.isDateEditable} type="date" value={moment(element.key).utc().format('YYYY-MM-DD')} placeholder="Enter date" /> */}
+                        {/* <Form.Control disabled={!element.isDateEditable} type="date" readOnly value={moment(element.key).utc().format('YYYY-MM-DD')} placeholder="Enter date" /> */}
+                        <Form.Control onChange={event => context.setDueDate(event, element.key)} disabled={!element.isDateEditable} type="date" value={moment(element.key).utc().format('YYYY-MM-DD')} placeholder="Enter date" />
                       </Form.Group>
                     </Form>
                   </Accordion.Header>
                   <Accordion.Body>
                       <div className='d-flex justify-content-end me-3'>
                         <form>
-                          <Button type="submit">
+                          <Button onClick={() => context.insertItemByDueDate(element.key)}>
                             Insert Record
                           </Button>
                         </form>
@@ -113,11 +117,12 @@ const AccordionData = () => (
                           </Button>
                         </form>
                       </div>
-                      <TableTest 
+                      <TableTest
                         // key={element.key} 
-                        // copyItemsByDueDate={() => context.copyItemsByDueDate(element.key)} 
+                        // copyItemsByDueDate={() => context.copyItemsByDueDate(element.key)}
                         orderDetails={element.value}
                       />
+                      
                   </Accordion.Body>
                 </Accordion.Item>
               </Accordion>

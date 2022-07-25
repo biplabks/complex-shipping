@@ -1,7 +1,7 @@
 import BootstrapTable from 'react-bootstrap-table-next';
 import cellEditFactory from 'react-bootstrap-table2-editor';
 import React from 'react';
-import { Container } from 'react-bootstrap';
+import { Container, Button } from 'react-bootstrap';
 
 class TableTest extends React.Component {
   constructor(props) {
@@ -66,15 +66,15 @@ class TableTest extends React.Component {
     });
   }
 
-  componentDidUpdate(prevProps) {
-    console.log("calling from componentDidUpdate in TableTest")
-    if(prevProps.orderDetails !== this.props.orderDetails){
-      console.log("calling from componentDidUpdate in TableTest, this.props.orderDetails : ", this.props.orderDetails)
-      this.setState({
-        items: this.props.orderDetails
-      });
-    }
-  }
+  // componentDidUpdate(prevProps) {
+  //   console.log("calling from componentDidUpdate in TableTest")
+  //   if(prevProps.orderDetails !== this.props.orderDetails){
+  //     console.log("calling from componentDidUpdate in TableTest, this.props.orderDetails : ", this.props.orderDetails)
+  //     this.setState({
+  //       items: this.props.orderDetails
+  //     });
+  //   }
+  // }
 
   render() {
       return (

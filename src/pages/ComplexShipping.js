@@ -78,7 +78,7 @@ import AccordionData from './AccordionData';
             {/* <AccordionTest /> */}
             <AccordionData />
             <Button onClick={context.submitOrderDetailsToQAD} variant="primary" size="lg">
-                Submit Data
+              Submit Data
             </Button>
           </div>
         </React.Fragment>

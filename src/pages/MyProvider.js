@@ -74,7 +74,7 @@ class MyProvider extends React.Component {
     destructureItems(resultData) {
         const map = new Map();
 
-        resultData.forEach(element => {    
+        resultData.forEach(element => {
             if (map.has(element['shipping_date'])) {
                 let arr = []
                 arr = map.get(element['shipping_date'])
@@ -91,6 +91,10 @@ class MyProvider extends React.Component {
         })
 
         const mappedResult = Array.from(map).map(([key, value]) => ({key, value}))
+
+        mappedResult.forEach(element => {
+            element['isDateEditable'] = false
+        })
     
         this.setState(
             { itemsByDueDate: mappedResult, itemsByDueDateMap:  map}, 
@@ -169,6 +173,32 @@ class MyProvider extends React.Component {
                     //     });
                     // },
 
+                    setDueDate: (event, due_date_key) => {
+                        console.log("calling from setDueDate in MyProvider, event: ", event.target.value, ", due_date_key: ", due_date_key)
+                        
+                        // var localTime = moment().format('YYYY-MM-DD'); // store localTime
+                        var modifiedDate = event.target.value + "T00:00:00.000Z";
+
+                        if(this.state.itemsByDueDateMap.has(modifiedDate))
+                        {
+                            alert("Same date exist! Please choose another date!")
+                        }
+                        else
+                        {
+                            var existingDataMap = this.state.itemsByDueDateMap
+                            var existingData = this.state.itemsByDueDateMap.get(due_date_key)
+                            existingDataMap.set(modifiedDate, existingData)
+                            existingDataMap.delete(due_date_key)
+
+                            const arrayFrommappedResult = Array.from(existingDataMap).map(([key, value]) => ({key, value}))
+
+                            this.setState(
+                                { itemsByDueDate: arrayFrommappedResult, itemsByDueDateMap:  existingDataMap}, 
+                                () => console.log("calling from setDueDate in MyProvider, itemsByDueDateMap: ", this.state.itemsByDueDateMap, ", itemsByDueDate: ", this.state.itemsByDueDate)
+                            );
+                        }
+                    },
+
                     searchOrderDetails: (event) => {
                         console.log("calling from searchOrderDetails in MyProvider, event: ", event)
                         
@@ -183,10 +213,30 @@ class MyProvider extends React.Component {
                             event.preventDefault();
                         }
                     },
+                    insertItemByDueDate: (due_date_key) => {
+                        console.log("calling from insertItemByDueDate in MyProvider, due_date_key: ", due_date_key)
+                        var existingData = this.state.itemsByDueDateMap;
+                        //var list_of_items = existingData.get(due_date_key)
+                        var list_of_items = Object.assign([], existingData.get(due_date_key));
+
+                        // console.log("calling from insertItemByDueDate in MyProvider, list_of_items.length: ", list_of_items.length)
+
+                        list_of_items.push({id: list_of_items.length, item: '', order_qty: 0})
+
+                        existingData.set(due_date_key, list_of_items)
+                        const arrayFrommappedResult = Array.from(existingData).map(([key, value]) => ({key, value}))
+
+                        this.setState(
+                            { itemsByDueDate: arrayFrommappedResult, itemsByDueDateMap:  existingData}, 
+                            () => console.log("calling from insertItemByDueDate in MyProvider, itemsByDueDateMap: ", this.state.itemsByDueDateMap)
+                        );
+                    },
                     copyItemsByDueDate: (due_date_key) => {
                         console.log("Copying items, event: ", due_date_key)
 
                         // var data = this.state.itemsByDueDate.get(due_date)
+
+                        console.log("calling from before copyItemsByDueDate in MyProvider, itemsByDueDateMap: ", this.state.itemsByDueDateMap, ", itemsByDueDate: ", this.state.itemsByDueDate)
 
                         try {
                             //const {error, isLoaded, items, itemsByDueDate, orderNumber} = this.state;
@@ -203,12 +253,20 @@ class MyProvider extends React.Component {
                             var nextAvailableDate = new Date(maxDate);
                             nextAvailableDate.setDate(maxDate.getDate()+1);
 
+                            console.log("nextAvailableDate: ", nextAvailableDate)
+
                             existingData.set(nextAvailableDate, list_of_items)
                             const arrayFrommappedResult = Array.from(existingData).map(([key, value]) => ({key, value}))
 
+                            var filteredRecord = arrayFrommappedResult.filter(item => item.key == nextAvailableDate)
+
+                            if (filteredRecord.length !== 0) {
+                                filteredRecord[0]['isDateEditable'] = true
+                            }
+
                             this.setState(
                                 { itemsByDueDate: arrayFrommappedResult, itemsByDueDateMap:  existingData}, 
-                                () => console.log("calling from copyItemsByDueDate in MyProvider, itemsByDueDateMap: ", this.state.itemsByDueDateMap)
+                                () => console.log("calling from copyItemsByDueDate in MyProvider, itemsByDueDateMap: ", this.state.itemsByDueDateMap, ", itemsByDueDate: ", this.state.itemsByDueDate)
                             );
 
                         } catch (error) {
