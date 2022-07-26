@@ -105,7 +105,9 @@ const AccordionData = () => (
                     </Form>
                   </Accordion.Header>
                   <Accordion.Body>
-                      <div className='d-flex justify-content-end me-3'>
+                    {
+                      !context.isConfirmed &&
+                      <div className='d-flex justify-content-between me-3'>
                         <form>
                           <Button onClick={() => context.insertItemByDueDate(element.key)}>
                             Insert Record
@@ -117,11 +119,24 @@ const AccordionData = () => (
                           </Button>
                         </form>
                       </div>
-                      <TableTest
-                        // key={element.key} 
-                        // copyItemsByDueDate={() => context.copyItemsByDueDate(element.key)}
-                        orderDetails={element.value}
-                      />
+                    }
+                      {/* <div className='d-flex justify-content-between me-3'>
+                        <form>
+                          <Button onClick={() => context.insertItemByDueDate(element.key)}>
+                            Insert Record
+                          </Button>
+                        </form>
+                        <form>
+                          <Button onClick={() => context.copyItemsByDueDate(element.key)}>
+                            Copy Record
+                          </Button>
+                        </form>
+                      </div> */}
+                    <TableTest
+                      // key={element.key} 
+                      // copyItemsByDueDate={() => context.copyItemsByDueDate(element.key)}
+                      orderDetails={element.value}
+                    />
                       
                   </Accordion.Body>
                 </Accordion.Item>

@@ -60,21 +60,21 @@ class TableTest extends React.Component {
   };
 
   componentDidMount() {
-    console.log("calling from componentDidMount in TableTest")
+    // console.log("calling from componentDidMount in TableTest")
     this.setState({
       items: this.props.orderDetails
     });
   }
 
-  // componentDidUpdate(prevProps) {
-  //   console.log("calling from componentDidUpdate in TableTest")
-  //   if(prevProps.orderDetails !== this.props.orderDetails){
-  //     console.log("calling from componentDidUpdate in TableTest, this.props.orderDetails : ", this.props.orderDetails)
-  //     this.setState({
-  //       items: this.props.orderDetails
-  //     });
-  //   }
-  // }
+  componentDidUpdate(prevProps) {
+    // console.log("calling from componentDidUpdate in TableTest")
+    if(prevProps.orderDetails !== this.props.orderDetails){
+      // console.log("calling from componentDidUpdate in TableTest, this.props.orderDetails : ", this.props.orderDetails)
+      this.setState({
+        items: this.props.orderDetails
+      });
+    }
+  }
 
   render() {
       return (
