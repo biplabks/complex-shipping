@@ -36,11 +36,23 @@ class TableTest extends React.Component {
             }
             return true;
           }
-        }
+        },
+        // {
+        //   dataField: "movieId",
+        //   text: 'Order Quantity',
+        //   formatter: (rowContent, row) => {
+        //       return (
+        //         // <button onClick={() => deleteMovie(data[0].movieId)}>delete</button>
+        //         <button onClick={() => this.deleteMovie()}>delete</button>
+        //       );
+        //   }
+        // }
       ]
     };
   }
-
+  // deleteMovie() {
+  //   console.log("clicking on deleteMovie")
+  // }
   validatorFormatter = (newValue, row, column) => {
     var exists = false;
     for (let index = 0; index < this.state.items.length; index++) {
@@ -75,6 +87,9 @@ class TableTest extends React.Component {
       });
     }
   }
+  selectRowProp = {
+    mode: 'checkbox'
+  };
 
   render() {
       return (
@@ -86,6 +101,7 @@ class TableTest extends React.Component {
             columns={ this.state.columns }
             cellEdit={ cellEditFactory({ mode: 'dbclick' }) }
             noDataIndication="Table is Empty"
+            selectRow={this.selectRowProp}
           />
         </Container>
       );

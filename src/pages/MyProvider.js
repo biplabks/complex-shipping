@@ -18,6 +18,7 @@ class MyProvider extends React.Component {
         isConfirmed: null
     };
 
+    //version 1
     // dataFetch() {
     //     var orderNumber = 'L210636'
     //     fetch("https://vanna.zh.if.atcsg.net:453/api/v1/get-qad-sales-order-info/"+orderNumber)
@@ -45,35 +46,70 @@ class MyProvider extends React.Component {
     //     )
     // }
 
+    //version 2
+    // dataFetch() {
+    //     // console.log("calling from dataFetch in MyProvider, this.state.orderNumber: ", this.state.orderNumber);
+    //     fetch("https://vanna.zh.if.atcsg.net:453/api/v1/get-qad-sales-order-info/"+this.state.orderNumber)
+    //       .then(res => res.json())
+    //       .then(
+    //         (result) => {
+    //           var resultData = result['result'][this.state.orderNumber]['line_details'];
+    //           var is_confirmed = result['result'][this.state.orderNumber]['is_confirmed'];
+    
+    //         //   console.log("calling from dataFetch in MyProvider, resultData: ", resultData)
+    //         //   console.log("calling from dataFetch in MyProvider, isConfirmed: ", is_confirmed)
+    
+    //           this.destructureItems(resultData);
+    
+    //           this.setState({
+    //             isLoaded: true,
+    //             items: result['result'][this.state.orderNumber]['line_details'],
+    //             orderNumber: this.state.orderNumber,
+    //             isConfirmed: is_confirmed
+    //           });
+    //         },
+    //         (error) => {
+    //           console.log("error: ", error)
+    //           this.setState({
+    //             isLoaded: true,
+    //             error
+    //           });
+    //         }
+    //     )
+    // }
+
+    //version 3
     dataFetch() {
-        // console.log("calling from dataFetch in MyProvider, this.state.orderNumber: ", this.state.orderNumber);
-        fetch("https://vanna.zh.if.atcsg.net:453/api/v1/get-qad-sales-order-info/"+this.state.orderNumber)
-          .then(res => res.json())
-          .then(
-            (result) => {
-              var resultData = result['result'][this.state.orderNumber]['line_details'];
-              var is_confirmed = result['result'][this.state.orderNumber]['is_confirmed']
-    
-            //   console.log("calling from dataFetch in MyProvider, resultData: ", resultData)
-            //   console.log("calling from dataFetch in MyProvider, isConfirmed: ", is_confirmed)
-    
-              this.destructureItems(resultData);
-    
-              this.setState({
-                isLoaded: true,
-                items: result['result'][this.state.orderNumber]['line_details'],
-                orderNumber: this.state.orderNumber,
-                isConfirmed: is_confirmed
-              });
-            },
-            (error) => {
-              console.log("error: ", error)
-              this.setState({
-                isLoaded: true,
-                error
-              });
-            }
-        )
+        var result = this.getDemoData(this.state.orderNumber);
+        
+        var resultData = result['result'][this.state.orderNumber]['line_details'];
+        var is_confirmed = result['result'][this.state.orderNumber]['is_confirmed'];
+
+        this.destructureItems(resultData);
+
+        this.setState({
+            isLoaded: true,
+            items: result['result'][this.state.orderNumber]['line_details'],
+            orderNumber: this.state.orderNumber,
+            isConfirmed: is_confirmed
+        });
+    }
+
+    getDemoData(order_number) {
+        //L191953
+        var data = ""
+        
+        if (order_number === 'L191953') {
+            return {"result":{"L191953":{"crate_language":"","crates":null,"is_confirmed":true,"lid_required":false,"line_details":[],"sales_order_number":"L191953","special_instructions":""},"status":"Success"}}   
+        }
+        else if (order_number === 'L210636') {
+            return {"result":{"L210636":{"crate_language":"","crates":{"CR21000002":{"211219-12-C":{"quantity":1},"actual_gross_weight":5,"crate_type ":"P","location":"CC-TGT"},"CR21000008":{"210636-10":{"quantity":1},"210636-12":{"quantity":1},"actual_gross_weight":0,"crate_type ":"P","location":"R1A1"},"CR21000013":{"210636-16":{"quantity":1},"actual_gross_weight":0,"crate_type":"P","location":"HVMST05"}," CR21000015":{"210636-16":{"quantity":1},"actual_gross_weight":0,"crate_type":"P","location":"CR"},"CR22000024":{"210636-16":{"quan tity":1},"211068-1":{"quantity":1},"actual_gross_weight":0,"crate_type":"S","location":"CARRESEQ"},"CR22000026":{"210636-16":{"qua ntity":1},"actual_gross_weight":0,"crate_type":"P","location":"CARRESEQ"},"CR22000027":{"210636-16":{"quantity":1},"actual_gross_w eight":0,"crate_type":"P","location":"CARRESEQ"},"CR22000029":{"210636-16":{"quantity":1},"actual_gross_weight":0,"crate_type":"S" ,"location":"CARRESEQ"},"CR22000031":{"210636-16":{"quantity":1},"actual_gross_weight":0,"crate_type":"P","location":"CARRESEQ"}," CR22000032":{"210636-16":{"quantity":1},"actual_gross_weight":0,"crate_type":"Q","location":"CARRESEQ"},"CR22000033":{"210636-16": {"quantity":1},"actual_gross_weight":0,"crate_type":"P","location":"CARRESEQ"}},"is_confirmed":true,"item_details":{"210636-10":{" count_of_devices_packed":1},"210636-11":{"count_of_devices_packed":0},"210636-12":{"count_of_devices_packed":1},"210636-13":{"coun t_of_devices_packed":0},"210636-14":{"count_of_devices_packed":0},"210636-15":{"count_of_devices_packed":0},"210636-16":{"count_of _devices_packed":9},"210636-7":{"count_of_devices_packed":0}},"lid_required":false,"line_details":[{"item":"210636-7","order_qty": 13,"shipped_qty":0,"shipping_date":"2021-10-11T00:00:00.000Z"},{"item":"210636-10","order_qty":9,"shipped_qty":0,"shipping_date":" 2021-10-11T00:00:00.000Z"},{"item":"210636-11","order_qty":9,"shipped_qty":0,"shipping_date":"2021-10-11T00:00:00.000Z"},{"item":" 210636-12","order_qty":9,"shipped_qty":0,"shipping_date":"2021-10-11T00:00:00.000Z"},{"item":"210636-13","order_qty":9,"shipped_qt y":0,"shipping_date":"2021-10-11T00:00:00.000Z"},{"item":"210636-14","order_qty":9,"shipped_qty":0,"shipping_date":"2021-10-11T00: 00:00.000Z"},{"item":"210636-15","order_qty":9,"shipped_qty":0,"shipping_date":"2021-10-11T00:00:00.000Z"},{"item":"210636-16","or der_qty":13,"shipped_qty":0,"shipping_date":"2021-10-11T00:00:00.000Z"}],"sales_order_number":"L210636","special_instructions":""} ,"status":"Success"}}
+        }
+        else if (order_number === 'L200401') {
+            return {"result":{"L200401":{"crate_language":"","crates":null,"is_confirmed":false,"item_details":{"200401-1":{"count_of_devices_packed" :0},"200401-10":{"count_of_devices_packed":0},"200401-11":{"count_of_devices_packed":0},"200401-12":{"count_of_devices_packed":0}, "200401-13":{"count_of_devices_packed":0},"200401-14":{"count_of_devices_packed":0},"200401-2":{"count_of_devices_packed":0},"2004 01-3":{"count_of_devices_packed":0},"200401-4":{"count_of_devices_packed":0},"200401-5":{"count_of_devices_packed":0},"200401-6":{ "count_of_devices_packed":0},"200401-7":{"count_of_devices_packed":0},"200401-8":{"count_of_devices_packed":0},"200401-9":{"count_ of_devices_packed":0}},"lid_required":false,"line_details":[{"item":"200401-1","order_qty":1,"shipped_qty":0,"shipping_date":"2020 -06-01T00:00:00.000Z"},{"item":"200401-2","order_qty":1,"shipped_qty":0,"shipping_date":"2020-06-01T00:00:00.000Z"},{"item":"20040 1-3","order_qty":1,"shipped_qty":0,"shipping_date":"2020-06-01T00:00:00.000Z"},{"item":"200401-4","order_qty":1,"shipped_qty":0,"s hipping_date":"2020-06-01T00:00:00.000Z"},{"item":"200401-5","order_qty":1,"shipped_qty":0,"shipping_date":"2020-06-01T00:00:00.00 0Z"},{"item":"200401-6","order_qty":1,"shipped_qty":0,"shipping_date":"2020-06-01T00:00:00.000Z"},{"item":"200401-7","order_qty":1 ,"shipped_qty":0,"shipping_date":"2020-06-01T00:00:00.000Z"},{"item":"200401-8","order_qty":1,"shipped_qty":0,"shipping_date":"202 0-06-01T00:00:00.000Z"},{"item":"200401-9","order_qty":6,"shipped_qty":0,"shipping_date":"2020-06-01T00:00:00.000Z"},{"item":"2004 01-10","order_qty":12,"shipped_qty":0,"shipping_date":"2020-06-01T00:00:00.000Z"},{"item":"200401-11","order_qty":4,"shipped_qty": 0,"shipping_date":"2020-06-01T00:00:00.000Z"},{"item":"200401-12","order_qty":8,"shipped_qty":0,"shipping_date":"2020-06-01T00:00: 00.000Z"},{"item":"200401-13","order_qty":2,"shipped_qty":0,"shipping_date":"2020-06-01T00:00:00.000Z"},{"item":"200401-14","order _qty":4,"shipped_qty":0,"shipping_date":"2020-06-01T00:00:00.000Z"}],"sales_order_number":"L200401","special_instructions":""},"st atus":"Success"}}
+        }
+
+        return data;
     }
 
     destructureItems(resultData) {
