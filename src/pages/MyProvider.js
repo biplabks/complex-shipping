@@ -47,53 +47,53 @@ class MyProvider extends React.Component {
     // }
 
     //version 2
-    // dataFetch() {
-    //     // console.log("calling from dataFetch in MyProvider, this.state.orderNumber: ", this.state.orderNumber);
-    //     fetch("https://vanna.zh.if.atcsg.net:453/api/v1/get-qad-sales-order-info/"+this.state.orderNumber)
-    //       .then(res => res.json())
-    //       .then(
-    //         (result) => {
-    //           var resultData = result['result'][this.state.orderNumber]['line_details'];
-    //           var is_confirmed = result['result'][this.state.orderNumber]['is_confirmed'];
+    dataFetch() {
+        // console.log("calling from dataFetch in MyProvider, this.state.orderNumber: ", this.state.orderNumber);
+        fetch("https://vanna.zh.if.atcsg.net:453/api/v1/get-qad-sales-order-info/"+this.state.orderNumber)
+          .then(res => res.json())
+          .then(
+            (result) => {
+              var resultData = result['result'][this.state.orderNumber]['line_details'];
+              var is_confirmed = result['result'][this.state.orderNumber]['is_confirmed'];
     
-    //         //   console.log("calling from dataFetch in MyProvider, resultData: ", resultData)
-    //         //   console.log("calling from dataFetch in MyProvider, isConfirmed: ", is_confirmed)
+            //   console.log("calling from dataFetch in MyProvider, resultData: ", resultData)
+            //   console.log("calling from dataFetch in MyProvider, isConfirmed: ", is_confirmed)
     
-    //           this.destructureItems(resultData);
+              this.destructureItems(resultData);
     
-    //           this.setState({
-    //             isLoaded: true,
-    //             items: result['result'][this.state.orderNumber]['line_details'],
-    //             orderNumber: this.state.orderNumber,
-    //             isConfirmed: is_confirmed
-    //           });
-    //         },
-    //         (error) => {
-    //           console.log("error: ", error)
-    //           this.setState({
-    //             isLoaded: true,
-    //             error
-    //           });
-    //         }
-    //     )
-    // }
+              this.setState({
+                isLoaded: true,
+                items: result['result'][this.state.orderNumber]['line_details'],
+                orderNumber: this.state.orderNumber,
+                isConfirmed: is_confirmed
+              });
+            },
+            (error) => {
+              console.log("error: ", error)
+              this.setState({
+                isLoaded: true,
+                error
+              });
+            }
+        )
+    }
 
     //version 3
-    dataFetch() {
-        var result = this.getDemoData(this.state.orderNumber);
+    // dataFetch() {
+    //     var result = this.getDemoData(this.state.orderNumber);
         
-        var resultData = result['result'][this.state.orderNumber]['line_details'];
-        var is_confirmed = result['result'][this.state.orderNumber]['is_confirmed'];
+    //     var resultData = result['result'][this.state.orderNumber]['line_details'];
+    //     var is_confirmed = result['result'][this.state.orderNumber]['is_confirmed'];
 
-        this.destructureItems(resultData);
+    //     this.destructureItems(resultData);
 
-        this.setState({
-            isLoaded: true,
-            items: result['result'][this.state.orderNumber]['line_details'],
-            orderNumber: this.state.orderNumber,
-            isConfirmed: is_confirmed
-        });
-    }
+    //     this.setState({
+    //         isLoaded: true,
+    //         items: result['result'][this.state.orderNumber]['line_details'],
+    //         orderNumber: this.state.orderNumber,
+    //         isConfirmed: is_confirmed
+    //     });
+    // }
 
     getDemoData(order_number) {
         //L191953
@@ -325,6 +325,9 @@ class MyProvider extends React.Component {
                             alert("Please enter a valid order number");
                             event.preventDefault();
                         }
+                    },
+                    removeItemByDueDate: (selectedItem) => {
+                        
                     },
                     insertItemByDueDate: (due_date_key) => {
                         // console.log("calling from insertItemByDueDate in MyProvider, due_date_key: ", due_date_key)

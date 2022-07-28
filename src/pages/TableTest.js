@@ -47,7 +47,8 @@ class TableTest extends React.Component {
         //       );
         //   }
         // }
-      ]
+      ],
+      selected: [] 
     };
   }
   // deleteMovie() {
@@ -87,21 +88,90 @@ class TableTest extends React.Component {
       });
     }
   }
-  selectRowProp = {
-    mode: 'checkbox'
-  };
+
+  handleBtnClick = () => {
+
+    console.log("calling from handleBtnClick in TableTest, this.state.items: ", this.state.items);
+    console.log("calling from handleBtnClick in TableTest, this.state.selected: ", this.state.selected);
+
+    var existingItem = this.state.items;
+    var selectedItems = this.state.selected;
+
+    var modifiedData = [];
+    existingItem.forEach(element => {
+        if (!selectedItems.includes(element.id)) {
+          modifiedData.push(element);
+        }
+    })
+
+    for (let index = 0; index < modifiedData.length; index++) {
+      modifiedData[index]['id'] = index
+    }
+
+    this.setState({items: modifiedData, selected: []})
+  }
+
+  handleOnSelect = (row, isSelect) => {
+    if (isSelect) {
+      this.setState(() => ({
+        selected: [...this.state.selected, row.id]
+      }));
+    } else {
+      this.setState(() => ({
+        selected: this.state.selected.filter(x => x !== row.id)
+      }));
+    }
+  }
+
+  // version 1
+  // handleOnSelectAll = (isSelect, rows) => {
+  //   const ids = rows.map(r => r.id);
+  //   console.log("calling from handleOnSelectAll, ids: ", ids)
+  //   if (isSelect) {
+  //     this.setState(() => ({
+  //       selected: ids
+  //     }, () => console.log("Selected all: ", this.state.selected)));
+  //   } else {
+  //     this.setState(() => ({
+  //       selected: []
+  //     }));
+  //   }
+  // }
+
+  // version 2
+  handleOnSelectAll = (isSelect, rows) => {
+    const ids = rows.map(r => r.id);
+    if (isSelect) {
+      this.setState(() => ({
+        selected: ids
+      }));
+    } else {
+      this.setState(() => ({
+        selected: []
+      }));
+    }
+  }
 
   render() {
+    const selectRow = {
+      mode: 'checkbox',
+      clickToSelect: true,
+      selected: this.state.selected,
+      onSelect: this.handleOnSelect,
+      onSelectAll: this.handleOnSelectAll
+    };
       return (
         <Container className="p-3">
+          <button className="btn btn-success" onClick={ this.handleBtnClick }>Select/UnSelect 3rd row</button>
           <BootstrapTable
             keyField="id"
             // data={ items }
-            data={ this.props.orderDetails }
+            // data={ this.props.orderDetails }
+            data={ this.state.items }
             columns={ this.state.columns }
             cellEdit={ cellEditFactory({ mode: 'dbclick' }) }
             noDataIndication="Table is Empty"
-            selectRow={this.selectRowProp}
+            selectRow={selectRow}
           />
         </Container>
       );
