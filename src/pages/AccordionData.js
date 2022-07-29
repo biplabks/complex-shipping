@@ -138,8 +138,9 @@ const AccordionData = () => (
                         </form>
                       </div> */}
                     <TableTest
-                      // key={element.key} 
+                      due_date={element.key} 
                       // copyItemsByDueDate={() => context.copyItemsByDueDate(element.key)}
+                      getTest={context.getTest}
                       orderDetails={element.value}
                     />
                   </Accordion.Body>

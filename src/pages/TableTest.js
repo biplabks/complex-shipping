@@ -2,11 +2,13 @@ import BootstrapTable from 'react-bootstrap-table-next';
 import cellEditFactory from 'react-bootstrap-table2-editor';
 import React from 'react';
 import { Container, Button } from 'react-bootstrap';
+import MyContext from './MyContext';
 
 class TableTest extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      due_date: '',
       items: [],
       columns: [
         {
@@ -75,7 +77,8 @@ class TableTest extends React.Component {
   componentDidMount() {
     // console.log("calling from componentDidMount in TableTest")
     this.setState({
-      items: this.props.orderDetails
+      items: this.props.orderDetails,
+      due_date: this.props.due_date
     });
   }
 
@@ -89,8 +92,38 @@ class TableTest extends React.Component {
     }
   }
 
-  handleBtnClick = () => {
+  // version 1
+  // handleBtnClick = () => {
+  //   let value = this.context;
+  //   value['cars']['car001']['name'] = 'Biplab1'
+  //   console.log("calling from handleBtnClick in TableTest, value: ", value)
+  //   console.log("calling from handleBtnClick in TableTest, this.state.items: ", this.state.items);
+  //   console.log("calling from handleBtnClick in TableTest, this.state.selected: ", this.state.selected);
 
+  //   var existingItem = this.state.items;
+  //   var selectedItems = this.state.selected;
+
+  //   var modifiedData = [];
+  //   existingItem.forEach(element => {
+  //       if (!selectedItems.includes(element.id)) {
+  //         modifiedData.push(element);
+  //       }
+  //   })
+
+  //   for (let index = 0; index < modifiedData.length; index++) {
+  //     modifiedData[index]['id'] = index
+  //   }
+
+  //   this.setState({items: modifiedData, selected: []})
+
+  //   // value.getTest(this.state.due_date, selectedItems)
+  // }
+
+  // version 2
+  handleBtnClick = () => {
+    let value = this.context;
+    value['cars']['car001']['name'] = 'Biplab1'
+    console.log("calling from handleBtnClick in TableTest, value: ", value)
     console.log("calling from handleBtnClick in TableTest, this.state.items: ", this.state.items);
     console.log("calling from handleBtnClick in TableTest, this.state.selected: ", this.state.selected);
 
@@ -109,6 +142,20 @@ class TableTest extends React.Component {
     }
 
     this.setState({items: modifiedData, selected: []})
+
+    // value.getTest(this.state.due_date, selectedItems)
+    var existingItemByDueDate = value['itemsByDueDate']
+    // var existingItemByDueDateMap = value['itemsByDueDateMap']
+    for (let index = 0; index < existingItemByDueDate.length; index++) {
+      if(existingItemByDueDate[index]['key'] == this.state.due_date) {
+          existingItemByDueDate[index]['value'] = Object.assign([], modifiedData);
+          break
+      }
+    }
+
+    value['itemsByDueDateMap'].set(this.state.due_date, modifiedData)
+
+    console.log("value['itemsByDueDate']: ", value['itemsByDueDate'], ", value['itemsByDueDateMap']: ", value['itemsByDueDateMap'])
   }
 
   handleOnSelect = (row, isSelect) => {
@@ -156,6 +203,7 @@ class TableTest extends React.Component {
     const selectRow = {
       mode: 'checkbox',
       clickToSelect: true,
+      clickToEdit: true,
       selected: this.state.selected,
       onSelect: this.handleOnSelect,
       onSelectAll: this.handleOnSelectAll
@@ -177,6 +225,8 @@ class TableTest extends React.Component {
       );
     }
 };
+
+TableTest.contextType = MyContext;
 
 
 export default TableTest;
