@@ -1,8 +1,9 @@
 import BootstrapTable from 'react-bootstrap-table-next';
 import cellEditFactory from 'react-bootstrap-table2-editor';
 import React from 'react';
-import { Container, Button } from 'react-bootstrap';
+import { Container, Button, Form, Row, Col } from 'react-bootstrap';
 import MyContext from './MyContext';
+import moment from 'moment';
 
 class TableTest extends React.Component {
   constructor(props) {
@@ -10,6 +11,7 @@ class TableTest extends React.Component {
     this.state = {
       due_date: '',
       items: [],
+      isDateEditable: false,
       columns: [
         {
           dataField: 'id',
@@ -78,7 +80,8 @@ class TableTest extends React.Component {
     // console.log("calling from componentDidMount in TableTest")
     this.setState({
       items: this.props.orderDetails,
-      due_date: this.props.due_date
+      due_date: this.props.due_date,
+      isDateEditable: this.props.isDateEditable
     });
   }
 
@@ -199,6 +202,50 @@ class TableTest extends React.Component {
     }
   }
 
+  removeItemByDueDate = () => {
+    var existingItem = this.state.items;
+    var selectedItems = this.state.selected;
+
+    var modifiedData = [];
+    existingItem.forEach(element => {
+        if (!selectedItems.includes(element.id)) {
+          modifiedData.push(element);
+        }
+    })
+
+    for (let index = 0; index < modifiedData.length; index++) {
+      modifiedData[index]['id'] = index
+    }
+
+    this.setState({items: modifiedData, selected: []})
+
+    // value.getTest(this.state.due_date, selectedItems)
+    var existingItemByDueDate = this.context['itemsByDueDate']
+    // var existingItemByDueDateMap = value['itemsByDueDateMap']
+    for (let index = 0; index < existingItemByDueDate.length; index++) {
+      if(existingItemByDueDate[index]['key'] == this.state.due_date) {
+          existingItemByDueDate[index]['value'] = Object.assign([], modifiedData);
+          break
+      }
+    }
+
+    this.context['itemsByDueDateMap'].set(this.state.due_date, modifiedData)
+
+    console.log("value['itemsByDueDate']: ", this.context['itemsByDueDate'], ", value['itemsByDueDateMap']: ", this.context['itemsByDueDateMap'])
+  }
+
+  insertItemByDueDate = () => {
+    this.context.insertItemByDueDate(this.state.due_date);
+  }
+
+  copyItemsByDueDate = () => {
+    this.context.copyItemsByDueDate(this.state.due_date);
+  }
+
+  setDueDate = (event) => {
+    this.context.setDueDate(event, this.state.due_date);
+  }
+
   render() {
     const selectRow = {
       mode: 'checkbox',
@@ -210,7 +257,56 @@ class TableTest extends React.Component {
     };
       return (
         <Container className="p-3">
-          <button className="btn btn-success" onClick={ this.handleBtnClick }>Select/UnSelect 3rd row</button>
+          {/* <button className="btn btn-success" onClick={ this.handleBtnClick }>Select/UnSelect 3rd row</button> */}
+          {/* <Form>
+            <Form.Group className="mb-3" controlId="formGroupEmail">
+              <Form.Control type="date" placeholder="Enter date" />
+            </Form.Group>
+          </Form> */}
+          {
+            // style={{'background-color': 'green'}}
+            // style={{display: 'flex', justifyContent:'left'}}
+            <div>
+              <Form>
+                <Form.Group as={Row} className="mb-3" controlId="formGroupDueDate">
+                  <Form.Label style={{display: 'flex', justifyContent:'left'}} column sm="1">
+                    Due Date
+                  </Form.Label>
+                  <Col sm="3" className='m-6'>
+                    {/* <Form.Control style={{ justifyContent:'left'}} type="date" placeholder="Enter date" /> */}
+                    {/* <Form.Control onChange={event => context.setDueDate(event, element.key)} disabled={!element.isDateEditable} type="date" value={moment(element.key).utc().format('YYYY-MM-DD')} placeholder="Enter date" /> */}
+                    <Form.Control onChange={event => this.setDueDate(event)} disabled={!this.state.isDateEditable} type="date" value={moment(this.state.due_date).utc().format('YYYY-MM-DD')} placeholder="Enter date" />
+                  </Col>
+                </Form.Group>
+              </Form>
+            </div>
+          }
+          
+          {
+            !this.context.isConfirmed &&
+            <div className='d-flex justify-content-between me-3'>
+              <form>
+                <Button onClick={ this.removeItemByDueDate }>
+                  Remove records
+                </Button>
+              </form>
+              <form>
+                <Button onClick={this.insertItemByDueDate}>
+                  Insert Record
+                </Button>
+              </form>
+              <form>
+                <Button onClick={this.copyItemsByDueDate}>
+                  Copy Record
+                </Button>
+              </form>
+            </div>
+          }
+          {
+            <div>
+              <br />
+            </div>
+          }
           <BootstrapTable
             keyField="id"
             // data={ items }

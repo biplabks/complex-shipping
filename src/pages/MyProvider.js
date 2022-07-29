@@ -291,8 +291,41 @@ class MyProvider extends React.Component {
                             event.preventDefault();
                         }
                     },
-                    removeItemByDueDate: (selectedItem) => {
+                    removeItemByDueDate: (due_date_key, selectedItems) => {
+                        console.log("calling from removeItemByDueDate in MyProvider, due_date_key: ", due_date_key, ", selectedItems: ", selectedItems)
 
+                        var existingItemByDueDate = Object.assign([], this.state.itemsByDueDate);
+                        var existingItemByDueDateMap = this.state.itemsByDueDateMap;
+                        // console.log("calling from getTest in MyProvider, existingItemByDueDate: ", existingItemByDueDate, ", existingItemByDueDateMap: ", existingItemByDueDateMap)
+                        
+                        var existingItems = []
+
+                        var existingItems = existingItemByDueDate.filter(item => item.key == due_date_key)[0]['value'];
+                        
+                        var modifiedData = [];
+                        existingItems.forEach(element => {
+                            if (!selectedItems.includes(element.id)) {
+                                modifiedData.push(element);
+                            }
+                        })
+                        for (let index = 0; index < modifiedData.length; index++) {
+                            modifiedData[index]['id'] = index
+                        }
+
+                        // console.log("modifiedData: ", modifiedData)
+
+                        for (let index = 0; index < existingItemByDueDate.length; index++) {
+                            if(existingItemByDueDate[index]['key'] == due_date_key) {
+                                existingItemByDueDate[index]['value'] = Object.assign([], modifiedData);
+                                break
+                            }
+                        }
+                        // console.log("this.state.itemsByDueDate: ", this.state.itemsByDueDate)
+                        // console.log("existingItemByDueDate: ", existingItemByDueDate)
+                        
+                        existingItemByDueDateMap.set(due_date_key, modifiedData)
+                        this.setState({itemsByDueDate: modifiedData, itemsByDueDateMap: existingItemByDueDateMap}, 
+                            () => console.log("calling from getTest, this.state.itemsByDueDate: ", this.state.itemsByDueDate, ", this.state.itemsByDueDateMap: ", this.state.itemsByDueDateMap))
                     },
                     insertItemByDueDate: (due_date_key) => {
                         // console.log("calling from insertItemByDueDate in MyProvider, due_date_key: ", due_date_key)
@@ -403,6 +436,7 @@ class MyProvider extends React.Component {
                             
                             var nextAvailableDate = new Date(maxDate);
                             nextAvailableDate.setDate(maxDate.getDate()+1);
+                            nextAvailableDate = nextAvailableDate.toISOString();
 
                             existingData.set(nextAvailableDate, list_of_items)
                             

@@ -96,51 +96,22 @@ const AccordionData = () => (
               <Accordion defaultActiveKey="0">
                 <Accordion.Item eventKey="0">
                   <Accordion.Header>
-                    <Form>
-                      <Form.Group className="mb-3" controlId="formGroupEmail">
-                        {/* <Form.Control disabled={!element.isDateEditable} type="date" value={moment(element.key).utc().format('YYYY-MM-DD')} placeholder="Enter date" /> */}
-                        {/* <Form.Control disabled={!element.isDateEditable} type="date" readOnly value={moment(element.key).utc().format('YYYY-MM-DD')} placeholder="Enter date" /> */}
-                        <Form.Control onChange={event => context.setDueDate(event, element.key)} disabled={!element.isDateEditable} type="date" value={moment(element.key).utc().format('YYYY-MM-DD')} placeholder="Enter date" />
-                      </Form.Group>
-                    </Form>
+                    <div>
+                      <Form>
+                        <Form.Group className="mb-3" controlId="formGroupEmail">
+                          {/* <Form.Control disabled={!element.isDateEditable} type="date" value={moment(element.key).utc().format('YYYY-MM-DD')} placeholder="Enter date" /> */}
+                          {/* <Form.Control disabled={!element.isDateEditable} type="date" readOnly value={moment(element.key).utc().format('YYYY-MM-DD')} placeholder="Enter date" /> */}
+                          <Form.Control onChange={event => context.setDueDate(event, element.key)} disabled={true} type="date" value={moment(element.key).utc().format('YYYY-MM-DD')} placeholder="Enter date" />
+                        </Form.Group>
+                      </Form>
+                    </div>
                   </Accordion.Header>
                   <Accordion.Body>
-                    {
-                      !context.isConfirmed &&
-                      <div className='d-flex justify-content-between me-3'>
-                        <form>
-                          <Button onClick={context.removeItemByDueDate}>
-                            Remove records
-                          </Button>
-                        </form>
-                        <form>
-                          <Button onClick={() => context.insertItemByDueDate(element.key)}>
-                            Insert Record
-                          </Button>
-                        </form>
-                        <form>
-                          <Button onClick={() => context.copyItemsByDueDate(element.key)}>
-                            Copy Record
-                          </Button>
-                        </form>
-                      </div>
-                    }
-                      {/* <div className='d-flex justify-content-between me-3'>
-                        <form>
-                          <Button onClick={() => context.insertItemByDueDate(element.key)}>
-                            Insert Record
-                          </Button>
-                        </form>
-                        <form>
-                          <Button onClick={() => context.copyItemsByDueDate(element.key)}>
-                            Copy Record
-                          </Button>
-                        </form>
-                      </div> */}
                     <TableTest
-                      due_date={element.key} 
+                      due_date={element.key}
+                      isDateEditable={element.isDateEditable} 
                       // copyItemsByDueDate={() => context.copyItemsByDueDate(element.key)}
-                      getTest={context.getTest}
+                      // getTest={context.getTest}
                       orderDetails={element.value}
                     />
                   </Accordion.Body>
