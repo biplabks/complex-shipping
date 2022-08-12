@@ -15,7 +15,8 @@ class MyProvider extends React.Component {
         itemsByDueDateMap: new Map(),
         itemsByDueDate: [],
         orderNumber: '',
-        isConfirmed: null
+        isConfirmed: null,
+        validItems: []
     };
 
     //version 1
@@ -47,9 +48,9 @@ class MyProvider extends React.Component {
     // }
 
     //version 2
-    dataFetch() {
+    async dataFetch() {
         // console.log("calling from dataFetch in MyProvider, this.state.orderNumber: ", this.state.orderNumber);
-        fetch("https://vanna.zh.if.atcsg.net:453/api/v1/get-qad-sales-order-info/"+this.state.orderNumber)
+        await fetch("https://vanna.zh.if.atcsg.net:453/api/v1/get-qad-sales-order-info/"+this.state.orderNumber)
           .then(res => res.json())
           .then(
             (result) => {
@@ -367,7 +368,12 @@ class MyProvider extends React.Component {
                         try {
                             //const {error, isLoaded, items, itemsByDueDate, orderNumber} = this.state;
                             var existingData = this.state.itemsByDueDateMap;
-                            var list_of_items = existingData.get(due_date_key)
+
+                            // var list_of_items = existingData.get(due_date_key)
+                            // var list_of_items = Object.assign([],existingData.get(due_date_key))
+                            
+                            let list_of_items = JSON.parse(JSON.stringify(existingData.get(due_date_key)));
+
                             let dateArray = []
                             const keys = [...this.state.itemsByDueDateMap.keys()];
                             for (let index = 0; index < keys.length; index++) {
@@ -414,6 +420,29 @@ class MyProvider extends React.Component {
                         event.preventDefault();
                         
                         console.log("calling from submitOrderDetailsToQAD in MyProvider after preventDefault, itemsByDueDate: ", this.state.itemsByDueDate, ", itemsByDueDateMap: ", this.state.itemsByDueDateMap);
+
+                        fetch('http://127.0.0.1:5000/api/send_req_items_for_cs', {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                // title: title,
+                                // body: body,
+                                // userId: Math.random().toString(36).slice(2),
+                                itemsByDueDate: this.state.itemsByDueDate,
+                                orderNumber: this.state.orderNumber
+                            }),
+                            headers: {
+                                'Content-type': 'application/json; charset=UTF-8',
+                            },
+                        })
+                        .then((res) => res.json())
+                        .then((post) => {
+                            // setPosts((posts) => [post, ...posts]);
+                            // setTitle('');
+                            // setBody('');
+                        })
+                        .catch((err) => {
+                            console.log(err.message);
+                        });
                     },
                     addNewTableByDueDate: () => {
                         // console.log("calling from addNewTableByDueDate in MyProvider")

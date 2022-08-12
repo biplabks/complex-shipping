@@ -206,12 +206,16 @@ class TableTest extends React.Component {
     var existingItem = this.state.items;
     var selectedItems = this.state.selected;
 
+    console.log("calling from removeItemByDueDate, existingItem: ", existingItem, ", selectedItems: ", selectedItems)
+
     var modifiedData = [];
     existingItem.forEach(element => {
         if (!selectedItems.includes(element.id)) {
           modifiedData.push(element);
         }
     })
+
+    console.log("modifiedData: ", modifiedData, ", modifiedData.length: ", modifiedData.length)
 
     for (let index = 0; index < modifiedData.length; index++) {
       modifiedData[index]['id'] = index
