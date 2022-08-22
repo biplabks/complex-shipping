@@ -11,6 +11,7 @@ class TableTest extends React.Component {
     this.state = {
       due_date: '',
       items: [],
+      validItems: [],
       isDateEditable: false,
       columns: [
         {
@@ -55,9 +56,26 @@ class TableTest extends React.Component {
       selected: [] 
     };
   }
-  // deleteMovie() {
-  //   console.log("clicking on deleteMovie")
-  // }
+
+  // version 1
+  // validatorFormatter = (newValue, row, column) => {
+  //   var exists = false;
+  //   for (let index = 0; index < this.state.items.length; index++) {
+  //     if (this.state.items[index]['item'] === newValue) {
+  //       exists = true;
+  //       break;
+  //     }
+  //   }
+  //   if (exists) {
+  //     return {
+  //       valid: false,
+  //       message: "Duplicated entry found!"
+  //     };
+  //   }
+  //   return true;
+  // };
+
+  // version 2
   validatorFormatter = (newValue, row, column) => {
     var exists = false;
     for (let index = 0; index < this.state.items.length; index++) {
@@ -72,16 +90,34 @@ class TableTest extends React.Component {
         message: "Duplicated entry found!"
       };
     }
+
+    // console.log("calling from validatorFormatter, this.state.validItems: ", this.state.validItems, ", newValue: ", newValue)
+    // for (let index = 0; index < this.state.validItems.length; index++) {
+    //   console.log("calling from validatorFormatter, this.state.validItems[index]: ", this.state.validItems[index], ", newValue: ", newValue)
+    //   if (this.state.validItems[index] === newValue) {
+    //     exists = true;
+    //     break;
+    //   }
+    // }
+
+    if (!this.state.validItems.includes(newValue)) {
+      return {
+        valid: false,
+        message: "Invalid item!"
+      };
+    }
     return true;
-    // console.log("exists: ", exists);
   };
 
   componentDidMount() {
-    // console.log("calling from componentDidMount in TableTest")
+    console.log("calling from componentDidMount in TableTest: ", this.props.validItems)
     this.setState({
       items: this.props.orderDetails,
       due_date: this.props.due_date,
-      isDateEditable: this.props.isDateEditable
+      isDateEditable: this.props.isDateEditable,
+      validItems: this.props.validItems
+    }, () => {
+      console.log("calling from TableTest, this.state.validItems: ", this.state.validItems)
     });
   }
 
@@ -95,34 +131,6 @@ class TableTest extends React.Component {
     }
   }
 
-  // version 1
-  // handleBtnClick = () => {
-  //   let value = this.context;
-  //   value['cars']['car001']['name'] = 'Biplab1'
-  //   console.log("calling from handleBtnClick in TableTest, value: ", value)
-  //   console.log("calling from handleBtnClick in TableTest, this.state.items: ", this.state.items);
-  //   console.log("calling from handleBtnClick in TableTest, this.state.selected: ", this.state.selected);
-
-  //   var existingItem = this.state.items;
-  //   var selectedItems = this.state.selected;
-
-  //   var modifiedData = [];
-  //   existingItem.forEach(element => {
-  //       if (!selectedItems.includes(element.id)) {
-  //         modifiedData.push(element);
-  //       }
-  //   })
-
-  //   for (let index = 0; index < modifiedData.length; index++) {
-  //     modifiedData[index]['id'] = index
-  //   }
-
-  //   this.setState({items: modifiedData, selected: []})
-
-  //   // value.getTest(this.state.due_date, selectedItems)
-  // }
-
-  // version 2
   handleBtnClick = () => {
     let value = this.context;
     value['cars']['car001']['name'] = 'Biplab1'
@@ -173,22 +181,6 @@ class TableTest extends React.Component {
     }
   }
 
-  // version 1
-  // handleOnSelectAll = (isSelect, rows) => {
-  //   const ids = rows.map(r => r.id);
-  //   console.log("calling from handleOnSelectAll, ids: ", ids)
-  //   if (isSelect) {
-  //     this.setState(() => ({
-  //       selected: ids
-  //     }, () => console.log("Selected all: ", this.state.selected)));
-  //   } else {
-  //     this.setState(() => ({
-  //       selected: []
-  //     }));
-  //   }
-  // }
-
-  // version 2
   handleOnSelectAll = (isSelect, rows) => {
     const ids = rows.map(r => r.id);
     if (isSelect) {
@@ -240,6 +232,11 @@ class TableTest extends React.Component {
 
   insertItemByDueDate = () => {
     this.context.insertItemByDueDate(this.state.due_date);
+    this.setState({
+      validItems: this.context.validItems
+    }, () => {
+      console.log("calling from TableTest, this.state.validItems: ", this.state.validItems)
+    });
   }
 
   copyItemsByDueDate = () => {
