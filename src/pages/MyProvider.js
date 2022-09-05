@@ -49,114 +49,7 @@ class MyProvider extends React.Component {
               });
             }
         )
-
-        // await fetch("https://vanna.zh.if.atcsg.net:453/api/v1/get_valid_order_items/"+this.state.orderNumber.substring(1))
-        //     .then(res => res.json())
-        //     .then(
-        //         (result) => {
-        //             this.setState({
-        //                 validItems: result['result']['data']
-        //             }, () => {
-        //                 console.log("this.state.validItems: ", this.state.validItems)
-        //             });
-        //         },
-        //         (error) => {
-        //             console.log("error: ", error)
-        //             this.setState({
-        //                 isLoaded: true,
-        //                 error
-        //             });
-        //         }
-        //     )
     }
-
-    // version 2
-    // async dataFetch() {
-    //     const qad_sales_order_url = "https://vanna.zh.if.atcsg.net:453/api/v1/get-qad-sales-order-info/"+ this.state.orderNumber
-    //     const valid_order_items_url = "https://vanna.zh.if.atcsg.net:453/api/v1/get_valid_order_items/"+ this.state.orderNumber.substring(1)
-
-    //     const urls = [qad_sales_order_url, valid_order_items_url]
-
-    //     const responses = await Promise.all(
-    //         urls.map(async url => {
-    //             const res = await fetch(url)
-    //             .then(res => res.json())
-    //             .then(
-    //                 (result) => {
-    //                     console.log("url: ", url)
-    //                     console.log("result: ", result)
-
-    //                     if (url == qad_sales_order_url) {
-    //                         var resultData = result['result'][this.state.orderNumber]['line_details'];
-    //                         var is_confirmed = result['result'][this.state.orderNumber]['is_confirmed'];
-                
-    //                         this.destructureItems(resultData);
-                
-    //                         this.setState({
-    //                             isLoaded: true,
-    //                             items: result['result'][this.state.orderNumber]['line_details'],
-    //                             orderNumber: this.state.orderNumber,
-    //                             isConfirmed: is_confirmed
-    //                         });
-    //                     }
-    //                     if (url == valid_order_items_url) {
-    //                         this.setState({
-    //                             validItems: result['result']['data']
-    //                         }, () => {
-    //                             console.log("this.state.validItems: ", this.state.validItems)
-    //                         });
-    //                     }
-    //                 },
-    //                 (error) => {
-    //                     console.log("error: ", error)
-    //                     if (url == qad_sales_order_url) {
-    //                         this.setState({
-    //                             isLoaded: true,
-    //                             error
-    //                         });
-    //                     }
-    //                 }
-    //             );
-    //         })
-    //     );
-
-    //     responses.then(
-    //         (result) => { 
-    //             console.log(result);
-    //          },
-    //          (error) => { 
-    //             console.log(error);
-    //          }
-    //         // console.log("Everything is done!: ", this.state.validItems)
-    //     )
-
-    //     // console.log("responses: ", responses)
-
-    //     // await fetch("https://vanna.zh.if.atcsg.net:453/api/v1/get-qad-sales-order-info/"+this.state.orderNumber)
-    //     //   .then(res => res.json())
-    //     //   .then(
-    //     //     (result) => {
-    //     //       var resultData = result['result'][this.state.orderNumber]['line_details'];
-    //     //       var is_confirmed = result['result'][this.state.orderNumber]['is_confirmed'];
-    
-    //     //       this.destructureItems(resultData);
-    
-    //     //       this.setState({
-    //     //         isLoaded: true,
-    //     //         items: result['result'][this.state.orderNumber]['line_details'],
-    //     //         orderNumber: this.state.orderNumber,
-    //     //         isConfirmed: is_confirmed
-    //     //       });
-    //     //     },
-    //     //     (error) => {
-    //     //       console.log("error: ", error)
-    //     //       this.setState({
-    //     //         isLoaded: true,
-    //     //         error
-    //     //       });
-    //     //     }
-    //     // )
-    // }
 
     getValidOrderItems() {
         fetch("https://vanna.zh.if.atcsg.net:453/api/v1/get_valid_order_items/"+this.state.orderNumber.substring(1))
@@ -167,6 +60,32 @@ class MyProvider extends React.Component {
                         validItems: result['result']['data']
                     }, () => {
                         console.log("calling from getValidOrderItems, this.state.validItems: ", this.state.validItems)
+                    });
+                },
+                (error) => {
+                    console.log("error: ", error)
+                    this.setState({
+                        error
+                    });
+                }
+            )
+    }
+
+    getValidOrderItemsForNonLOrder() {
+        fetch("https://vanna.zh.if.atcsg.net:453/api/v1/get-items")
+            .then(res => res.json())
+            .then(
+                (result) => {
+                    var list_of_items = result['result']['items']
+                    var items_arr = []
+                    list_of_items.forEach(element => {
+                        items_arr.push(element['pt_part'])
+                    })
+                    
+                    this.setState({
+                        validItems: items_arr
+                    }, () => {
+                        console.log("calling from getValidOrderItemsForNonLOrder, this.state.validItems: ", this.state.validItems)
                     });
                 },
                 (error) => {
@@ -359,22 +278,47 @@ class MyProvider extends React.Component {
                             );
                         }
                     },
+                    
+                    // version 1
+                    // searchOrderDetails: (event) => {
+                    //     // console.log("calling from searchOrderDetails in MyProvider, event: ", event)
+                        
+                    //     event.preventDefault();
+                        
+                    //     // console.log("calling from searchOrderDetails in MyProvider after preventDefault, event: ", event)
+                    //     if (this.state.orderNumber.length === 7) {
+                    //         this.dataFetch();
+                    //         this.getValidOrderItems();
+                    //     }
+                    //     else {
+                    //         alert("Please enter a valid order number");
+                    //         event.preventDefault();
+                    //     }
+                    // },
 
+                    //version 2
                     searchOrderDetails: (event) => {
                         // console.log("calling from searchOrderDetails in MyProvider, event: ", event)
                         
                         event.preventDefault();
                         
                         // console.log("calling from searchOrderDetails in MyProvider after preventDefault, event: ", event)
-                        if (this.state.orderNumber.length === 7) {
+                        if (this.state.orderNumber.length === 7 && this.state.orderNumber[0] == 'L') {
                             this.dataFetch();
                             this.getValidOrderItems();
+                        }
+                        else if(this.state.orderNumber.length === 6 || this.state.orderNumber.length === 7) {
+                            //pbySO8
+                            console.log("this.state.orderNumber: ", this.state.orderNumber)
+                            this.dataFetch();
+                            this.getValidOrderItemsForNonLOrder();
                         }
                         else {
                             alert("Please enter a valid order number");
                             event.preventDefault();
                         }
                     },
+
                     removeItemByDueDate: (due_date_key, selectedItems) => {
                         console.log("calling from removeItemByDueDate in MyProvider, due_date_key: ", due_date_key, ", selectedItems: ", selectedItems)
 
