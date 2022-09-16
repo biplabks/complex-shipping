@@ -4,11 +4,6 @@ import { ThemeConsumer } from 'react-bootstrap/esm/ThemeProvider';
 
 class MyProvider extends React.Component {
     state = {
-        cars: {
-            car001: { name: 'Honda', price: 100 },
-            car002: { name: 'BMW', price: 150 },
-            car003: { name: 'Mercedes', price: 200 }
-        },
         error: '',
         isLoaded: false,
         items: [],
@@ -16,85 +11,367 @@ class MyProvider extends React.Component {
         itemsByDueDate: [],
         orderNumber: '',
         isConfirmed: null,
-        validItems: []
+        validItems: [],
+        validLisecItems: [],
+        validQADItems: []
     };
 
-    // version 1
-    dataFetch() {
-        // console.log("calling from dataFetch in MyProvider, this.state.orderNumber: ", this.state.orderNumber);
-        fetch("https://vanna.zh.if.atcsg.net:453/api/v1/get-qad-sales-order-info/"+this.state.orderNumber)
-          .then(res => res.json())
-          .then(
-            (result) => {
-              var resultData = result['result'][this.state.orderNumber]['line_details'];
-              var is_confirmed = result['result'][this.state.orderNumber]['is_confirmed'];
+    // dataFetch() {
+    //     // console.log("calling from dataFetch in MyProvider, this.state.orderNumber: ", this.state.orderNumber);
+    //     fetch("https://vanna.zh.if.atcsg.net:453/api/v1/get-qad-sales-order-info/"+this.state.orderNumber)
+    //       .then(res => res.json())
+    //       .then(
+    //         (result) => {
+    //           var resultData = result['result'][this.state.orderNumber]['line_details'];
+    //           var is_confirmed = result['result'][this.state.orderNumber]['is_confirmed'];
     
-            //   console.log("calling from dataFetch in MyProvider, resultData: ", resultData)
-            //   console.log("calling from dataFetch in MyProvider, isConfirmed: ", is_confirmed)
+    //         //   console.log("calling from dataFetch in MyProvider, resultData: ", resultData)
+    //         //   console.log("calling from dataFetch in MyProvider, isConfirmed: ", is_confirmed)
     
-              this.destructureItems(resultData);
+    //           this.destructureItems(resultData);
     
-              this.setState({
-                isLoaded: true,
-                items: result['result'][this.state.orderNumber]['line_details'],
-                orderNumber: this.state.orderNumber,
-                isConfirmed: is_confirmed
-              });
-            },
-            (error) => {
-              console.log("error: ", error)
-              this.setState({
-                isLoaded: true,
-                error
-              });
-            }
-        )
-    }
+    //           this.setState({
+    //             isLoaded: true,
+    //             items: result['result'][this.state.orderNumber]['line_details'],
+    //             orderNumber: this.state.orderNumber,
+    //             isConfirmed: is_confirmed
+    //           });
+    //         },
+    //         (error) => {
+    //           console.log("error: ", error)
+    //           this.setState({
+    //             isLoaded: true,
+    //             error
+    //           });
+    //         }
+    //     )
+    // }
 
-    getValidOrderItems() {
-        fetch("https://vanna.zh.if.atcsg.net:453/api/v1/get_valid_order_items/"+this.state.orderNumber.substring(1))
-            .then(res => res.json())
-            .then(
-                (result) => {
-                    this.setState({
-                        validItems: result['result']['data']
-                    }, () => {
-                        console.log("calling from getValidOrderItems, this.state.validItems: ", this.state.validItems)
-                    });
-                },
-                (error) => {
-                    console.log("error: ", error)
-                    this.setState({
-                        error
-                    });
-                }
-            )
-    }
+    // getValidLisecOrderItems() {
+    //     fetch("https://vanna.zh.if.atcsg.net:453/api/v1/get_valid_order_items/"+this.state.orderNumber.substring(1))
+    //         .then(res => res.json())
+    //         .then(
+    //             (result) => {
+    //                 this.setState({
+    //                     validItems: result['result']['data'],
+    //                     validLisecItems: result['result']['data']
+    //                 }, () => {
+    //                     // console.log("calling from getValidLisecOrderItems, this.state.validItems: ", this.state.validItems)
+    //                     console.log("calling from getValidLisecOrderItems, this.state.validLisecItems: ", this.state.validLisecItems)
+    //                 });
 
-    getValidOrderItemsForNonLOrder() {
-        fetch("https://vanna.zh.if.atcsg.net:453/api/v1/get-items")
-            .then(res => res.json())
-            .then(
-                (result) => {
-                    var list_of_items = result['result']['items']
-                    var items_arr = []
-                    list_of_items.forEach(element => {
-                        items_arr.push(element['pt_part'])
-                    })
+    //                 var items = this.state.validLisecItems.concat(this.state.validQADItems)
+    //                 console.log("calling from getValidLisecOrderItems, items: ", items)
+
+    //                 this.setState({
+    //                     validItems: items
+    //                 }, () => {
+    //                     console.log("calling from getValidLisecOrderItems, this.state.validItems: ", this.state.validItems)
+    //                 })
+
+    //             },
+    //             (error) => {
+    //                 console.log("error: ", error)
+    //                 this.setState({
+    //                     error
+    //                 });
+    //             }
+    //         )
+    // }
+
+    // getValidQADOrderItems() {
+    //     fetch("https://vanna.zh.if.atcsg.net:453/api/v1/get-items")
+    //         .then(res => res.json())
+    //         .then(
+    //             (result) => {
+    //                 var list_of_items = result['result']['items']
+    //                 var items_arr = []
+    //                 list_of_items.forEach(element => {
+    //                     items_arr.push(element['pt_part'])
+    //                 })
                     
-                    this.setState({
-                        validItems: items_arr
-                    }, () => {
-                        console.log("calling from getValidOrderItemsForNonLOrder, this.state.validItems: ", this.state.validItems)
-                    });
-                },
-                (error) => {
-                    console.log("error: ", error)
-                    this.setState({
-                        error
-                    });
-                }
-            )
+    //                 this.setState({
+    //                     validItems: items_arr,
+    //                     validQADItems: items_arr
+    //                 }, () => {
+    //                     // console.log("calling from getValidQADOrderItems, this.state.validItems: ", this.state.validItems)
+    //                     console.log("calling from getValidQADOrderItems, this.state.validQADItems: ", this.state.validQADItems)
+    //                 });
+
+    //                 var items = this.state.validLisecItems.concat(this.state.validQADItems)
+    //                 console.log("calling from getValidQADOrderItems, items: ", items)
+
+    //                 this.setState({
+    //                     validItems: items
+    //                 }, () => {
+    //                     console.log("calling from getValidQADOrderItems, this.state.validItems: ", this.state.validItems)
+    //                 })
+    //             },
+    //             (error) => {
+    //                 console.log("error: ", error)
+    //                 this.setState({
+    //                     error
+    //                 });
+    //             }
+    //         )
+    // }
+
+    //======================================================================================================================
+    async dataFetch() {
+        return await fetch("https://vanna.zh.if.atcsg.net:453/api/v1/get-qad-sales-order-info/"+this.state.orderNumber)
+        //   .then(res => res.json())
+        //   .then(
+        //     (result) => {
+        //       var resultData = result['result'][this.state.orderNumber]['line_details'];
+        //       var is_confirmed = result['result'][this.state.orderNumber]['is_confirmed'];
+    
+        //       console.log("calling from dataFetch in MyProvider, resultData: ", resultData)
+        //       console.log("calling from dataFetch in MyProvider, isConfirmed: ", is_confirmed)
+    
+        //       this.destructureItems(resultData);
+    
+        //       this.setState({
+        //         isLoaded: true,
+        //         items: result['result'][this.state.orderNumber]['line_details'],
+        //         orderNumber: this.state.orderNumber,
+        //         isConfirmed: is_confirmed
+        //       });
+        //     },
+        //     (error) => {
+        //       console.log("error: ", error)
+        //       this.setState({
+        //         isLoaded: true,
+        //         error
+        //       });
+        //     }
+        // )
+    }
+
+    async getValidLisecOrderItems() {
+        return await fetch("https://vanna.zh.if.atcsg.net:453/api/v1/get_valid_order_items/"+this.state.orderNumber.substring(1))
+            // .then(res => res.json())
+            // .then(
+            //     (result) => {
+            //         this.setState({
+            //             validItems: result['result']['data'],
+            //             validLisecItems: result['result']['data']
+            //         }, () => {
+            //             // console.log("calling from getValidLisecOrderItems, this.state.validItems: ", this.state.validItems)
+            //             console.log("calling from getValidLisecOrderItems, this.state.validLisecItems: ", this.state.validLisecItems)
+            //         });
+
+            //         var items = this.state.validLisecItems.concat(this.state.validQADItems)
+            //         console.log("calling from getValidLisecOrderItems, items: ", items)
+
+            //         this.setState({
+            //             validItems: items
+            //         }, () => {
+            //             console.log("calling from getValidLisecOrderItems, this.state.validItems: ", this.state.validItems)
+            //         })
+
+            //     },
+            //     (error) => {
+            //         console.log("error: ", error)
+            //         this.setState({
+            //             error
+            //         });
+            //     }
+            // )
+    }
+
+    async getValidQADOrderItems() {
+        return await fetch("https://vanna.zh.if.atcsg.net:453/api/v1/get-items")
+            // .then(res => res.json())
+            // .then(
+            //     (result) => {
+            //         var list_of_items = result['result']['items']
+            //         var items_arr = []
+            //         list_of_items.forEach(element => {
+            //             items_arr.push(element['pt_part'])
+            //         })
+                    
+            //         this.setState({
+            //             validItems: items_arr,
+            //             validQADItems: items_arr
+            //         }, () => {
+            //             // console.log("calling from getValidQADOrderItems, this.state.validItems: ", this.state.validItems)
+            //             console.log("calling from getValidQADOrderItems, this.state.validQADItems: ", this.state.validQADItems)
+            //         });
+
+            //         var items = this.state.validLisecItems.concat(this.state.validQADItems)
+            //         console.log("calling from getValidQADOrderItems, items: ", items)
+
+            //         this.setState({
+            //             validItems: items
+            //         }, () => {
+            //             console.log("calling from getValidQADOrderItems, this.state.validItems: ", this.state.validItems)
+            //         })
+            //     },
+            //     (error) => {
+            //         console.log("error: ", error)
+            //         this.setState({
+            //             error
+            //         });
+            //     }
+            // )
+    }
+
+    processDataFetch(response) {
+        if(response.result.status == "Error") {
+            console.log("processDataFetch error")
+            this.setState({
+                isLoaded: true,
+                error: response.result.message
+            });
+            return
+        }
+
+        console.log("calling from processDataFetch, response: ", response)
+
+        var resultData = response['result'][this.state.orderNumber]['line_details'];
+        
+        var is_confirmed = response['result'][this.state.orderNumber]['is_confirmed'];
+        
+        this.destructureItems(resultData);
+
+        this.setState({
+            isLoaded: true,
+            items: response['result'][this.state.orderNumber]['line_details'],
+            orderNumber: this.state.orderNumber,
+            isConfirmed: is_confirmed,
+            error: ''
+        });
+    }
+
+    processValidLisecOrderItems(response) {
+        var returnedData = response['result']['data']
+        if (!returnedData) {    //if it is undefined
+            returnedData = []
+        }
+
+        this.setState({
+            validLisecItems: returnedData
+        }, () => {
+            // console.log("calling from processValidLisecOrderItems, this.state.validLisecItems: ", this.state.validLisecItems)
+
+            var items = this.state.validLisecItems.concat(this.state.validQADItems)
+            // console.log("calling from processValidLisecOrderItems, items: ", items)
+
+            this.setState({
+                validItems: items
+            }, () => {
+                // console.log("calling from processValidLisecOrderItems, this.state.validItems: ", this.state.validItems)
+            })
+        });
+    }
+
+    processValidQADOrderItems(response) {
+        var list_of_items = response['result']['items']
+        var items_arr = []
+        list_of_items.forEach(element => {
+            items_arr.push(element['pt_part'])
+        })
+        
+        this.setState({
+            validQADItems: items_arr
+        }, () => {
+            // console.log("calling from getValidQADOrderItems, this.state.validItems: ", this.state.validItems)
+
+            var items = this.state.validLisecItems.concat(this.state.validQADItems)
+            // console.log("calling from processValidQADOrderItems, this.state.validQADItems: ", this.state.validQADItems)
+            // console.log("calling from processValidQADOrderItems, this.state.validLisecItems: ", this.state.validLisecItems)
+            // console.log("calling from processValidQADOrderItems, items: ", items)
+    
+            this.setState({
+                validItems: items
+            }, () => {
+                console.log("calling from processValidQADOrderItems, this.state.validItems: ", this.state.validItems)
+            })
+        });
+    }
+    //======================================================================================================================
+
+    clearAllRecord() {
+        this.setState({
+            error: '',
+            isLoaded: false,
+            items: [],
+            itemsByDueDateMap: new Map(),
+            itemsByDueDate: [],
+            orderNumber: '',
+            isConfirmed: null,
+            validItems: [],
+            validLisecItems: [],
+            validQADItems: []
+        }, () => {
+
+        })
+    }
+
+    async fetchAllData() {
+        try{
+            const responses = await Promise.all([this.dataFetch(), this.getValidLisecOrderItems(), this.getValidQADOrderItems()]);
+            // const responses = await Promise.allSettled([this.dataFetch(), this.getValidLisecOrderItems(), this.getValidQADOrderItems()]);
+
+            // console.log("responses: ", responses)
+
+            // await Promise.all([this.dataFetch(), this.getValidLisecOrderItems(), this.getValidQADOrderItems()]).then((values) => {
+            //     console.log("values: ", values[0])
+            // })
+
+            console.log("responses: ", responses)
+
+            // if (responses[0].value.status == 200) {
+            //     const anotherPromise1 = await responses[0].value.json();
+            //     console.log("anotherPromise1: ", anotherPromise1)
+            // }
+            
+            // if (responses[1].value.status == 200) {
+            //     const anotherPromise2 = await responses[1].value.json();
+            //     console.log("anotherPromise2: ", anotherPromise2)   
+            // }
+
+            // if (responses[2].value.status == 200) {
+            //     const anotherPromise3 = await responses[2].value.json();
+            //     console.log("anotherPromise3: ", anotherPromise3)
+            // }
+            
+
+            if (responses[0].status == 200) {
+                const anotherPromise1 = await responses[0].json();
+                console.log("anotherPromise1: ", anotherPromise1)
+                this.processDataFetch(anotherPromise1);
+            }
+            if (responses[1].status == 200) {
+                const anotherPromise2 = await responses[1].json();
+                console.log("anotherPromise2: ", anotherPromise2)
+                this.processValidLisecOrderItems(anotherPromise2)
+            }
+            if (responses[2].status == 200) {
+                const anotherPromise3 = await responses[2].json();
+                console.log("anotherPromise3: ", anotherPromise3)
+                this.processValidQADOrderItems(anotherPromise3)
+            }
+
+            // const result = [];
+            // return result;
+            
+            // const users = responses[0].data;
+            // const contacts = responses[1].data;
+            // const addresses = responses[2].data;
+            // const result: any = [];
+            // users.map((user: any) => {
+            // result.push({
+            //     ...user, 
+            //     ...contacts.find((contact: any) => contact.userId === user.userId), 
+            //     ...addresses.find((address: any) => address.userId === address.userId)})
+            // });
+            // return result;
+            
+        }catch(error) {
+            console.log("Erroring out, error: ", error)
+            // return [];
+        }
     }
 
     getDemoData(order_number) {
@@ -169,21 +446,6 @@ class MyProvider extends React.Component {
         return (
             <MyContext.Provider
                 value={{
-                    cars: this.state.cars,
-                    incrementPrice: selectedID => {
-                        const cars = Object.assign({}, this.state.cars);
-                        cars[selectedID].price = cars[selectedID].price + 1;
-                        this.setState({
-                            cars: cars
-                        });
-                    },
-                    decrementPrice: selectedID => {
-                        const cars = Object.assign({}, this.state.cars);
-                        cars[selectedID].price = cars[selectedID].price - 1;
-                        this.setState({
-                            cars
-                        });
-                    },
                     getTest: (due_date, selectedItems) => {
                         // console.log("calling from getTest in MyProvider, due_date: ", due_date, ", selectedItems: ", selectedItems)
                         var existingItemByDueDate = Object.assign([], this.state.itemsByDueDate);
@@ -278,40 +540,35 @@ class MyProvider extends React.Component {
                             );
                         }
                     },
-                    
-                    // version 1
-                    // searchOrderDetails: (event) => {
-                    //     // console.log("calling from searchOrderDetails in MyProvider, event: ", event)
-                        
-                    //     event.preventDefault();
-                        
-                    //     // console.log("calling from searchOrderDetails in MyProvider after preventDefault, event: ", event)
-                    //     if (this.state.orderNumber.length === 7) {
-                    //         this.dataFetch();
-                    //         this.getValidOrderItems();
-                    //     }
-                    //     else {
-                    //         alert("Please enter a valid order number");
-                    //         event.preventDefault();
-                    //     }
-                    // },
 
-                    //version 2
                     searchOrderDetails: (event) => {
                         // console.log("calling from searchOrderDetails in MyProvider, event: ", event)
                         
                         event.preventDefault();
+
+                        // this.clearAllRecord();
+
+                        // this.setState({
+                        //     isLoaded: false,
+                        //     error: ''
+                        // })
                         
                         // console.log("calling from searchOrderDetails in MyProvider after preventDefault, event: ", event)
                         if (this.state.orderNumber.length === 7 && this.state.orderNumber[0] == 'L') {
-                            this.dataFetch();
-                            this.getValidOrderItems();
+                            // this.dataFetch();
+                            // this.getValidLisecOrderItems();
+                            // this.getValidQADOrderItems();
+
+                            this.fetchAllData();
                         }
                         else if(this.state.orderNumber.length === 6 || this.state.orderNumber.length === 7) {
                             //pbySO8
                             console.log("this.state.orderNumber: ", this.state.orderNumber)
-                            this.dataFetch();
-                            this.getValidOrderItemsForNonLOrder();
+                            // this.dataFetch();
+                            // this.getValidLisecOrderItems();
+                            // this.getValidQADOrderItems();
+
+                            this.fetchAllData();
                         }
                         else {
                             alert("Please enter a valid order number");
@@ -456,8 +713,10 @@ class MyProvider extends React.Component {
                                 // title: title,
                                 // body: body,
                                 // userId: Math.random().toString(36).slice(2),
+                                orderNumber: this.state.orderNumber,
                                 itemsByDueDate: this.state.itemsByDueDate,
-                                orderNumber: this.state.orderNumber
+                                isValidLisecItemsAvailable: this.state.validLisecItems.length,
+                                validLisecItems: this.state.validLisecItems
                             }),
                             headers: {
                                 'Content-type': 'application/json; charset=UTF-8',
@@ -523,13 +782,6 @@ class MyProvider extends React.Component {
                     itemsByDueDateMap: this.state.itemsByDueDateMap,
                     isConfirmed: this.state.isConfirmed,
                     validItems: this.state.validItems
-                    // insertDataByDueDate: (due_date, list_of_items) => {
-                    //     const cars = Object.assign({}, this.state.cars);
-                    //     cars[selectedID].price = cars[selectedID].price + 1;
-                    //     this.setState({
-                    //         cars: cars
-                    //     });
-                    // }
                 }}
             >
                 {this.props.children}

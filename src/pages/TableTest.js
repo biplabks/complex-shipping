@@ -110,14 +110,14 @@ class TableTest extends React.Component {
   };
 
   componentDidMount() {
-    console.log("calling from componentDidMount in TableTest: ", this.props.validItems)
+    //console.log("calling from componentDidMount in TableTest: ", this.props.validItems)
     this.setState({
       items: this.props.orderDetails,
       due_date: this.props.due_date,
       isDateEditable: this.props.isDateEditable,
       validItems: this.props.validItems
     }, () => {
-      console.log("calling from TableTest, this.state.validItems: ", this.state.validItems)
+      //console.log("calling from TableTest, this.state.validItems: ", this.state.validItems)
     });
   }
 
@@ -134,9 +134,9 @@ class TableTest extends React.Component {
   handleBtnClick = () => {
     let value = this.context;
     value['cars']['car001']['name'] = 'Biplab1'
-    console.log("calling from handleBtnClick in TableTest, value: ", value)
-    console.log("calling from handleBtnClick in TableTest, this.state.items: ", this.state.items);
-    console.log("calling from handleBtnClick in TableTest, this.state.selected: ", this.state.selected);
+    // console.log("calling from handleBtnClick in TableTest, value: ", value)
+    // console.log("calling from handleBtnClick in TableTest, this.state.items: ", this.state.items);
+    // console.log("calling from handleBtnClick in TableTest, this.state.selected: ", this.state.selected);
 
     var existingItem = this.state.items;
     var selectedItems = this.state.selected;
@@ -166,7 +166,7 @@ class TableTest extends React.Component {
 
     value['itemsByDueDateMap'].set(this.state.due_date, modifiedData)
 
-    console.log("value['itemsByDueDate']: ", value['itemsByDueDate'], ", value['itemsByDueDateMap']: ", value['itemsByDueDateMap'])
+    //console.log("value['itemsByDueDate']: ", value['itemsByDueDate'], ", value['itemsByDueDateMap']: ", value['itemsByDueDateMap'])
   }
 
   handleOnSelect = (row, isSelect) => {
@@ -198,7 +198,7 @@ class TableTest extends React.Component {
     var existingItem = this.state.items;
     var selectedItems = this.state.selected;
 
-    console.log("calling from removeItemByDueDate, existingItem: ", existingItem, ", selectedItems: ", selectedItems)
+    //console.log("calling from removeItemByDueDate, existingItem: ", existingItem, ", selectedItems: ", selectedItems)
 
     var modifiedData = [];
     existingItem.forEach(element => {
@@ -207,7 +207,7 @@ class TableTest extends React.Component {
         }
     })
 
-    console.log("modifiedData: ", modifiedData, ", modifiedData.length: ", modifiedData.length)
+    //console.log("modifiedData: ", modifiedData, ", modifiedData.length: ", modifiedData.length)
 
     for (let index = 0; index < modifiedData.length; index++) {
       modifiedData[index]['id'] = index
@@ -227,7 +227,7 @@ class TableTest extends React.Component {
 
     this.context['itemsByDueDateMap'].set(this.state.due_date, modifiedData)
 
-    console.log("value['itemsByDueDate']: ", this.context['itemsByDueDate'], ", value['itemsByDueDateMap']: ", this.context['itemsByDueDateMap'])
+    //console.log("value['itemsByDueDate']: ", this.context['itemsByDueDate'], ", value['itemsByDueDateMap']: ", this.context['itemsByDueDateMap'])
   }
 
   insertItemByDueDate = () => {
@@ -235,7 +235,7 @@ class TableTest extends React.Component {
     this.setState({
       validItems: this.context.validItems
     }, () => {
-      console.log("calling from TableTest, this.state.validItems: ", this.state.validItems)
+      //console.log("calling from TableTest, this.state.validItems: ", this.state.validItems)
     });
   }
 

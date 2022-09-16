@@ -4,6 +4,7 @@ import AccordionTest from './AccordionTest';
 import SearchForm from './SearchForm';
 import MyContext from './MyContext';
 import AccordionData from './AccordionData';
+import LoadingSpinner from "./LoadingSpinner";
 
   const ComplexShipping = () => (
     // if (context.error) {
@@ -54,7 +55,12 @@ import AccordionData from './AccordionData';
             <>
               {
                 !context.isLoaded && context.orderNumber.length == 7 &&
-                <p>Waiting for data from QAD...</p>
+                <LoadingSpinner />
+                // <p>Waiting for data from QAD...</p>
+              }
+              {
+                context.isLoaded && context.orderNumber.length == 7 && context.error.length != 0 &&
+                <p>{context.error}</p>
               }
             </>
             <AccordionData />
