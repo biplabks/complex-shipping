@@ -44,11 +44,19 @@ import LoadingSpinner from "./LoadingSpinner";
               <h2>Order by Shipping Date</h2>
             </Container>
             <br />
-            <Container className="d-flex justify-content-between">
+            {
+              !context.isConfirmed && context.itemsByDueDate.length != 0 &&
+              <Container className="d-flex justify-content-between">
+                <Button onClick={context.addNewTableByDueDate} variant="primary">
+                  Add New Table
+                </Button>
+              </Container>
+            }
+            {/* <Container className="d-flex justify-content-between">
               <Button onClick={context.addNewTableByDueDate} variant="primary">
                 Add New Table
               </Button>
-            </Container>
+            </Container> */}
             
             <br />
             {/* <AccordionTest /> */}
@@ -56,6 +64,7 @@ import LoadingSpinner from "./LoadingSpinner";
               {
                 !context.isLoaded && context.orderNumber.length == 7 &&
                 <LoadingSpinner />
+
                 // <p>Waiting for data from QAD...</p>
               }
               {
@@ -64,9 +73,19 @@ import LoadingSpinner from "./LoadingSpinner";
               }
             </>
             <AccordionData />
-            <Button onClick={context.submitOrderDetailsToQAD} variant="primary" size="lg">
+
+            {/* <Button disabled={context.isConfirmed} onClick={context.submitOrderDetailsToQAD} variant="primary" size="lg">
               Submit Data
-            </Button>
+            </Button> */}
+
+            <>
+              {
+                !context.isConfirmed &&
+                <Button disabled={context.isConfirmed} onClick={context.submitOrderDetailsToQAD} variant="primary" size="lg">
+                  {context.submitButtonText}
+                </Button>
+              }
+            </>
           </div>
         </React.Fragment>
       )}

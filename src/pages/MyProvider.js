@@ -5,7 +5,7 @@ import { ThemeConsumer } from 'react-bootstrap/esm/ThemeProvider';
 class MyProvider extends React.Component {
     state = {
         error: '',
-        isLoaded: false,
+        isLoaded: true,
         items: [],
         itemsByDueDateMap: new Map(),
         itemsByDueDate: [],
@@ -13,7 +13,9 @@ class MyProvider extends React.Component {
         isConfirmed: null,
         validItems: [],
         validLisecItems: [],
-        validQADItems: []
+        validQADItems: [],
+        submitButtonText: 'Submit Data',
+        isSubmitButtonLoading: false
     };
 
     // dataFetch() {
@@ -548,10 +550,11 @@ class MyProvider extends React.Component {
 
                         // this.clearAllRecord();
 
-                        // this.setState({
-                        //     isLoaded: false,
-                        //     error: ''
-                        // })
+                        this.setState({
+                            itemsByDueDate: [],
+                            isLoaded: false,
+                            error: ''
+                        })
                         
                         // console.log("calling from searchOrderDetails in MyProvider after preventDefault, event: ", event)
                         if (this.state.orderNumber.length === 7 && this.state.orderNumber[0] == 'L') {
@@ -657,6 +660,12 @@ class MyProvider extends React.Component {
                             // var list_of_items = Object.assign([],existingData.get(due_date_key))
                             
                             let list_of_items = JSON.parse(JSON.stringify(existingData.get(due_date_key)));
+                            console.log("list_of_items: ", list_of_items)
+
+                            for (let index = 0; index < list_of_items.length; index++) {
+                                const element = list_of_items[index];
+                                delete element.sales_order_line
+                            }
 
                             let dateArray = []
                             const keys = [...this.state.itemsByDueDateMap.keys()];
@@ -707,6 +716,14 @@ class MyProvider extends React.Component {
 
                         console.log("calling from submitOrderDetailsToQAD in MyProvider after preventDefault, itemsByDueDate: ", this.state.itemsByDueDate);
 
+                        if (!this.state.itemsByDueDate.length) {
+                            alert("Not enough data to submit to QAD!")
+                        }
+
+                        this.setState({
+                            submitButtonText: "Loading..."
+                        }, () => {})
+
                         fetch('http://127.0.0.1:5000/api/send_req_items_for_cs', {
                             method: 'POST',
                             body: JSON.stringify({
@@ -724,6 +741,13 @@ class MyProvider extends React.Component {
                         })
                         .then((res) => res.json())
                         .then((post) => {
+                            console.log("=======Am I here=========");
+                            console.log("post: ", post.data);
+                            if (post.data == 'success') {
+                                this.setState({
+                                    submitButtonText: "Submit Data"
+                                }, () => {})
+                            }
                             // setPosts((posts) => [post, ...posts]);
                             // setTitle('');
                             // setBody('');
@@ -781,7 +805,8 @@ class MyProvider extends React.Component {
                     itemsByDueDate: this.state.itemsByDueDate,
                     itemsByDueDateMap: this.state.itemsByDueDateMap,
                     isConfirmed: this.state.isConfirmed,
-                    validItems: this.state.validItems
+                    validItems: this.state.validItems,
+                    submitButtonText: this.state.submitButtonText
                 }}
             >
                 {this.props.children}
