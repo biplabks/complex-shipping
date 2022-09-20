@@ -1,6 +1,5 @@
 import MyContext from './MyContext';
 import React from 'react';
-import { ThemeConsumer } from 'react-bootstrap/esm/ThemeProvider';
 
 class MyProvider extends React.Component {
     state = {
@@ -18,204 +17,17 @@ class MyProvider extends React.Component {
         isSubmitButtonLoading: false
     };
 
-    // dataFetch() {
-    //     // console.log("calling from dataFetch in MyProvider, this.state.orderNumber: ", this.state.orderNumber);
-    //     fetch("https://vanna.zh.if.atcsg.net:453/api/v1/get-qad-sales-order-info/"+this.state.orderNumber)
-    //       .then(res => res.json())
-    //       .then(
-    //         (result) => {
-    //           var resultData = result['result'][this.state.orderNumber]['line_details'];
-    //           var is_confirmed = result['result'][this.state.orderNumber]['is_confirmed'];
-    
-    //         //   console.log("calling from dataFetch in MyProvider, resultData: ", resultData)
-    //         //   console.log("calling from dataFetch in MyProvider, isConfirmed: ", is_confirmed)
-    
-    //           this.destructureItems(resultData);
-    
-    //           this.setState({
-    //             isLoaded: true,
-    //             items: result['result'][this.state.orderNumber]['line_details'],
-    //             orderNumber: this.state.orderNumber,
-    //             isConfirmed: is_confirmed
-    //           });
-    //         },
-    //         (error) => {
-    //           console.log("error: ", error)
-    //           this.setState({
-    //             isLoaded: true,
-    //             error
-    //           });
-    //         }
-    //     )
-    // }
-
-    // getValidLisecOrderItems() {
-    //     fetch("https://vanna.zh.if.atcsg.net:453/api/v1/get_valid_order_items/"+this.state.orderNumber.substring(1))
-    //         .then(res => res.json())
-    //         .then(
-    //             (result) => {
-    //                 this.setState({
-    //                     validItems: result['result']['data'],
-    //                     validLisecItems: result['result']['data']
-    //                 }, () => {
-    //                     // console.log("calling from getValidLisecOrderItems, this.state.validItems: ", this.state.validItems)
-    //                     console.log("calling from getValidLisecOrderItems, this.state.validLisecItems: ", this.state.validLisecItems)
-    //                 });
-
-    //                 var items = this.state.validLisecItems.concat(this.state.validQADItems)
-    //                 console.log("calling from getValidLisecOrderItems, items: ", items)
-
-    //                 this.setState({
-    //                     validItems: items
-    //                 }, () => {
-    //                     console.log("calling from getValidLisecOrderItems, this.state.validItems: ", this.state.validItems)
-    //                 })
-
-    //             },
-    //             (error) => {
-    //                 console.log("error: ", error)
-    //                 this.setState({
-    //                     error
-    //                 });
-    //             }
-    //         )
-    // }
-
-    // getValidQADOrderItems() {
-    //     fetch("https://vanna.zh.if.atcsg.net:453/api/v1/get-items")
-    //         .then(res => res.json())
-    //         .then(
-    //             (result) => {
-    //                 var list_of_items = result['result']['items']
-    //                 var items_arr = []
-    //                 list_of_items.forEach(element => {
-    //                     items_arr.push(element['pt_part'])
-    //                 })
-                    
-    //                 this.setState({
-    //                     validItems: items_arr,
-    //                     validQADItems: items_arr
-    //                 }, () => {
-    //                     // console.log("calling from getValidQADOrderItems, this.state.validItems: ", this.state.validItems)
-    //                     console.log("calling from getValidQADOrderItems, this.state.validQADItems: ", this.state.validQADItems)
-    //                 });
-
-    //                 var items = this.state.validLisecItems.concat(this.state.validQADItems)
-    //                 console.log("calling from getValidQADOrderItems, items: ", items)
-
-    //                 this.setState({
-    //                     validItems: items
-    //                 }, () => {
-    //                     console.log("calling from getValidQADOrderItems, this.state.validItems: ", this.state.validItems)
-    //                 })
-    //             },
-    //             (error) => {
-    //                 console.log("error: ", error)
-    //                 this.setState({
-    //                     error
-    //                 });
-    //             }
-    //         )
-    // }
-
     //======================================================================================================================
     async dataFetch() {
         return await fetch("https://vanna.zh.if.atcsg.net:453/api/v1/get-qad-sales-order-info/"+this.state.orderNumber)
-        //   .then(res => res.json())
-        //   .then(
-        //     (result) => {
-        //       var resultData = result['result'][this.state.orderNumber]['line_details'];
-        //       var is_confirmed = result['result'][this.state.orderNumber]['is_confirmed'];
-    
-        //       console.log("calling from dataFetch in MyProvider, resultData: ", resultData)
-        //       console.log("calling from dataFetch in MyProvider, isConfirmed: ", is_confirmed)
-    
-        //       this.destructureItems(resultData);
-    
-        //       this.setState({
-        //         isLoaded: true,
-        //         items: result['result'][this.state.orderNumber]['line_details'],
-        //         orderNumber: this.state.orderNumber,
-        //         isConfirmed: is_confirmed
-        //       });
-        //     },
-        //     (error) => {
-        //       console.log("error: ", error)
-        //       this.setState({
-        //         isLoaded: true,
-        //         error
-        //       });
-        //     }
-        // )
     }
 
     async getValidLisecOrderItems() {
         return await fetch("https://vanna.zh.if.atcsg.net:453/api/v1/get_valid_order_items/"+this.state.orderNumber.substring(1))
-            // .then(res => res.json())
-            // .then(
-            //     (result) => {
-            //         this.setState({
-            //             validItems: result['result']['data'],
-            //             validLisecItems: result['result']['data']
-            //         }, () => {
-            //             // console.log("calling from getValidLisecOrderItems, this.state.validItems: ", this.state.validItems)
-            //             console.log("calling from getValidLisecOrderItems, this.state.validLisecItems: ", this.state.validLisecItems)
-            //         });
-
-            //         var items = this.state.validLisecItems.concat(this.state.validQADItems)
-            //         console.log("calling from getValidLisecOrderItems, items: ", items)
-
-            //         this.setState({
-            //             validItems: items
-            //         }, () => {
-            //             console.log("calling from getValidLisecOrderItems, this.state.validItems: ", this.state.validItems)
-            //         })
-
-            //     },
-            //     (error) => {
-            //         console.log("error: ", error)
-            //         this.setState({
-            //             error
-            //         });
-            //     }
-            // )
     }
 
     async getValidQADOrderItems() {
         return await fetch("https://vanna.zh.if.atcsg.net:453/api/v1/get-items")
-            // .then(res => res.json())
-            // .then(
-            //     (result) => {
-            //         var list_of_items = result['result']['items']
-            //         var items_arr = []
-            //         list_of_items.forEach(element => {
-            //             items_arr.push(element['pt_part'])
-            //         })
-                    
-            //         this.setState({
-            //             validItems: items_arr,
-            //             validQADItems: items_arr
-            //         }, () => {
-            //             // console.log("calling from getValidQADOrderItems, this.state.validItems: ", this.state.validItems)
-            //             console.log("calling from getValidQADOrderItems, this.state.validQADItems: ", this.state.validQADItems)
-            //         });
-
-            //         var items = this.state.validLisecItems.concat(this.state.validQADItems)
-            //         console.log("calling from getValidQADOrderItems, items: ", items)
-
-            //         this.setState({
-            //             validItems: items
-            //         }, () => {
-            //             console.log("calling from getValidQADOrderItems, this.state.validItems: ", this.state.validItems)
-            //         })
-            //     },
-            //     (error) => {
-            //         console.log("error: ", error)
-            //         this.setState({
-            //             error
-            //         });
-            //     }
-            // )
     }
 
     processDataFetch(response) {
@@ -254,15 +66,11 @@ class MyProvider extends React.Component {
         this.setState({
             validLisecItems: returnedData
         }, () => {
-            // console.log("calling from processValidLisecOrderItems, this.state.validLisecItems: ", this.state.validLisecItems)
-
             var items = this.state.validLisecItems.concat(this.state.validQADItems)
-            // console.log("calling from processValidLisecOrderItems, items: ", items)
 
             this.setState({
                 validItems: items
             }, () => {
-                // console.log("calling from processValidLisecOrderItems, this.state.validItems: ", this.state.validItems)
             })
         });
     }
@@ -277,13 +85,8 @@ class MyProvider extends React.Component {
         this.setState({
             validQADItems: items_arr
         }, () => {
-            // console.log("calling from getValidQADOrderItems, this.state.validItems: ", this.state.validItems)
-
             var items = this.state.validLisecItems.concat(this.state.validQADItems)
-            // console.log("calling from processValidQADOrderItems, this.state.validQADItems: ", this.state.validQADItems)
-            // console.log("calling from processValidQADOrderItems, this.state.validLisecItems: ", this.state.validLisecItems)
-            // console.log("calling from processValidQADOrderItems, items: ", items)
-    
+            
             this.setState({
                 validItems: items
             }, () => {
@@ -313,32 +116,7 @@ class MyProvider extends React.Component {
     async fetchAllData() {
         try{
             const responses = await Promise.all([this.dataFetch(), this.getValidLisecOrderItems(), this.getValidQADOrderItems()]);
-            // const responses = await Promise.allSettled([this.dataFetch(), this.getValidLisecOrderItems(), this.getValidQADOrderItems()]);
-
-            // console.log("responses: ", responses)
-
-            // await Promise.all([this.dataFetch(), this.getValidLisecOrderItems(), this.getValidQADOrderItems()]).then((values) => {
-            //     console.log("values: ", values[0])
-            // })
-
-            console.log("responses: ", responses)
-
-            // if (responses[0].value.status == 200) {
-            //     const anotherPromise1 = await responses[0].value.json();
-            //     console.log("anotherPromise1: ", anotherPromise1)
-            // }
-            
-            // if (responses[1].value.status == 200) {
-            //     const anotherPromise2 = await responses[1].value.json();
-            //     console.log("anotherPromise2: ", anotherPromise2)   
-            // }
-
-            // if (responses[2].value.status == 200) {
-            //     const anotherPromise3 = await responses[2].value.json();
-            //     console.log("anotherPromise3: ", anotherPromise3)
-            // }
-            
-
+        
             if (responses[0].status == 200) {
                 const anotherPromise1 = await responses[0].json();
                 console.log("anotherPromise1: ", anotherPromise1)
@@ -354,21 +132,6 @@ class MyProvider extends React.Component {
                 console.log("anotherPromise3: ", anotherPromise3)
                 this.processValidQADOrderItems(anotherPromise3)
             }
-
-            // const result = [];
-            // return result;
-            
-            // const users = responses[0].data;
-            // const contacts = responses[1].data;
-            // const addresses = responses[2].data;
-            // const result: any = [];
-            // users.map((user: any) => {
-            // result.push({
-            //     ...user, 
-            //     ...contacts.find((contact: any) => contact.userId === user.userId), 
-            //     ...addresses.find((address: any) => address.userId === address.userId)})
-            // });
-            // return result;
             
         }catch(error) {
             console.log("Erroring out, error: ", error)
@@ -424,35 +187,13 @@ class MyProvider extends React.Component {
         );
     }
 
-    // componentDidUpdate(prevProps) {
-    //     console.log("calling from componentDidUpdate in MyProvider, this.props.orderNumber: ", this.props.orderNumber)
-    //     if(prevProps.orderNumber !== this.props.orderNumber){
-    //       // console.log("Hello, I am here for update testing: ", this.props.orderDetails)
-    //       this.setState({
-    //         orderNumber: this.props.orderNumber
-    //       });
-    
-    //       this.dataFetch();
-    //     }
-    // }
-
-    // componentDidMount() {
-    //     console.log("calling from componentDidMount in MyProvider, this.props.orderNumber: ", this.props.orderNumber)
-    //     if (this.props.orderNumber.length !== 7) {
-    //         return;
-    //     }
-    //     this.dataFetch();
-    // }
-
     render() {
         return (
             <MyContext.Provider
                 value={{
                     getTest: (due_date, selectedItems) => {
-                        // console.log("calling from getTest in MyProvider, due_date: ", due_date, ", selectedItems: ", selectedItems)
                         var existingItemByDueDate = Object.assign([], this.state.itemsByDueDate);
                         var existingItemByDueDateMap = this.state.itemsByDueDateMap;
-                        // console.log("calling from getTest in MyProvider, existingItemByDueDate: ", existingItemByDueDate, ", existingItemByDueDateMap: ", existingItemByDueDateMap)
                         
                         var existingItems = []
 
@@ -468,34 +209,22 @@ class MyProvider extends React.Component {
                             modifiedData[index]['id'] = index
                         }
 
-                        // console.log("modifiedData: ", modifiedData)
-
                         for (let index = 0; index < existingItemByDueDate.length; index++) {
                             if(existingItemByDueDate[index]['key'] == due_date) {
                                 existingItemByDueDate[index]['value'] = Object.assign([], modifiedData);
                                 break
                             }
                         }
-                        // console.log("this.state.itemsByDueDate: ", this.state.itemsByDueDate)
-                        // console.log("existingItemByDueDate: ", existingItemByDueDate)
                         
                         existingItemByDueDateMap.set(due_date, modifiedData)
-                        // this.setState({itemsByDueDate: modifiedData, itemsByDueDateMap: existingItemByDueDateMap}, 
-                        //     () => console.log("calling from getTest, this.state.itemsByDueDate: ", this.state.itemsByDueDate, ", this.state.itemsByDueDateMap: ", this.state.itemsByDueDateMap))
                     },
-                    //version 1
+
                     setOrderNumber: (event) => {
-                        // console.log("Hello guys, orderNumber: ", event.target.value)
-                        // console.log("Hello guys, orderNumber: ", event)
                         var orderNumber = event.target.value;
                         this.setState({
                             orderNumber: orderNumber
                         }, () => {
-                            // console.log("Updated orderNumber: ", this.state.orderNumber) 
-                            // if (this.state.orderNumber.length === 7) {
-                            //     console.log("I am here dude 2, this.state.orderNumber: ", this.state.orderNumber)
-                            //     this.dataFetch();
-                            // }
+                            
                         });
                     },
                     
@@ -515,26 +244,19 @@ class MyProvider extends React.Component {
                         else
                         {
                             var existingDataMap = this.state.itemsByDueDateMap
-                            // var existingData = this.state.itemsByDueDateMap.get(due_date_key)
                             var existingData = Object.assign([], existingDataMap.get(modifiedISODate));
                             existingDataMap.set(modifiedDate, existingData)
                             console.log("calling from setDueDate, before existingDataMap: ", existingDataMap)
                             existingDataMap.delete(modifiedISODate)
                             console.log("calling from setDueDate, after existingDataMap: ", existingDataMap)
 
-                            // const arrayFrommappedResult = Array.from(existingDataMap).map(([key, value]) => ({key, value}))
-
                             var existingItemsByDueDate = this.state.itemsByDueDate
                             for (let index = 0; index < existingItemsByDueDate.length; index++) {
-                                // const element = existingItemsByDueDate[index];
                                 if (existingItemsByDueDate[index]['key'] == modifiedISODate) {
                                     existingItemsByDueDate[index]['key'] = modifiedDate;
-                                    // console.log("existingItemsByDueDate[index]['key']: ", existingItemsByDueDate[index]['key'])
                                     break;
                                 }
                             }
-
-                            // console.log("calling from setDueDate in MyProvider, existingItemsByDueDate: ", existingItemsByDueDate, ", itemsByDueDate: ", this.state.itemsByDueDate)
 
                             this.setState(
                                 { itemsByDueDate: existingItemsByDueDate, itemsByDueDateMap: existingDataMap}, 
@@ -544,11 +266,7 @@ class MyProvider extends React.Component {
                     },
 
                     searchOrderDetails: (event) => {
-                        // console.log("calling from searchOrderDetails in MyProvider, event: ", event)
-                        
                         event.preventDefault();
-
-                        // this.clearAllRecord();
 
                         this.setState({
                             itemsByDueDate: [],
@@ -556,21 +274,11 @@ class MyProvider extends React.Component {
                             error: ''
                         })
                         
-                        // console.log("calling from searchOrderDetails in MyProvider after preventDefault, event: ", event)
                         if (this.state.orderNumber.length === 7 && this.state.orderNumber[0] == 'L') {
-                            // this.dataFetch();
-                            // this.getValidLisecOrderItems();
-                            // this.getValidQADOrderItems();
-
                             this.fetchAllData();
                         }
                         else if(this.state.orderNumber.length === 6 || this.state.orderNumber.length === 7) {
-                            //pbySO8
                             console.log("this.state.orderNumber: ", this.state.orderNumber)
-                            // this.dataFetch();
-                            // this.getValidLisecOrderItems();
-                            // this.getValidQADOrderItems();
-
                             this.fetchAllData();
                         }
                         else {
@@ -600,40 +308,26 @@ class MyProvider extends React.Component {
                             modifiedData[index]['id'] = index
                         }
 
-                        // console.log("modifiedData: ", modifiedData)
-
                         for (let index = 0; index < existingItemByDueDate.length; index++) {
                             if(existingItemByDueDate[index]['key'] == due_date_key) {
                                 existingItemByDueDate[index]['value'] = Object.assign([], modifiedData);
                                 break
                             }
                         }
-                        // console.log("this.state.itemsByDueDate: ", this.state.itemsByDueDate)
-                        // console.log("existingItemByDueDate: ", existingItemByDueDate)
                         
                         existingItemByDueDateMap.set(due_date_key, modifiedData)
                         this.setState({itemsByDueDate: modifiedData, itemsByDueDateMap: existingItemByDueDateMap}, 
                             () => console.log("calling from getTest, this.state.itemsByDueDate: ", this.state.itemsByDueDate, ", this.state.itemsByDueDateMap: ", this.state.itemsByDueDateMap))
                     },
                     insertItemByDueDate: (due_date_key) => {
-                        // console.log("calling from insertItemByDueDate in MyProvider, due_date_key: ", due_date_key)
                         var existingData = this.state.itemsByDueDateMap;
-                        //var list_of_items = existingData.get(due_date_key)
                         var list_of_items = Object.assign([], existingData.get(due_date_key));
-
-                        // console.log("calling from insertItemByDueDate in MyProvider, list_of_items.length: ", list_of_items.length)
 
                         list_of_items.push({id: list_of_items.length, item: '', order_qty: 0, shipping_date: due_date_key})
                         existingData.set(due_date_key, list_of_items)
 
-                        // const arrayFrommappedResult = Array.from(existingData).map(([key, value]) => ({key, value}))
                         var existingItemsByDueDate = this.state.itemsByDueDate
-                        // var arrayFrommappedResult = existingItemsByDueDate.filter(item => item.key == due_date_key)
                         
-                        // if (arrayFrommappedResult.length !== 0) {
-                        //     arrayFrommappedResult[0]['value'] = list_of_items
-                        // }
-
                         for (let index = 0; index < existingItemsByDueDate.length; index++) {
                             if (existingItemsByDueDate[index]['key'] == due_date_key) {
                                 existingItemsByDueDate[index]['value'] = Object.assign([], list_of_items);
@@ -648,16 +342,9 @@ class MyProvider extends React.Component {
                     copyItemsByDueDate: (due_date_key) => {
                         console.log("Copying items, event: ", due_date_key)
 
-                        // var data = this.state.itemsByDueDate.get(due_date)
-
-                        // console.log("calling from before copyItemsByDueDate in MyProvider, itemsByDueDateMap: ", this.state.itemsByDueDateMap, ", itemsByDueDate: ", this.state.itemsByDueDate)
-
                         try {
                             //const {error, isLoaded, items, itemsByDueDate, orderNumber} = this.state;
                             var existingData = this.state.itemsByDueDateMap;
-
-                            // var list_of_items = existingData.get(due_date_key)
-                            // var list_of_items = Object.assign([],existingData.get(due_date_key))
                             
                             let list_of_items = JSON.parse(JSON.stringify(existingData.get(due_date_key)));
                             console.log("list_of_items: ", list_of_items)
@@ -708,11 +395,7 @@ class MyProvider extends React.Component {
                         }
                     },
                     submitOrderDetailsToQAD: (event) => {
-                        // console.log("calling from submitOrderDetailsToQAD in MyProvider, event: ", event)
-                        
                         event.preventDefault();
-                        
-                        // console.log("calling from submitOrderDetailsToQAD in MyProvider after preventDefault, itemsByDueDate: ", this.state.itemsByDueDate, ", itemsByDueDateMap: ", this.state.itemsByDueDateMap);
 
                         console.log("calling from submitOrderDetailsToQAD in MyProvider after preventDefault, itemsByDueDate: ", this.state.itemsByDueDate);
 
@@ -721,15 +404,12 @@ class MyProvider extends React.Component {
                         }
 
                         this.setState({
-                            submitButtonText: "Loading..."
+                            isSubmitButtonLoading: true
                         }, () => {})
 
                         fetch('http://127.0.0.1:5000/api/send_req_items_for_cs', {
                             method: 'POST',
                             body: JSON.stringify({
-                                // title: title,
-                                // body: body,
-                                // userId: Math.random().toString(36).slice(2),
                                 orderNumber: this.state.orderNumber,
                                 itemsByDueDate: this.state.itemsByDueDate,
                                 isValidLisecItemsAvailable: this.state.validLisecItems.length,
@@ -745,22 +425,18 @@ class MyProvider extends React.Component {
                             console.log("post: ", post.data);
                             if (post.data == 'success') {
                                 this.setState({
-                                    submitButtonText: "Submit Data"
+                                    isSubmitButtonLoading: false
                                 }, () => {})
+
+                                this.fetchAllData();
                             }
-                            // setPosts((posts) => [post, ...posts]);
-                            // setTitle('');
-                            // setBody('');
                         })
                         .catch((err) => {
                             console.log(err.message);
                         });
                     },
                     addNewTableByDueDate: () => {
-                        // console.log("calling from addNewTableByDueDate in MyProvider")
-
                         try {
-                            //const {error, isLoaded, items, itemsByDueDate, orderNumber} = this.state;
                             var existingData = this.state.itemsByDueDateMap;
                             var list_of_items = []
                             let dateArray = []
@@ -806,7 +482,8 @@ class MyProvider extends React.Component {
                     itemsByDueDateMap: this.state.itemsByDueDateMap,
                     isConfirmed: this.state.isConfirmed,
                     validItems: this.state.validItems,
-                    submitButtonText: this.state.submitButtonText
+                    submitButtonText: this.state.submitButtonText,
+                    isSubmitButtonLoading: this.state.isSubmitButtonLoading
                 }}
             >
                 {this.props.children}

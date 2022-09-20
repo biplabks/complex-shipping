@@ -21,7 +21,8 @@ class TableTest extends React.Component {
         {
           dataField: 'item',
           text: 'Item',
-          validator: this.validatorFormatter
+          validator: this.validatorFormatter,
+          editable: this.editableTester,
         },
         {
           dataField: 'order_qty',
@@ -40,42 +41,19 @@ class TableTest extends React.Component {
               };
             }
             return true;
-          }
-        },
-        // {
-        //   dataField: "movieId",
-        //   text: 'Order Quantity',
-        //   formatter: (rowContent, row) => {
-        //       return (
-        //         // <button onClick={() => deleteMovie(data[0].movieId)}>delete</button>
-        //         <button onClick={() => this.deleteMovie()}>delete</button>
-        //       );
-        //   }
-        // }
+          },
+          editable: this.editableTester
+        }
       ],
       selected: [] 
     };
   }
 
-  // version 1
-  // validatorFormatter = (newValue, row, column) => {
-  //   var exists = false;
-  //   for (let index = 0; index < this.state.items.length; index++) {
-  //     if (this.state.items[index]['item'] === newValue) {
-  //       exists = true;
-  //       break;
-  //     }
-  //   }
-  //   if (exists) {
-  //     return {
-  //       valid: false,
-  //       message: "Duplicated entry found!"
-  //     };
-  //   }
-  //   return true;
-  // };
+  editableTester = () => {
+    // return !this.context.isSubmitButtonLoading
+    return true 
+  }
 
-  // version 2
   validatorFormatter = (newValue, row, column) => {
     var exists = false;
     for (let index = 0; index < this.state.items.length; index++) {
@@ -91,15 +69,6 @@ class TableTest extends React.Component {
       };
     }
 
-    // console.log("calling from validatorFormatter, this.state.validItems: ", this.state.validItems, ", newValue: ", newValue)
-    // for (let index = 0; index < this.state.validItems.length; index++) {
-    //   console.log("calling from validatorFormatter, this.state.validItems[index]: ", this.state.validItems[index], ", newValue: ", newValue)
-    //   if (this.state.validItems[index] === newValue) {
-    //     exists = true;
-    //     break;
-    //   }
-    // }
-
     if (!this.state.validItems.includes(newValue)) {
       return {
         valid: false,
@@ -110,21 +79,17 @@ class TableTest extends React.Component {
   };
 
   componentDidMount() {
-    //console.log("calling from componentDidMount in TableTest: ", this.props.validItems)
     this.setState({
       items: this.props.orderDetails,
       due_date: this.props.due_date,
       isDateEditable: this.props.isDateEditable,
       validItems: this.props.validItems
     }, () => {
-      //console.log("calling from TableTest, this.state.validItems: ", this.state.validItems)
     });
   }
 
   componentDidUpdate(prevProps) {
-    // console.log("calling from componentDidUpdate in TableTest")
     if(prevProps.orderDetails !== this.props.orderDetails){
-      // console.log("calling from componentDidUpdate in TableTest, this.props.orderDetails : ", this.props.orderDetails)
       this.setState({
         items: this.props.orderDetails
       });
@@ -134,9 +99,6 @@ class TableTest extends React.Component {
   handleBtnClick = () => {
     let value = this.context;
     value['cars']['car001']['name'] = 'Biplab1'
-    // console.log("calling from handleBtnClick in TableTest, value: ", value)
-    // console.log("calling from handleBtnClick in TableTest, this.state.items: ", this.state.items);
-    // console.log("calling from handleBtnClick in TableTest, this.state.selected: ", this.state.selected);
 
     var existingItem = this.state.items;
     var selectedItems = this.state.selected;
@@ -154,9 +116,7 @@ class TableTest extends React.Component {
 
     this.setState({items: modifiedData, selected: []})
 
-    // value.getTest(this.state.due_date, selectedItems)
     var existingItemByDueDate = value['itemsByDueDate']
-    // var existingItemByDueDateMap = value['itemsByDueDateMap']
     for (let index = 0; index < existingItemByDueDate.length; index++) {
       if(existingItemByDueDate[index]['key'] == this.state.due_date) {
           existingItemByDueDate[index]['value'] = Object.assign([], modifiedData);
@@ -165,8 +125,6 @@ class TableTest extends React.Component {
     }
 
     value['itemsByDueDateMap'].set(this.state.due_date, modifiedData)
-
-    //console.log("value['itemsByDueDate']: ", value['itemsByDueDate'], ", value['itemsByDueDateMap']: ", value['itemsByDueDateMap'])
   }
 
   handleOnSelect = (row, isSelect) => {
@@ -198,8 +156,6 @@ class TableTest extends React.Component {
     var existingItem = this.state.items;
     var selectedItems = this.state.selected;
 
-    //console.log("calling from removeItemByDueDate, existingItem: ", existingItem, ", selectedItems: ", selectedItems)
-
     var modifiedData = [];
     existingItem.forEach(element => {
         if (!selectedItems.includes(element.id)) {
@@ -207,17 +163,13 @@ class TableTest extends React.Component {
         }
     })
 
-    //console.log("modifiedData: ", modifiedData, ", modifiedData.length: ", modifiedData.length)
-
     for (let index = 0; index < modifiedData.length; index++) {
       modifiedData[index]['id'] = index
     }
 
     this.setState({items: modifiedData, selected: []})
 
-    // value.getTest(this.state.due_date, selectedItems)
     var existingItemByDueDate = this.context['itemsByDueDate']
-    // var existingItemByDueDateMap = value['itemsByDueDateMap']
     for (let index = 0; index < existingItemByDueDate.length; index++) {
       if(existingItemByDueDate[index]['key'] == this.state.due_date) {
           existingItemByDueDate[index]['value'] = Object.assign([], modifiedData);
@@ -226,8 +178,6 @@ class TableTest extends React.Component {
     }
 
     this.context['itemsByDueDateMap'].set(this.state.due_date, modifiedData)
-
-    //console.log("value['itemsByDueDate']: ", this.context['itemsByDueDate'], ", value['itemsByDueDateMap']: ", this.context['itemsByDueDateMap'])
   }
 
   insertItemByDueDate = () => {
@@ -235,7 +185,6 @@ class TableTest extends React.Component {
     this.setState({
       validItems: this.context.validItems
     }, () => {
-      //console.log("calling from TableTest, this.state.validItems: ", this.state.validItems)
     });
   }
 
@@ -258,15 +207,7 @@ class TableTest extends React.Component {
     };
       return (
         <Container className="p-3">
-          {/* <button className="btn btn-success" onClick={ this.handleBtnClick }>Select/UnSelect 3rd row</button> */}
-          {/* <Form>
-            <Form.Group className="mb-3" controlId="formGroupEmail">
-              <Form.Control type="date" placeholder="Enter date" />
-            </Form.Group>
-          </Form> */}
           {
-            // style={{'background-color': 'green'}}
-            // style={{display: 'flex', justifyContent:'left'}}
             <div>
               <Form>
                 <Form.Group as={Row} className="mb-3" controlId="formGroupDueDate">
@@ -274,8 +215,6 @@ class TableTest extends React.Component {
                     Due Date
                   </Form.Label>
                   <Col sm="3" className='m-6'>
-                    {/* <Form.Control style={{ justifyContent:'left'}} type="date" placeholder="Enter date" /> */}
-                    {/* <Form.Control onChange={event => context.setDueDate(event, element.key)} disabled={!element.isDateEditable} type="date" value={moment(element.key).utc().format('YYYY-MM-DD')} placeholder="Enter date" /> */}
                     <Form.Control onChange={event => this.setDueDate(event)} disabled={!this.state.isDateEditable} type="date" value={moment(this.state.due_date).utc().format('YYYY-MM-DD')} placeholder="Enter date" />
                   </Col>
                 </Form.Group>
@@ -287,17 +226,17 @@ class TableTest extends React.Component {
             !this.context.isConfirmed &&
             <div className='d-flex justify-content-between me-3'>
               <form>
-                <Button onClick={ this.removeItemByDueDate }>
+                <Button disabled={this.context.isSubmitButtonLoading} onClick={ this.removeItemByDueDate }>
                   Remove records
                 </Button>
               </form>
               <form>
-                <Button onClick={this.insertItemByDueDate}>
+                <Button disabled={this.context.isSubmitButtonLoading} onClick={this.insertItemByDueDate}>
                   Insert Record
                 </Button>
               </form>
               <form>
-                <Button onClick={this.copyItemsByDueDate}>
+                <Button disabled={this.context.isSubmitButtonLoading} onClick={this.copyItemsByDueDate}>
                   Copy Record
                 </Button>
               </form>
