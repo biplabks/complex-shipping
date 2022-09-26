@@ -19,14 +19,15 @@ import LoadingSpinner from "./LoadingSpinner";
             <Container style={{ textAlign: 'left' }}>
               <h2>Order Status</h2>
               <>
-              {
+              {/* {
                 context.isConfirmed && 
                 <h4>Order modification is not possible because Order is already confirmed!</h4>
               }
               {
                 !context.isConfirmed && context.itemsByDueDate.length != 0 &&
                 <h4>Order modification is possible because Order is not confirmed yet!</h4>
-              }
+              } */}
+              <h4>{context.orderStatus}</h4>
               </>
             </Container>
             <br />
@@ -44,12 +45,24 @@ import LoadingSpinner from "./LoadingSpinner";
             }
             <br />
             <>
-              {
+              {/* {
                 !context.isLoaded && context.orderNumber.length == 7 &&
                 <LoadingSpinner />
+              } */}
+              {
+                !context.isLoaded &&
+                <LoadingSpinner />
+              }
+              {/* {
+                context.isLoaded && context.orderNumber.length == 7 && context.error.length != 0 &&
+                <p>{context.error}</p>
               }
               {
-                context.isLoaded && context.orderNumber.length == 7 && context.error.length != 0 &&
+                context.isLoaded && context.error.length != 0 &&
+                <p>{context.error}</p>
+              } */}
+              {
+                context.isLoaded && context.error.length != 0 &&
                 <p>{context.error}</p>
               }
             </>
@@ -71,7 +84,7 @@ import LoadingSpinner from "./LoadingSpinner";
                     role="status"
                     aria-hidden="true"
                   />
-                  Loading...
+                  Submitting...
                 </Button>
               }
             </>

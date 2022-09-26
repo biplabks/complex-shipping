@@ -1,6 +1,10 @@
 import MyContext from './MyContext';
 import React from 'react';
 
+const baseAPIURL = "https://vanna.zh.if.atcsg.net:453/api/v1/"
+
+const baseAPIURLTest = "http://127.0.0.1:5000/api/"
+
 class MyProvider extends React.Component {
     state = {
         error: '',
@@ -14,20 +18,25 @@ class MyProvider extends React.Component {
         validLisecItems: [],
         validQADItems: [],
         submitButtonText: 'Submit Data',
-        isSubmitButtonLoading: false
+        isSubmitButtonLoading: false,
+        channel: '',
+        orderStatus: ''
     };
 
     //======================================================================================================================
     async dataFetch() {
-        return await fetch("https://vanna.zh.if.atcsg.net:453/api/v1/get-qad-sales-order-info/"+this.state.orderNumber)
+        // return await fetch("https://vanna.zh.if.atcsg.net:453/api/v1/get-qad-sales-order-info/"+this.state.orderNumber)
+        return await fetch(baseAPIURL + "get-qad-sales-order-info/"+this.state.orderNumber)
     }
 
     async getValidLisecOrderItems() {
-        return await fetch("https://vanna.zh.if.atcsg.net:453/api/v1/get_valid_order_items/"+this.state.orderNumber.substring(1))
+        // return await fetch("https://vanna.zh.if.atcsg.net:453/api/v1/get_valid_order_items/"+this.state.orderNumber.substring(1))
+        return await fetch(baseAPIURL + "get_valid_order_items/"+this.state.orderNumber.substring(1))
     }
 
     async getValidQADOrderItems() {
-        return await fetch("https://vanna.zh.if.atcsg.net:453/api/v1/get-items")
+        // return await fetch("https://vanna.zh.if.atcsg.net:453/api/v1/get-items")
+        return await fetch(baseAPIURL + "get-items")
     }
 
     processDataFetch(response) {
@@ -36,6 +45,8 @@ class MyProvider extends React.Component {
             this.setState({
                 isLoaded: true,
                 error: response.result.message
+            }, () => {
+                console.log("calling from processDataFetch, error: ", this.state.error)
             });
             return
         }
@@ -43,22 +54,38 @@ class MyProvider extends React.Component {
         console.log("calling from processDataFetch, response: ", response)
 
         var resultData = response['result'][this.state.orderNumber]['line_details'];
-        
         var is_confirmed = response['result'][this.state.orderNumber]['is_confirmed'];
-        
+        var channel = response['result'][this.state.orderNumber]['channel'];
+        var orderStatusText = ''
+
         this.destructureItems(resultData);
+
+        if (is_confirmed) {
+            orderStatusText = 'Order modification is not possible because Order is already confirmed!'
+        }
+        else
+        {
+            if (resultData && resultData.length != 0) {
+                orderStatusText = 'Order modification is possible because Order is not confirmed yet!'
+            }
+        }
 
         this.setState({
             isLoaded: true,
             items: response['result'][this.state.orderNumber]['line_details'],
             orderNumber: this.state.orderNumber,
             isConfirmed: is_confirmed,
-            error: ''
+            channel: channel,
+            error: '',
+            orderStatus: orderStatusText
+        }, () => {
+            console.log("orderStatus: ", this.state.orderStatus)
         });
     }
 
     processValidLisecOrderItems(response) {
         var returnedData = response['result']['data']
+        console.log("returnedData: ", returnedData)
         if (!returnedData) {    //if it is undefined
             returnedData = []
         }
@@ -271,7 +298,8 @@ class MyProvider extends React.Component {
                         this.setState({
                             itemsByDueDate: [],
                             isLoaded: false,
-                            error: ''
+                            error: '',
+                            orderStatus: ''
                         })
                         
                         if (this.state.orderNumber.length === 7 && this.state.orderNumber[0] == 'L') {
@@ -282,6 +310,9 @@ class MyProvider extends React.Component {
                             this.fetchAllData();
                         }
                         else {
+                            this.setState({
+                                isLoaded: true
+                            })
                             alert("Please enter a valid order number");
                             event.preventDefault();
                         }
@@ -401,19 +432,22 @@ class MyProvider extends React.Component {
 
                         if (!this.state.itemsByDueDate.length) {
                             alert("Not enough data to submit to QAD!")
+                            return
                         }
 
                         this.setState({
                             isSubmitButtonLoading: true
                         }, () => {})
-
-                        fetch('http://127.0.0.1:5000/api/send_req_items_for_cs', {
+                        
+                        // fetch('http://127.0.0.1:5000/api/send_req_items_for_cs', {
+                        fetch(baseAPIURL + 'send_req_items_for_cs', {
                             method: 'POST',
                             body: JSON.stringify({
                                 orderNumber: this.state.orderNumber,
                                 itemsByDueDate: this.state.itemsByDueDate,
                                 isValidLisecItemsAvailable: this.state.validLisecItems.length,
-                                validLisecItems: this.state.validLisecItems
+                                validLisecItems: this.state.validLisecItems,
+                                channel: this.state.channel
                             }),
                             headers: {
                                 'Content-type': 'application/json; charset=UTF-8',
@@ -427,12 +461,26 @@ class MyProvider extends React.Component {
                                 this.setState({
                                     isSubmitButtonLoading: false
                                 }, () => {})
+                                
+                                alert("Data was submitted successfully!")
 
+                                // this.setState({
+                                //     isLoaded: false
+                                // }, () => {})
+                                this.setState({
+                                    itemsByDueDate: [],
+                                    isLoaded: false,
+                                    error: ''
+                                })
                                 this.fetchAllData();
                             }
                         })
                         .catch((err) => {
-                            console.log(err.message);
+                            console.log(err);
+                            this.setState({
+                                isSubmitButtonLoading: false
+                            }, () => {})
+                            alert("Data was not submitted successfully!Please contact administrator!")
                         });
                     },
                     addNewTableByDueDate: () => {
@@ -483,7 +531,9 @@ class MyProvider extends React.Component {
                     isConfirmed: this.state.isConfirmed,
                     validItems: this.state.validItems,
                     submitButtonText: this.state.submitButtonText,
-                    isSubmitButtonLoading: this.state.isSubmitButtonLoading
+                    isSubmitButtonLoading: this.state.isSubmitButtonLoading,
+                    channel: this.state.channel,
+                    orderStatus: this.state.orderStatus
                 }}
             >
                 {this.props.children}
