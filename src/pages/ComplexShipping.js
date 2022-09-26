@@ -17,50 +17,24 @@ import LoadingSpinner from "./LoadingSpinner";
             <SearchForm setOrderNumber={context.setOrderNumber} searchOrderDetails={context.searchOrderDetails}/>
             
             <Container style={{ textAlign: 'left' }}>
-              <h2>Order Status</h2>
-              <>
-              {/* {
-                context.isConfirmed && 
-                <h4>Order modification is not possible because Order is already confirmed!</h4>
-              }
               {
-                !context.isConfirmed && context.itemsByDueDate.length != 0 &&
-                <h4>Order modification is possible because Order is not confirmed yet!</h4>
-              } */}
-              <h4>{context.orderStatus}</h4>
-              </>
+                context.orderStatus.length != 0 &&
+                <>
+                  <h2>Order Status</h2>
+                  <h4>{context.orderStatus}</h4>
+                </>
+              }
             </Container>
             <br />
             <Container className="d-flex justify-content-between">
               <h2>Order by Shipping Date</h2>
             </Container>
             <br />
-            {
-              !context.isConfirmed && context.itemsByDueDate.length != 0 &&
-              <Container className="d-flex justify-content-between">
-                <Button disabled={context.isSubmitButtonLoading} onClick={context.addNewTableByDueDate} variant="primary">
-                  Add New Table
-                </Button>
-              </Container>
-            }
-            <br />
             <>
-              {/* {
-                !context.isLoaded && context.orderNumber.length == 7 &&
-                <LoadingSpinner />
-              } */}
               {
                 !context.isLoaded &&
                 <LoadingSpinner />
               }
-              {/* {
-                context.isLoaded && context.orderNumber.length == 7 && context.error.length != 0 &&
-                <p>{context.error}</p>
-              }
-              {
-                context.isLoaded && context.error.length != 0 &&
-                <p>{context.error}</p>
-              } */}
               {
                 context.isLoaded && context.error.length != 0 &&
                 <p>{context.error}</p>
@@ -69,24 +43,34 @@ import LoadingSpinner from "./LoadingSpinner";
             <AccordionData />
             <>
               {
-                !context.isConfirmed && !context.isSubmitButtonLoading &&
-                <Button disabled={context.isConfirmed} onClick={context.submitOrderDetailsToQAD} variant="primary" size="lg">
-                  Submit Data
-                </Button>
+                !context.isConfirmed && context.itemsByDueDate.length != 0 &&
+                <Container className="d-flex justify-content-between pb-3">
+                  <Button disabled={context.isSubmitButtonLoading} onClick={context.addNewTableByDueDate} variant="primary">
+                    Add New Table
+                  </Button>
+                </Container>
               }
-              {
-                context.isSubmitButtonLoading &&
-                <Button variant="primary" disabled>
-                  <Spinner
-                    as="span"
-                    animation="grow"
-                    size="sm"
-                    role="status"
-                    aria-hidden="true"
-                  />
-                  Submitting...
-                </Button>
-              }
+              <Container className='pb-3'>
+                {
+                  !context.isConfirmed && !context.isSubmitButtonLoading &&
+                  <Button disabled={context.isConfirmed} onClick={context.submitOrderDetailsToQAD} variant="primary" size="lg">
+                    Submit Data
+                  </Button>
+                }
+                {
+                  context.isSubmitButtonLoading &&
+                  <Button variant="primary" disabled>
+                    <Spinner
+                      as="span"
+                      animation="grow"
+                      size="sm"
+                      role="status"
+                      aria-hidden="true"
+                    />
+                    Submitting...
+                  </Button>
+                }
+              </Container>
             </>
           </div>
         </React.Fragment>

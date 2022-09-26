@@ -63,12 +63,12 @@ class MyProvider extends React.Component {
         if (is_confirmed) {
             orderStatusText = 'Order modification is not possible because Order is already confirmed!'
         }
-        else
-        {
-            if (resultData && resultData.length != 0) {
-                orderStatusText = 'Order modification is possible because Order is not confirmed yet!'
-            }
-        }
+        // else
+        // {
+        //     if (resultData && resultData.length != 0) {
+        //         orderStatusText = 'Order modification is possible because Order is not confirmed yet!'
+        //     }
+        // }
 
         this.setState({
             isLoaded: true,
@@ -374,7 +374,6 @@ class MyProvider extends React.Component {
                         console.log("Copying items, event: ", due_date_key)
 
                         try {
-                            //const {error, isLoaded, items, itemsByDueDate, orderNumber} = this.state;
                             var existingData = this.state.itemsByDueDateMap;
                             
                             let list_of_items = JSON.parse(JSON.stringify(existingData.get(due_date_key)));
