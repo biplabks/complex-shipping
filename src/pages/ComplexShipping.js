@@ -26,10 +26,12 @@ import LoadingSpinner from "./LoadingSpinner";
               }
             </Container>
             <br />
-            <Container className="d-flex justify-content-between">
-              <h2>Order by Shipping Date</h2>
-            </Container>
-            <br />
+            {
+              context.isLoaded && (context.itemsByDueDate.length != 0 || context.error.length != 0) &&
+              <Container className="d-flex justify-content-between">
+                <h2>Order by Shipping Date</h2>
+              </Container>
+            }
             <>
               {
                 !context.isLoaded &&
@@ -52,7 +54,8 @@ import LoadingSpinner from "./LoadingSpinner";
               }
               <Container className='pb-3'>
                 {
-                  !context.isConfirmed && !context.isSubmitButtonLoading &&
+                  // !context.isConfirmed && !context.isSubmitButtonLoading && 
+                  !context.isConfirmed && !context.isSubmitButtonLoading && context.isLoaded && context.itemsByDueDate.length != 0 &&
                   <Button disabled={context.isConfirmed} onClick={context.submitOrderDetailsToQAD} variant="primary" size="lg">
                     Submit Data
                   </Button>

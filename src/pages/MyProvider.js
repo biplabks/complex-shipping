@@ -142,6 +142,9 @@ class MyProvider extends React.Component {
 
     async fetchAllData() {
         try{
+            // this.setState({
+            //     isLoaded: false
+            // }, () => {})
             const responses = await Promise.all([this.dataFetch(), this.getValidLisecOrderItems(), this.getValidQADOrderItems()]);
         
             if (responses[0].status == 200) {
@@ -163,6 +166,10 @@ class MyProvider extends React.Component {
         }catch(error) {
             console.log("Erroring out, error: ", error)
             // return [];
+        } finally {
+            // this.setState({
+            //     isLoaded: true
+            // }, () => {})
         }
     }
 
@@ -316,6 +323,10 @@ class MyProvider extends React.Component {
                             alert("Please enter a valid order number");
                             event.preventDefault();
                         }
+                        // console.log("Let's discuss")
+                        // this.setState({
+                        //     isLoaded: true
+                        // })
                     },
 
                     removeItemByDueDate: (due_date_key, selectedItems) => {
@@ -433,6 +444,36 @@ class MyProvider extends React.Component {
                             alert("Not enough data to submit to QAD!")
                             return
                         }
+                        
+                        var isItemDescriptionBlank = false
+                        var isItemQuantityBlank = false
+                        this.state.itemsByDueDate.forEach(element => {
+                            console.log("element: ", element)
+                            let items = element['value']
+                            for (let index = 0; index < items.length; index++) {
+                                const item = items[index];
+                                if (!item['item']) {
+                                    isItemDescriptionBlank = true
+                                    // alert("Item description can not be blank!")
+                                    break;
+                                }
+
+                                if (item['order_qty'] == 0) {
+                                    isItemQuantityBlank = true
+                                    // alert("Order quantity can not be zero!")
+                                    break;
+                                }
+                            }
+                        })
+
+                        if (isItemDescriptionBlank) {
+                            alert("Item description can not be blank!")
+                            return;
+                        }
+                        if (isItemQuantityBlank) {
+                            alert("Item quantity can not be zero!")
+                            return;
+                        }
 
                         this.setState({
                             isSubmitButtonLoading: true
@@ -463,9 +504,6 @@ class MyProvider extends React.Component {
                                 
                                 alert("Data was submitted successfully!")
 
-                                // this.setState({
-                                //     isLoaded: false
-                                // }, () => {})
                                 this.setState({
                                     itemsByDueDate: [],
                                     isLoaded: false,

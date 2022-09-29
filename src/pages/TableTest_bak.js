@@ -1,7 +1,7 @@
 import BootstrapTable from 'react-bootstrap-table-next';
 import cellEditFactory from 'react-bootstrap-table2-editor';
 import React from 'react';
-import { Container, Button, Form, Row, Col, ButtonGroup } from 'react-bootstrap';
+import { Container, Button, Form, Row, Col } from 'react-bootstrap';
 import MyContext from './MyContext';
 import moment from 'moment';
 
@@ -215,7 +215,7 @@ class TableTest extends React.Component {
       onSelect: this.handleOnSelect,
       onSelectAll: this.handleOnSelectAll,
       // style: {
-      //   width: '100px'
+      //   width: '50px'
       // }
     };
       return (
@@ -227,48 +227,15 @@ class TableTest extends React.Component {
                   <Form.Label style={{display: 'flex', justifyContent:'left'}} column sm="1">
                     Due Date
                   </Form.Label>
-                  <Col sm="2" className='m-6'>
+                  <Col sm="3" className='m-6'>
                     <Form.Control onChange={event => this.setDueDate(event)} disabled={!this.state.isDateEditable} type="date" value={moment(this.state.due_date).utc().format('YYYY-MM-DD')} placeholder="Enter date" />
                   </Col>
-                  {!this.context.isConfirmed && 
-                    <>
-                      {/* <Col className='float-left'>
-                        <Button disabled={this.context.isSubmitButtonLoading} onClick={ this.removeItemByDueDate }>
-                          Remove records
-                        </Button>
-                      </Col>
-                      <Col  className='float-left'>
-                        <Button disabled={this.context.isSubmitButtonLoading} onClick={this.insertItemByDueDate}>
-                          Insert Record
-                        </Button>
-                      </Col>
-                      <Col sm="3" className='m-6'>
-                        <Button disabled={this.context.isSubmitButtonLoading} onClick={this.copyItemsByDueDate}>
-                          Copy This Table
-                        </Button>
-                      </Col> */}
-                      <Col className='d-flex flex-row mb-3'>
-                        {/* <ButtonGroup aria-label="Basic example"> */}
-                          <Button className='mx-1' disabled={this.context.isSubmitButtonLoading} onClick={ this.removeItemByDueDate }>
-                            Remove records
-                          </Button>
-                          <Button className='mx-1' disabled={this.context.isSubmitButtonLoading} onClick={this.insertItemByDueDate}>
-                            Insert Record
-                          </Button>
-                          <Button className='mx-1' disabled={this.context.isSubmitButtonLoading} onClick={this.copyItemsByDueDate}>
-                            Copy This Table
-                          </Button>
-                        {/* </ButtonGroup> */}
-                      </Col>
-                      
-                    </>
-                  }
                 </Form.Group>
               </Form>
             </div>
           }
           
-          {/* {
+          {
             !this.context.isConfirmed &&
             <div className='d-flex justify-content-between me-3'>
               <form>
@@ -287,25 +254,22 @@ class TableTest extends React.Component {
                 </Button>
               </form>
             </div>
-          } */}
-          {/* {
+          }
+          {
             <div>
               <br />
             </div>
-          } */}
-          {/* <div style={{padding: "50px"}}> */}
+          }
             <BootstrapTable
-              keyField="id"
-              // data={ items }
-              // data={ this.props.orderDetails }
-              data={ this.state.items }
-              columns={ this.state.columns }
-              cellEdit={ cellEditFactory({ mode: 'dbclick' }) }
-              noDataIndication="Table is Empty"
-              selectRow={selectRow}
+                keyField="id"
+                // data={ items }
+                // data={ this.props.orderDetails }
+                data={ this.state.items }
+                columns={ this.state.columns }
+                cellEdit={ cellEditFactory({ mode: 'dbclick' }) }
+                noDataIndication="Table is Empty"
+                selectRow={selectRow}
             />
-          {/* </div> */}
-          
         </Container>
       );
     }
