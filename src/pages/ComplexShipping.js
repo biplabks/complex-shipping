@@ -26,8 +26,14 @@ import LoadingSpinner from "./LoadingSpinner";
               }
             </Container>
             <br />
-            {
+            {/* {
               context.isLoaded && (context.itemsByDueDate.length != 0 || context.error.length != 0) &&
+              <Container className="d-flex justify-content-between">
+                <h2>Order by Shipping Date</h2>
+              </Container>
+            } */}
+            {
+              context.isLoaded && context.itemsByDueDate.length != 0 &&
               <Container className="d-flex justify-content-between">
                 <h2>Order by Shipping Date</h2>
               </Container>

@@ -164,7 +164,12 @@ class MyProvider extends React.Component {
             }
             
         }catch(error) {
-            console.log("Erroring out, error: ", error)
+            console.log("Erroring out, error: ", error);
+            
+            this.setState({
+                isLoaded: true,
+                error: "Data can not be retrieved from QAD. Please contact IT administrator!"
+            }, () => {});
             // return [];
         } finally {
             // this.setState({
@@ -309,6 +314,7 @@ class MyProvider extends React.Component {
                             orderStatus: ''
                         })
                         
+                        /*
                         if (this.state.orderNumber.length === 7 && this.state.orderNumber[0] == 'L') {
                             this.fetchAllData();
                         }
@@ -322,11 +328,17 @@ class MyProvider extends React.Component {
                             })
                             alert("Please enter a valid order number");
                             event.preventDefault();
+                        }*/
+                        if (this.state.orderNumber.length === 7 && (this.state.orderNumber[0] == 'L' || this.state.orderNumber[0] == 'Q')) {
+                            this.fetchAllData();
                         }
-                        // console.log("Let's discuss")
-                        // this.setState({
-                        //     isLoaded: true
-                        // })
+                        else {
+                            this.setState({
+                                isLoaded: true
+                            })
+                            alert("Please enter a valid order number");
+                            event.preventDefault();
+                        }
                     },
 
                     removeItemByDueDate: (due_date_key, selectedItems) => {

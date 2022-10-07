@@ -1,5 +1,5 @@
 import BootstrapTable from 'react-bootstrap-table-next';
-import cellEditFactory from 'react-bootstrap-table2-editor';
+import cellEditFactory, { Type } from 'react-bootstrap-table2-editor';
 import React from 'react';
 import { Container, Button, Form, Row, Col, ButtonGroup } from 'react-bootstrap';
 import MyContext from './MyContext';
@@ -26,7 +26,12 @@ class TableTest extends React.Component {
           style: {
             width: '1000px',
             textAlign: 'center'
-          }
+          },
+          editable: this.isConfirmedOrder,
+          // editor: {
+          //   type: Type.TEXT
+          // }
+          // formatter: this.priceFormatter
         },
         {
           dataField: 'order_qty',
@@ -46,6 +51,7 @@ class TableTest extends React.Component {
             }
             return true;
           },
+          editable: this.isConfirmedOrder,
           style: {
             width: '140px',
             textAlign: 'center'
@@ -54,6 +60,7 @@ class TableTest extends React.Component {
         {
           dataField: "remove",
           text: "Delete",
+          editable: this.isConfirmedOrder,
           /*
           formatter: (cellContent, row) => {
             return (
@@ -71,6 +78,7 @@ class TableTest extends React.Component {
               <button
                 className="btn btn-danger btn-xs"
                 onClick={() => this.handleDelete(row)}
+                disabled={!this.isConfirmedOrder()}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-trash" viewBox="0 0 16 16">
                   <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
@@ -85,14 +93,36 @@ class TableTest extends React.Component {
     };
   }
 
+  // priceFormatter(cell, row) {
+  //   // if (row.onSale) {
+  //   //   return (
+  //   //     <span>
+  //   //       <strong style={ { color: 'red' } }>$ { cell } NTD(Sales!!)</strong>
+  //   //     </span>
+  //   //   );
+  //   // }
+  
+  //   return (
+  //     // <span>$ { cell } NTD</span>
+  //     // <span>
+  //     //   <input type="text" value={cell} />
+  //     // </span>
+
+  //     <input type="text" disabled={false} value={cell} />
+  //   );
+  // }
+  isConfirmedOrder = () => {
+    return !this.context.isConfirmed;
+  }
+
   handleDelete = (row) => {
     var existingItem = this.state.items;
 
     var modifiedData = [];
     existingItem.forEach(element => {
-        if (element.id != row.id) {
-          modifiedData.push(element);
-        }
+      if (element.id != row.id) {
+        modifiedData.push(element);
+      }
     })
 
     for (let index = 0; index < modifiedData.length; index++) {
@@ -115,6 +145,7 @@ class TableTest extends React.Component {
   };
   validatorFormatter = (newValue, row, column) => {
     var exists = false;
+    console.log("newValue: ", newValue, ", row: ", row, ", column: ", column, ", this.state.items: ", this.state.items.length)
     for (let index = 0; index < this.state.items.length; index++) {
       if (this.state.items[index]['item'] === newValue) {
         exists = true;
@@ -177,8 +208,8 @@ class TableTest extends React.Component {
     var existingItemByDueDate = value['itemsByDueDate']
     for (let index = 0; index < existingItemByDueDate.length; index++) {
       if(existingItemByDueDate[index]['key'] == this.state.due_date) {
-          existingItemByDueDate[index]['value'] = Object.assign([], modifiedData);
-          break
+        existingItemByDueDate[index]['value'] = Object.assign([], modifiedData);
+        break
       }
     }
 
@@ -234,10 +265,10 @@ class TableTest extends React.Component {
           keyField="id"
           data={ this.state.items }
           columns={ this.state.columns }
+          // cellEdit={ cellEditFactory({ mode: 'dbclick', blurToSave: true }) }
           cellEdit={ cellEditFactory({ mode: 'dbclick' }) }
           noDataIndication="Table is Empty"
         />
-        
       </Container>
     );
   }
