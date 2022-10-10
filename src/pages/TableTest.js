@@ -24,10 +24,15 @@ class TableTest extends React.Component {
           text: 'Item',
           validator: this.validatorFormatter,
           style: {
-            width: '1000px',
+            width: '500px',
             textAlign: 'center'
           },
           editable: this.isConfirmedOrder,
+          // formatter: (cellContent, row) => {
+          //   return (
+          //     <input type="text" value={row.item} />
+          //   );
+          // }
           // editor: {
           //   type: Type.TEXT
           // }
@@ -49,13 +54,24 @@ class TableTest extends React.Component {
                 message: "Order quantity should less than 1000"
               };
             }
+            if (newValue < 0) {
+              return {
+                valid: false,
+                message: "Order quantity can not be negative"
+              };
+            }
             return true;
           },
           editable: this.isConfirmedOrder,
           style: {
             width: '140px',
             textAlign: 'center'
-          }
+          },
+          // formatter: (cellContent, row) => {
+          //   return (
+          //     <input type="text" value={row.order_qty} />
+          //   );
+          // }
         },
         {
           dataField: "remove",
@@ -86,7 +102,11 @@ class TableTest extends React.Component {
                 </svg>
               </button>
             );
-          }
+          },
+          style: {
+            width: '140px',
+            textAlign: 'center'
+          },
         }
       ],
       selected: [] 
@@ -111,13 +131,18 @@ class TableTest extends React.Component {
   //     <input type="text" disabled={false} value={cell} />
   //   );
   // }
+  priceFormatter(cell, row) {
+    return (
+      <input type="text" value={cell} />
+    );
+  }
   isConfirmedOrder = () => {
     return !this.context.isConfirmed;
   }
 
   handleDelete = (row) => {
     var existingItem = this.state.items;
-
+    console.log("calling from handleDelete, row: ", row)
     var modifiedData = [];
     existingItem.forEach(element => {
       if (element.id != row.id) {
@@ -249,10 +274,10 @@ class TableTest extends React.Component {
                   <>
                     <Col className='d-flex flex-row mb-3'>
                         <Button className='mx-1' disabled={this.context.isSubmitButtonLoading} onClick={this.insertItemByDueDate}>
-                          Insert Record
+                          Add Item
                         </Button>
                         <Button className='mx-1' disabled={this.context.isSubmitButtonLoading} onClick={this.copyItemsByDueDate}>
-                          Copy This Table
+                          Duplicate this Due Date
                         </Button>
                     </Col>
                   </>
@@ -268,6 +293,7 @@ class TableTest extends React.Component {
           // cellEdit={ cellEditFactory({ mode: 'dbclick', blurToSave: true }) }
           cellEdit={ cellEditFactory({ mode: 'dbclick' }) }
           noDataIndication="Table is Empty"
+          tabIndexCell={true}
         />
       </Container>
     );

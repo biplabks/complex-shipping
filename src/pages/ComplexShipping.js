@@ -11,7 +11,7 @@ import LoadingSpinner from "./LoadingSpinner";
         <React.Fragment>
           <div>
             <Container className="p-3">
-              <h1 className="header">Welcome To Complex Shipping</h1>
+              <h1 className="header">Welcome To Sales Order Editor</h1>
             </Container>
             
             <SearchForm setOrderNumber={context.setOrderNumber} searchOrderDetails={context.searchOrderDetails}/>
@@ -54,7 +54,7 @@ import LoadingSpinner from "./LoadingSpinner";
                 !context.isConfirmed && context.itemsByDueDate.length != 0 &&
                 <Container className="d-flex justify-content-between pb-3">
                   <Button disabled={context.isSubmitButtonLoading} onClick={context.addNewTableByDueDate} variant="primary">
-                    Add New Table
+                    Add New Due Date
                   </Button>
                 </Container>
               }
