@@ -273,9 +273,6 @@ class TableTest extends React.Component {
                 {!this.context.isConfirmed && 
                   <>
                     <Col className='d-flex flex-row mb-3'>
-                        <Button className='mx-1' disabled={this.context.isSubmitButtonLoading} onClick={this.insertItemByDueDate}>
-                          Add Item
-                        </Button>
                         <Button className='mx-1' disabled={this.context.isSubmitButtonLoading} onClick={this.copyItemsByDueDate}>
                           Duplicate this Due Date
                         </Button>
@@ -295,6 +292,11 @@ class TableTest extends React.Component {
           noDataIndication="Table is Empty"
           tabIndexCell={true}
         />
+        <Col className='d-flex flex-row'>
+          <Button className='mx-1' disabled={this.context.isSubmitButtonLoading} onClick={this.insertItemByDueDate}>
+            Add Item
+          </Button>
+        </Col>
       </Container>
     );
   }

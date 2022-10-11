@@ -491,6 +491,7 @@ class MyProvider extends React.Component {
                             isSubmitButtonLoading: true
                         }, () => {})
                         
+                        // baseAPIURLTest, baseAPIURL
                         // fetch('http://127.0.0.1:5000/api/send_req_items_for_cs', {
                         fetch(baseAPIURL + 'send_req_items_for_cs', {
                             method: 'POST',
@@ -506,22 +507,39 @@ class MyProvider extends React.Component {
                             },
                         })
                         .then((res) => res.json())
-                        .then((post) => {
+                        .then((response) => {
                             console.log("=======Am I here=========");
-                            console.log("post: ", post.data);
-                            if (post.data == 'success') {
+                            console.log("response: ", response.data);
+                            var unverified_items = ""
+                            if (response.data.list_of_unverified_items.length > 0) {
+                                for (let index = 0; index < response.data.list_of_unverified_items.length; index++) {
+                                    const item = response.data.list_of_unverified_items[index];
+                                    console.log("item: ", item)
+                                    unverified_items += item;
+                                    unverified_items += ","
+                                }
+                                unverified_items = unverified_items.replace(/.$/, '');
+                                alert("Item " + unverified_items + " does not exist in QAD, so you'll need to correct this before this can be saved.")
                                 this.setState({
                                     isSubmitButtonLoading: false
                                 }, () => {})
-                                
-                                alert("Data was submitted successfully!")
-
-                                this.setState({
-                                    itemsByDueDate: [],
-                                    isLoaded: false,
-                                    error: ''
-                                })
-                                this.fetchAllData();
+                            }
+                            else
+                            {
+                                if (response.data.status == 'success') {
+                                    this.setState({
+                                        isSubmitButtonLoading: false
+                                    }, () => {})
+                                    
+                                    alert("Data was submitted successfully!")
+    
+                                    this.setState({
+                                        itemsByDueDate: [],
+                                        isLoaded: false,
+                                        error: ''
+                                    })
+                                    this.fetchAllData();
+                                }
                             }
                         })
                         .catch((err) => {

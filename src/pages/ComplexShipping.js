@@ -63,7 +63,7 @@ import LoadingSpinner from "./LoadingSpinner";
                   // !context.isConfirmed && !context.isSubmitButtonLoading && 
                   !context.isConfirmed && !context.isSubmitButtonLoading && context.isLoaded && context.itemsByDueDate.length != 0 &&
                   <Button disabled={context.isConfirmed} onClick={context.submitOrderDetailsToQAD} variant="primary" size="lg">
-                    Submit Data
+                    Save to QAD
                   </Button>
                 }
                 {
