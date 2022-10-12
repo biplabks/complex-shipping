@@ -268,7 +268,7 @@ class TableTest extends React.Component {
                   Due Date
                 </Form.Label>
                 <Col sm="2" className='m-6'>
-                  <Form.Control onChange={event => this.setDueDate(event)} disabled={!this.state.isDateEditable} type="date" value={moment(this.state.due_date).utc().format('YYYY-MM-DD')} placeholder="Enter date" />
+                  <Form.Control onChange={event => this.setDueDate(event)} disabled={!this.state.isDateEditable || this.context.isSubmitButtonLoading} type="date" value={moment(this.state.due_date).utc().format('YYYY-MM-DD')} placeholder="Enter date" />
                 </Col>
                 {!this.context.isConfirmed && 
                   <>

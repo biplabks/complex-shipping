@@ -216,13 +216,18 @@ class MyProvider extends React.Component {
 
         const mappedResult = Array.from(map).map(([key, value]) => ({key, value}))
 
+        // mappedResult.forEach(element => {
+        //     element['isDateEditable'] = false
+        // })
+
         mappedResult.forEach(element => {
-            element['isDateEditable'] = false
+            element['isDateEditable'] = true
+            element['initialDate'] = element['key']
         })
     
         this.setState(
             { itemsByDueDate: mappedResult, itemsByDueDateMap:  map}, 
-            () => console.log("calling from destructureItems in MyProvider, map: ", this.state.itemsByDueDate)
+            () => console.log("calling from destructureItems in MyProvider, this.state.itemsByDueDate: ", this.state.itemsByDueDate, ", this.state.itemsByDueDateMap: ", this.state.itemsByDueDateMap)
         );
     }
 
@@ -267,6 +272,45 @@ class MyProvider extends React.Component {
                         });
                     },
                     
+                    //version 1
+                    // setDueDate: (event, due_date_key) => {
+                    //     console.log("calling from setDueDate in MyProvider, event: ", event.target.value, ", due_date_key: ", due_date_key)
+                    //     // let modifiedISODate = due_date_key.toISOString();
+                    //     let modifiedISODate = due_date_key;
+                    //     // console.log("modifiedISODate: ", modifiedISODate)
+                        
+                    //     // var localTime = moment().format('YYYY-MM-DD'); // store localTime
+                    //     var modifiedDate = event.target.value + "T00:00:00.000Z";
+
+                    //     if(this.state.itemsByDueDateMap.has(modifiedDate))
+                    //     {
+                    //         alert("Same date exist! Please choose another date!")
+                    //     }
+                    //     else
+                    //     {
+                    //         var existingDataMap = this.state.itemsByDueDateMap
+                    //         var existingData = Object.assign([], existingDataMap.get(modifiedISODate));
+                    //         existingDataMap.set(modifiedDate, existingData)
+                    //         console.log("calling from setDueDate, before existingDataMap: ", existingDataMap)
+                    //         existingDataMap.delete(modifiedISODate)
+                    //         console.log("calling from setDueDate, after existingDataMap: ", existingDataMap)
+
+                    //         var existingItemsByDueDate = this.state.itemsByDueDate
+                    //         for (let index = 0; index < existingItemsByDueDate.length; index++) {
+                    //             if (existingItemsByDueDate[index]['key'] == modifiedISODate) {
+                    //                 existingItemsByDueDate[index]['key'] = modifiedDate;
+                    //                 break;
+                    //             }
+                    //         }
+
+                    //         this.setState(
+                    //             { itemsByDueDate: existingItemsByDueDate, itemsByDueDateMap: existingDataMap}, 
+                    //             () => console.log("calling from setDueDate in MyProvider, itemsByDueDateMap: ", this.state.itemsByDueDateMap, ", itemsByDueDate: ", this.state.itemsByDueDate)
+                    //         );
+                    //     }
+                    // },
+
+                    //version 2
                     setDueDate: (event, due_date_key) => {
                         console.log("calling from setDueDate in MyProvider, event: ", event.target.value, ", due_date_key: ", due_date_key)
                         // let modifiedISODate = due_date_key.toISOString();
@@ -287,6 +331,14 @@ class MyProvider extends React.Component {
                             existingDataMap.set(modifiedDate, existingData)
                             console.log("calling from setDueDate, before existingDataMap: ", existingDataMap)
                             existingDataMap.delete(modifiedISODate)
+                            
+                            var existingValueByNewDueDate = existingDataMap.get(modifiedDate)
+                            
+                            existingValueByNewDueDate.forEach(item => {
+                                item['shipping_date'] = modifiedDate
+                            });
+
+                            console.log("calling from setDueDate, existingValueByNewDueDate: ", existingValueByNewDueDate)
                             console.log("calling from setDueDate, after existingDataMap: ", existingDataMap)
 
                             var existingItemsByDueDate = this.state.itemsByDueDate
@@ -493,7 +545,7 @@ class MyProvider extends React.Component {
                         
                         // baseAPIURLTest, baseAPIURL
                         // fetch('http://127.0.0.1:5000/api/send_req_items_for_cs', {
-                        fetch(baseAPIURL + 'send_req_items_for_cs', {
+                        fetch(baseAPIURLTest + 'send_req_items_for_cs', {
                             method: 'POST',
                             body: JSON.stringify({
                                 orderNumber: this.state.orderNumber,
@@ -526,7 +578,14 @@ class MyProvider extends React.Component {
                             }
                             else
                             {
-                                if (response.data.status == 'success') {
+                                if (response.data.is_confirmed) {
+                                    this.setState({
+                                        isSubmitButtonLoading: false
+                                    }, () => {})
+                                    
+                                    alert("Sales order is already confirmed! Data can not be submitted to QAD!")
+                                }
+                                else if (response.data.status == 'success') {
                                     this.setState({
                                         isSubmitButtonLoading: false
                                     }, () => {})
