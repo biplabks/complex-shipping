@@ -1,6 +1,7 @@
 import { Accordion, Container, Form } from 'react-bootstrap';
 import React from 'react';
 import TableTest from './TableTest';
+import BootstrapTable from './BootstrapTable';
 import moment from 'moment';
 import MyContext from './MyContext';
 
@@ -24,11 +25,16 @@ const AccordionData = () => (
                     </div>
                   </Accordion.Header>
                   <Accordion.Body>
-                    <TableTest
+                    {/* <TableTest
                       due_date={element.key}
                       isDateEditable={element.isDateEditable} 
                       orderDetails={element.value}
                       validItems={context.validItems}
+                    /> */}
+                    <BootstrapTable
+                      due_date={element.key}
+                      isDateEditable={element.isDateEditable} 
+                      orderDetails={element.value}
                     />
                   </Accordion.Body>
                 </Accordion.Item>

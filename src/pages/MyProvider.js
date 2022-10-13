@@ -140,27 +140,57 @@ class MyProvider extends React.Component {
         })
     }
 
+    // version 1
+    // async fetchAllData() {
+    //     try{
+    //         // this.setState({
+    //         //     isLoaded: false
+    //         // }, () => {})
+    //         const responses = await Promise.all([this.dataFetch(), this.getValidLisecOrderItems(), this.getValidQADOrderItems()]);
+        
+    //         if (responses[0].status == 200) {
+    //             const anotherPromise1 = await responses[0].json();
+    //             console.log("anotherPromise1: ", anotherPromise1)
+    //             this.processDataFetch(anotherPromise1);
+    //         }
+    //         if (responses[1].status == 200) {
+    //             const anotherPromise2 = await responses[1].json();
+    //             console.log("anotherPromise2: ", anotherPromise2)
+    //             this.processValidLisecOrderItems(anotherPromise2)
+    //         }
+    //         if (responses[2].status == 200) {
+    //             const anotherPromise3 = await responses[2].json();
+    //             console.log("anotherPromise3: ", anotherPromise3)
+    //             this.processValidQADOrderItems(anotherPromise3)
+    //         }
+            
+    //     }catch(error) {
+    //         console.log("Erroring out, error: ", error);
+            
+    //         this.setState({
+    //             isLoaded: true,
+    //             error: "Data can not be retrieved from QAD. Please contact IT administrator!"
+    //         }, () => {});
+    //         // return [];
+    //     } finally {
+    //         // this.setState({
+    //         //     isLoaded: true
+    //         // }, () => {})
+    //     }
+    // }
+
+    //version 2
     async fetchAllData() {
         try{
             // this.setState({
             //     isLoaded: false
             // }, () => {})
-            const responses = await Promise.all([this.dataFetch(), this.getValidLisecOrderItems(), this.getValidQADOrderItems()]);
+            const responses = await Promise.all([this.dataFetch()]);
         
             if (responses[0].status == 200) {
                 const anotherPromise1 = await responses[0].json();
                 console.log("anotherPromise1: ", anotherPromise1)
                 this.processDataFetch(anotherPromise1);
-            }
-            if (responses[1].status == 200) {
-                const anotherPromise2 = await responses[1].json();
-                console.log("anotherPromise2: ", anotherPromise2)
-                this.processValidLisecOrderItems(anotherPromise2)
-            }
-            if (responses[2].status == 200) {
-                const anotherPromise3 = await responses[2].json();
-                console.log("anotherPromise3: ", anotherPromise3)
-                this.processValidQADOrderItems(anotherPromise3)
             }
             
         }catch(error) {
@@ -219,15 +249,31 @@ class MyProvider extends React.Component {
         // mappedResult.forEach(element => {
         //     element['isDateEditable'] = false
         // })
+        const validIguItemsSet = new Set()
 
         mappedResult.forEach(element => {
             element['isDateEditable'] = true
             element['initialDate'] = element['key']
+            // console.log("element['value']: ", element['value'])
+            var items = element['value']
+            items.forEach(item => {
+                if (item['item_description'].toLowerCase() == 'igu') {
+                    validIguItemsSet.add(item['item'])
+                }
+            })
         })
-    
+
+        console.log("validIguItemsSet: ", validIguItemsSet)
+        var validIGUItems = Array.from(validIguItemsSet)
+        // for (let index = 0; index < validIguItemsSet.length; index++) {
+        //     validIGUItems.push(validIguItemsSet[index])
+        // }
+        console.log("validIGUItems: ", validIGUItems)
+
         this.setState(
-            { itemsByDueDate: mappedResult, itemsByDueDateMap:  map}, 
-            () => console.log("calling from destructureItems in MyProvider, this.state.itemsByDueDate: ", this.state.itemsByDueDate, ", this.state.itemsByDueDateMap: ", this.state.itemsByDueDateMap)
+            { itemsByDueDate: mappedResult, itemsByDueDateMap:  map, validLisecItems: validIGUItems}, 
+            () => console.log("calling from destructureItems in MyProvider, this.state.itemsByDueDate: ", 
+            this.state.itemsByDueDate, ", this.state.itemsByDueDateMap: ", this.state.itemsByDueDateMap, ", this.state.validLisecItems: ", this.state.validLisecItems)
         );
     }
 
@@ -429,7 +475,7 @@ class MyProvider extends React.Component {
                         var existingData = this.state.itemsByDueDateMap;
                         var list_of_items = Object.assign([], existingData.get(due_date_key));
 
-                        list_of_items.push({id: list_of_items.length, item: '', order_qty: 0, shipping_date: due_date_key})
+                        list_of_items.push({id: list_of_items.length, item: '', order_qty: 1, shipping_date: due_date_key})
                         existingData.set(due_date_key, list_of_items)
 
                         var existingItemsByDueDate = this.state.itemsByDueDate
@@ -545,7 +591,7 @@ class MyProvider extends React.Component {
                         
                         // baseAPIURLTest, baseAPIURL
                         // fetch('http://127.0.0.1:5000/api/send_req_items_for_cs', {
-                        fetch(baseAPIURLTest + 'send_req_items_for_cs', {
+                        fetch(baseAPIURL + 'send_req_items_for_cs', {
                             method: 'POST',
                             body: JSON.stringify({
                                 orderNumber: this.state.orderNumber,
