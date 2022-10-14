@@ -557,8 +557,12 @@ class MyProvider extends React.Component {
                         
                         var isItemDescriptionBlank = false
                         var isItemQuantityBlank = false
+                        var isDuplicateItemExist = false
+                        var dupliateItemDate = ""
+                        var duplicateItem = ""
                         this.state.itemsByDueDate.forEach(element => {
                             console.log("element: ", element)
+                            const itemSet = new Set()
                             let items = element['value']
                             for (let index = 0; index < items.length; index++) {
                                 const item = items[index];
@@ -573,6 +577,17 @@ class MyProvider extends React.Component {
                                     // alert("Order quantity can not be zero!")
                                     break;
                                 }
+
+                                if (!itemSet.has(item['item'])) {
+                                    itemSet.add(item['item'])
+                                }
+                                else
+                                {
+                                    isDuplicateItemExist = true
+                                    dupliateItemDate = element['key'].replace("T00:00:00.000Z", '')
+                                    duplicateItem = item['item']
+                                    break;
+                                }
                             }
                         })
 
@@ -582,6 +597,10 @@ class MyProvider extends React.Component {
                         }
                         if (isItemQuantityBlank) {
                             alert("Item quantity can not be zero!")
+                            return;
+                        }
+                        if (isDuplicateItemExist) {
+                            alert("Duplicate item is not allowed! Duplicate Item: " + duplicateItem + " exist in due date: " + dupliateItemDate)
                             return;
                         }
 

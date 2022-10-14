@@ -72,55 +72,6 @@ class BootstrapTable extends React.Component {
         this.context.setDueDate(event, this.state.due_date);
     }
 
-    onChangeInput = (e, id) => {
-        console.log("calling from Bootstraptable onChangeInput, e: ", e.target)
-        const { name, value } = e.target
-        console.log("id: ", id, ", name: ", name, ", value: ", value)
-
-        if (name == 'order_qty') {
-            if (value && value < 0) {
-                alert("Negative value is not allowed");
-                return
-            }
-            if(!value)
-            {
-                alert("Order quantity can not be anything other than number!");
-                return
-            }
-        }
-        else if(name == 'item') {
-            let item = this.state.items.find(e => e.item === value)
-            if (item) {
-                alert("Duplicate item is not allowed!")
-                return
-            }
-        }
-
-        const editedData = this.state.items.map((item) =>
-            item.id === id && name ? { ...item, [name]: value } : item
-        )
-
-        console.log("edit data: ", editedData)
-
-        this.setState({
-            items: editedData
-        }, () => {
-            console.log("calling form onChangeInput, this.state.items: ", this.state.items)
-        })
-
-        //update data to main data structure
-        let contextValue = this.context;
-
-        var existingItemByDueDate = contextValue['itemsByDueDate']
-        for (let index = 0; index < existingItemByDueDate.length; index++) {
-            if(existingItemByDueDate[index]['key'] == this.state.due_date) {
-                existingItemByDueDate[index]['value'] = Object.assign([], editedData);
-                break
-            }
-        }
-        contextValue['itemsByDueDateMap'].set(this.state.due_date, editedData)
-    }
-
     handleDelete = (e, id) => {
         console.log("calling from Bootstraptable onChangeInput, e: ", e.target, ", id: ", id)
 
@@ -150,6 +101,69 @@ class BootstrapTable extends React.Component {
             console.log("modified items: ", this.state.items);
         })
     }
+
+    onChangeInput = (e, id) => {
+        console.log("calling from Bootstraptable onChangeInput, e: ", e.target)
+        const { name, value } = e.target
+        console.log("id: ", id, ", name: ", name, ", value: ", value)
+
+        if (name == 'order_qty') {
+            if (value && value < 0) {
+                alert("Negative value is not allowed");
+                return
+            }
+            if(!value)
+            {
+                alert("Order quantity can not be anything other than number!");
+                return
+            }
+        }
+        // else if(name == 'item') {
+        //     let item = this.state.items.find(e => e.item === value)
+        //     if (item) {
+        //         alert("Duplicate item is not allowed!")
+        //         return
+        //     }
+        // }
+
+        const editedData = this.state.items.map((item) =>
+            item.id === id && name ? { ...item, [name]: value } : item
+        )
+
+        console.log("edit data: ", editedData)
+
+        this.setState({
+            items: editedData
+        }, () => {
+            console.log("calling form onChangeInput, this.state.items: ", this.state.items)
+        })
+
+        //update data to main data structure
+        let contextValue = this.context;
+
+        var existingItemByDueDate = contextValue['itemsByDueDate']
+        for (let index = 0; index < existingItemByDueDate.length; index++) {
+            if(existingItemByDueDate[index]['key'] == this.state.due_date) {
+                existingItemByDueDate[index]['value'] = Object.assign([], editedData);
+                break
+            }
+        }
+        contextValue['itemsByDueDateMap'].set(this.state.due_date, editedData)
+    }
+
+    // onBlurInput = (e, id) => {
+    //     console.log("calling from Bootstraptable onBlurInput, e: ", e.target)
+
+    //     const { name, value } = e.target
+
+    //     if(name == 'item') {
+    //         let item = this.state.items.find(e => e.item === value)
+    //         if (item) {
+    //             alert("Duplicate item is not allowed here===!")
+    //             return
+    //         }
+    //     }
+    // }
 
     // handleDelete = (id) => {
     //     console.log("calling from Bootstraptable onChangeInput, id: ", id)
@@ -198,6 +212,7 @@ class BootstrapTable extends React.Component {
                                     value={item} 
                                     type="text" 
                                     onChange={(e) => this.onChangeInput(e, id)}
+                                    // onBlur={(e) => this.onBlurInput(e, id)}
                                     placeholder="Type Item Name"
                                     className="text-center"
                                     disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading}
