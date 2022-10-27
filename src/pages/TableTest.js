@@ -142,7 +142,7 @@ class TableTest extends React.Component {
 
   handleDelete = (row) => {
     var existingItem = this.state.items;
-    console.log("calling from handleDelete, row: ", row)
+    // console.log("calling from handleDelete, row: ", row)
     var modifiedData = [];
     existingItem.forEach(element => {
       if (element.id != row.id) {
@@ -165,12 +165,12 @@ class TableTest extends React.Component {
     this.context['itemsByDueDateMap'].set(this.state.due_date, modifiedData)
 
     this.setState({items: modifiedData}, () => {
-      console.log("modified items: ", this.state.items);
+      // console.log("modified items: ", this.state.items);
     })
   };
   validatorFormatter = (newValue, row, column) => {
     var exists = false;
-    console.log("newValue: ", newValue, ", row: ", row, ", column: ", column, ", this.state.items: ", this.state.items.length)
+    // console.log("newValue: ", newValue, ", row: ", row, ", column: ", column, ", this.state.items: ", this.state.items.length)
     for (let index = 0; index < this.state.items.length; index++) {
       if (this.state.items[index]['item'] === newValue) {
         exists = true;

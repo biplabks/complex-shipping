@@ -35,7 +35,7 @@ import LoadingSpinner from "./LoadingSpinner";
             {
               context.isLoaded && context.itemsByDueDate.length != 0 &&
               <Container className="d-flex justify-content-between">
-                <h2>Order by Shipping Date</h2>
+                <h2>Order by Due Date</h2>
               </Container>
             }
             <>

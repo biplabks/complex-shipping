@@ -41,17 +41,17 @@ class MyProvider extends React.Component {
 
     processDataFetch(response) {
         if(response.result.status == "Error") {
-            console.log("processDataFetch error")
+            // console.log("processDataFetch error")
             this.setState({
                 isLoaded: true,
                 error: response.result.message
             }, () => {
-                console.log("calling from processDataFetch, error: ", this.state.error)
+                // console.log("calling from processDataFetch, error: ", this.state.error)
             });
             return
         }
 
-        console.log("calling from processDataFetch, response: ", response)
+        // console.log("calling from processDataFetch, response: ", response)
 
         var resultData = response['result'][this.state.orderNumber]['line_details'];
         var is_confirmed = response['result'][this.state.orderNumber]['is_confirmed'];
@@ -79,13 +79,13 @@ class MyProvider extends React.Component {
             error: '',
             orderStatus: orderStatusText
         }, () => {
-            console.log("orderStatus: ", this.state.orderStatus)
+            // console.log("orderStatus: ", this.state.orderStatus)
         });
     }
 
     processValidLisecOrderItems(response) {
         var returnedData = response['result']['data']
-        console.log("returnedData: ", returnedData)
+        // console.log("returnedData: ", returnedData)
         if (!returnedData) {    //if it is undefined
             returnedData = []
         }
@@ -117,7 +117,7 @@ class MyProvider extends React.Component {
             this.setState({
                 validItems: items
             }, () => {
-                console.log("calling from processValidQADOrderItems, this.state.validItems: ", this.state.validItems)
+                // console.log("calling from processValidQADOrderItems, this.state.validItems: ", this.state.validItems)
             })
         });
     }
@@ -189,12 +189,12 @@ class MyProvider extends React.Component {
         
             if (responses[0].status == 200) {
                 const anotherPromise1 = await responses[0].json();
-                console.log("anotherPromise1: ", anotherPromise1)
+                // console.log("anotherPromise1: ", anotherPromise1)
                 this.processDataFetch(anotherPromise1);
             }
             
         }catch(error) {
-            console.log("Erroring out, error: ", error);
+            // console.log("Erroring out, error: ", error);
             
             this.setState({
                 isLoaded: true,
@@ -263,17 +263,18 @@ class MyProvider extends React.Component {
             })
         })
 
-        console.log("validIguItemsSet: ", validIguItemsSet)
+        // console.log("validIguItemsSet: ", validIguItemsSet)
         var validIGUItems = Array.from(validIguItemsSet)
         // for (let index = 0; index < validIguItemsSet.length; index++) {
         //     validIGUItems.push(validIguItemsSet[index])
         // }
-        console.log("validIGUItems: ", validIGUItems)
+        // console.log("validIGUItems: ", validIGUItems)
 
         this.setState(
             { itemsByDueDate: mappedResult, itemsByDueDateMap:  map, validLisecItems: validIGUItems}, 
-            () => console.log("calling from destructureItems in MyProvider, this.state.itemsByDueDate: ", 
-            this.state.itemsByDueDate, ", this.state.itemsByDueDateMap: ", this.state.itemsByDueDateMap, ", this.state.validLisecItems: ", this.state.validLisecItems)
+            () => {
+                // console.log("calling from destructureItems in MyProvider, this.state.itemsByDueDate: ", this.state.itemsByDueDate, ", this.state.itemsByDueDateMap: ", this.state.itemsByDueDateMap, ", this.state.validLisecItems: ", this.state.validLisecItems)
+            }
         );
     }
 
@@ -318,47 +319,8 @@ class MyProvider extends React.Component {
                         });
                     },
                     
-                    //version 1
-                    // setDueDate: (event, due_date_key) => {
-                    //     console.log("calling from setDueDate in MyProvider, event: ", event.target.value, ", due_date_key: ", due_date_key)
-                    //     // let modifiedISODate = due_date_key.toISOString();
-                    //     let modifiedISODate = due_date_key;
-                    //     // console.log("modifiedISODate: ", modifiedISODate)
-                        
-                    //     // var localTime = moment().format('YYYY-MM-DD'); // store localTime
-                    //     var modifiedDate = event.target.value + "T00:00:00.000Z";
-
-                    //     if(this.state.itemsByDueDateMap.has(modifiedDate))
-                    //     {
-                    //         alert("Same date exist! Please choose another date!")
-                    //     }
-                    //     else
-                    //     {
-                    //         var existingDataMap = this.state.itemsByDueDateMap
-                    //         var existingData = Object.assign([], existingDataMap.get(modifiedISODate));
-                    //         existingDataMap.set(modifiedDate, existingData)
-                    //         console.log("calling from setDueDate, before existingDataMap: ", existingDataMap)
-                    //         existingDataMap.delete(modifiedISODate)
-                    //         console.log("calling from setDueDate, after existingDataMap: ", existingDataMap)
-
-                    //         var existingItemsByDueDate = this.state.itemsByDueDate
-                    //         for (let index = 0; index < existingItemsByDueDate.length; index++) {
-                    //             if (existingItemsByDueDate[index]['key'] == modifiedISODate) {
-                    //                 existingItemsByDueDate[index]['key'] = modifiedDate;
-                    //                 break;
-                    //             }
-                    //         }
-
-                    //         this.setState(
-                    //             { itemsByDueDate: existingItemsByDueDate, itemsByDueDateMap: existingDataMap}, 
-                    //             () => console.log("calling from setDueDate in MyProvider, itemsByDueDateMap: ", this.state.itemsByDueDateMap, ", itemsByDueDate: ", this.state.itemsByDueDate)
-                    //         );
-                    //     }
-                    // },
-
-                    //version 2
                     setDueDate: (event, due_date_key) => {
-                        console.log("calling from setDueDate in MyProvider, event: ", event.target.value, ", due_date_key: ", due_date_key)
+                        // console.log("calling from setDueDate in MyProvider, event: ", event.target.value, ", due_date_key: ", due_date_key)
                         // let modifiedISODate = due_date_key.toISOString();
                         let modifiedISODate = due_date_key;
                         // console.log("modifiedISODate: ", modifiedISODate)
@@ -375,7 +337,7 @@ class MyProvider extends React.Component {
                             var existingDataMap = this.state.itemsByDueDateMap
                             var existingData = Object.assign([], existingDataMap.get(modifiedISODate));
                             existingDataMap.set(modifiedDate, existingData)
-                            console.log("calling from setDueDate, before existingDataMap: ", existingDataMap)
+                            // console.log("calling from setDueDate, before existingDataMap: ", existingDataMap)
                             existingDataMap.delete(modifiedISODate)
                             
                             var existingValueByNewDueDate = existingDataMap.get(modifiedDate)
@@ -384,8 +346,8 @@ class MyProvider extends React.Component {
                                 item['shipping_date'] = modifiedDate
                             });
 
-                            console.log("calling from setDueDate, existingValueByNewDueDate: ", existingValueByNewDueDate)
-                            console.log("calling from setDueDate, after existingDataMap: ", existingDataMap)
+                            // console.log("calling from setDueDate, existingValueByNewDueDate: ", existingValueByNewDueDate)
+                            // console.log("calling from setDueDate, after existingDataMap: ", existingDataMap)
 
                             var existingItemsByDueDate = this.state.itemsByDueDate
                             for (let index = 0; index < existingItemsByDueDate.length; index++) {
@@ -397,7 +359,9 @@ class MyProvider extends React.Component {
 
                             this.setState(
                                 { itemsByDueDate: existingItemsByDueDate, itemsByDueDateMap: existingDataMap}, 
-                                () => console.log("calling from setDueDate in MyProvider, itemsByDueDateMap: ", this.state.itemsByDueDateMap, ", itemsByDueDate: ", this.state.itemsByDueDate)
+                                () => {
+                                    // console.log("calling from setDueDate in MyProvider, itemsByDueDateMap: ", this.state.itemsByDueDateMap, ", itemsByDueDate: ", this.state.itemsByDueDate)
+                                } 
                             );
                         }
                     },
@@ -440,7 +404,7 @@ class MyProvider extends React.Component {
                     },
 
                     removeItemByDueDate: (due_date_key, selectedItems) => {
-                        console.log("calling from removeItemByDueDate in MyProvider, due_date_key: ", due_date_key, ", selectedItems: ", selectedItems)
+                        // console.log("calling from removeItemByDueDate in MyProvider, due_date_key: ", due_date_key, ", selectedItems: ", selectedItems)
 
                         var existingItemByDueDate = Object.assign([], this.state.itemsByDueDate);
                         var existingItemByDueDateMap = this.state.itemsByDueDateMap;
@@ -469,7 +433,10 @@ class MyProvider extends React.Component {
                         
                         existingItemByDueDateMap.set(due_date_key, modifiedData)
                         this.setState({itemsByDueDate: modifiedData, itemsByDueDateMap: existingItemByDueDateMap}, 
-                            () => console.log("calling from getTest, this.state.itemsByDueDate: ", this.state.itemsByDueDate, ", this.state.itemsByDueDateMap: ", this.state.itemsByDueDateMap))
+                            () => {
+                                // console.log("calling from getTest, this.state.itemsByDueDate: ", this.state.itemsByDueDate, ", this.state.itemsByDueDateMap: ", this.state.itemsByDueDateMap)
+                            }
+                        )
                     },
                     insertItemByDueDate: (due_date_key) => {
                         var existingData = this.state.itemsByDueDateMap;
@@ -488,17 +455,19 @@ class MyProvider extends React.Component {
 
                         this.setState(
                             { itemsByDueDate: existingItemsByDueDate, itemsByDueDateMap:  existingData}, 
-                            () => console.log("calling from insertItemByDueDate in MyProvider, itemsByDueDateMap: ", this.state.itemsByDueDateMap)
+                            () => {
+                                // console.log("calling from insertItemByDueDate in MyProvider, itemsByDueDateMap: ", this.state.itemsByDueDateMap)
+                            }
                         );
                     },
                     copyItemsByDueDate: (due_date_key) => {
-                        console.log("Copying items, event: ", due_date_key)
+                        // console.log("Copying items, event: ", due_date_key)
 
                         try {
                             var existingData = this.state.itemsByDueDateMap;
                             
                             let list_of_items = JSON.parse(JSON.stringify(existingData.get(due_date_key)));
-                            console.log("list_of_items: ", list_of_items)
+                            // console.log("list_of_items: ", list_of_items)
 
                             for (let index = 0; index < list_of_items.length; index++) {
                                 const element = list_of_items[index];
@@ -518,7 +487,7 @@ class MyProvider extends React.Component {
 
                             nextAvailableDate = nextAvailableDate.toISOString();
 
-                            console.log("nextAvailableDate: ", nextAvailableDate)
+                            // console.log("nextAvailableDate: ", nextAvailableDate)
 
                             existingData.set(nextAvailableDate, list_of_items)
 
@@ -538,17 +507,20 @@ class MyProvider extends React.Component {
 
                             this.setState(
                                 { itemsByDueDate: arrayFrommappedResult, itemsByDueDateMap:  existingData}, 
-                                () => console.log("calling from copyItemsByDueDate in MyProvider, itemsByDueDateMap: ", this.state.itemsByDueDateMap, ", itemsByDueDate: ", this.state.itemsByDueDate)
+                                () => {
+                                    // console.log("calling from copyItemsByDueDate in MyProvider, itemsByDueDateMap: ", this.state.itemsByDueDateMap, ", itemsByDueDate: ", this.state.itemsByDueDate)
+                                }
                             );
 
                         } catch (error) {
-                            console.log("error: ", error.message);
+                            // console.log("error: ", error.message);
                         }
                     },
                     submitOrderDetailsToQAD: (event) => {
                         event.preventDefault();
 
-                        console.log("calling from submitOrderDetailsToQAD in MyProvider after preventDefault, itemsByDueDate: ", this.state.itemsByDueDate);
+                        // console.log("calling from submitOrderDetailsToQAD in MyProvider after preventDefault, itemsByDueDate: ", this.state.itemsByDueDate);
+                        // console.log("calling from submitOrderDetailsToQAD in MyProvider after preventDefault, itemsByDueDateMap: ", this.state.itemsByDueDateMap);
 
                         if (!this.state.itemsByDueDate.length) {
                             alert("Not enough data to submit to QAD!")
@@ -561,7 +533,7 @@ class MyProvider extends React.Component {
                         var dupliateItemDate = ""
                         var duplicateItem = ""
                         this.state.itemsByDueDate.forEach(element => {
-                            console.log("element: ", element)
+                            // console.log("element: ", element)
                             const itemSet = new Set()
                             let items = element['value']
                             for (let index = 0; index < items.length; index++) {
@@ -625,13 +597,13 @@ class MyProvider extends React.Component {
                         })
                         .then((res) => res.json())
                         .then((response) => {
-                            console.log("=======Am I here=========");
-                            console.log("response: ", response.data);
+                            // console.log("=======Am I here=========");
+                            // console.log("response: ", response.data);
                             var unverified_items = ""
                             if (response.data.list_of_unverified_items.length > 0) {
                                 for (let index = 0; index < response.data.list_of_unverified_items.length; index++) {
                                     const item = response.data.list_of_unverified_items[index];
-                                    console.log("item: ", item)
+                                    // console.log("item: ", item)
                                     unverified_items += item;
                                     unverified_items += ","
                                 }
@@ -667,7 +639,7 @@ class MyProvider extends React.Component {
                             }
                         })
                         .catch((err) => {
-                            console.log(err);
+                            // console.log(err);
                             this.setState({
                                 isSubmitButtonLoading: false
                             }, () => {})
@@ -706,11 +678,13 @@ class MyProvider extends React.Component {
 
                             this.setState(
                                 { itemsByDueDate: arrayFrommappedResult, itemsByDueDateMap:  existingData}, 
-                                () => console.log("calling from copyItemsByDueDate in MyProvider, itemsByDueDateMap: ", this.state.itemsByDueDateMap, ", itemsByDueDate: ", this.state.itemsByDueDate)
+                                () => {
+                                    // console.log("calling from copyItemsByDueDate in MyProvider, itemsByDueDateMap: ", this.state.itemsByDueDateMap, ", itemsByDueDate: ", this.state.itemsByDueDate)
+                                } 
                             );
 
                         } catch (error) {
-                            console.log("error: ", error.message);
+                            // console.log("error: ", error.message);
                         }
                     },
                     orderNumber: this.state.orderNumber,
