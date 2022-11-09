@@ -10,8 +10,11 @@ class MyProvider extends React.Component {
         error: '',
         isLoaded: true,
         items: [],
+        listOfUniqueItems: new Map(),
+        listOfUniqueDates: new Map(),
         itemsByDueDateMap: new Map(),
         itemsByDueDate: [],
+        formattedItemsByDueDate: new Map(),
         orderNumber: '',
         isConfirmed: null,
         validItems: [],
@@ -39,19 +42,82 @@ class MyProvider extends React.Component {
         return await fetch(baseAPIURL + "get-items")
     }
 
+    async getReferenceTagsByOrderItem() {
+        //return await fetch(baseAPIURL + "get-ref-tag-by-order-item/"+this.state.orderNumber)
+        console.log("calling from getReferenceTagsByOrderItem, this.state.validLisecItems: ", this.state.validLisecItems)
+        return await fetch(baseAPIURL + 'get-ref-tag-by-order-item', {
+            method: 'POST',
+            body: JSON.stringify({
+                items: this.state.validLisecItems,
+            }),
+            headers: {
+                'Content-type': 'application/json; charset=UTF-8',
+            },
+        })
+        .then((res) => res.json())
+        .then((response) => {
+            console.log("calling from getReferenceTagsByOrderItem, response: ", response)
+        })
+        .catch((err) => {
+            console.log("calling from getReferenceTagsByOrderItem, err: ", err)
+        });
+    }
+
+    //version 1
+    // processDataFetch(response) {
+    //     if(response.result.status == "Error") {
+    //         // console.log("processDataFetch error")
+    //         this.setState({
+    //             isLoaded: true,
+    //             error: response.result.message
+    //         }, () => {
+    //             // console.log("calling from processDataFetch, error: ", this.state.error)
+    //         });
+    //         return
+    //     }
+
+    //     // console.log("calling from processDataFetch, response: ", response)
+
+    //     var resultData = response['result'][this.state.orderNumber]['line_details'];
+    //     var is_confirmed = response['result'][this.state.orderNumber]['is_confirmed'];
+    //     var channel = response['result'][this.state.orderNumber]['channel'];
+    //     var orderStatusText = ''
+
+    //     this.destructureItems(resultData);
+
+    //     if (is_confirmed) {
+    //         orderStatusText = 'Order modification is not possible because Order is already confirmed!'
+    //     }
+    //     // else
+    //     // {
+    //     //     if (resultData && resultData.length != 0) {
+    //     //         orderStatusText = 'Order modification is possible because Order is not confirmed yet!'
+    //     //     }
+    //     // }
+
+    //     this.setState({
+    //         isLoaded: true,
+    //         items: response['result'][this.state.orderNumber]['line_details'],
+    //         orderNumber: this.state.orderNumber,
+    //         isConfirmed: is_confirmed,
+    //         channel: channel,
+    //         error: '',
+    //         orderStatus: orderStatusText
+    //     }, () => {
+    //         // console.log("orderStatus: ", this.state.orderStatus)
+    //     });
+    // }
+
+    //version 2
     processDataFetch(response) {
         if(response.result.status == "Error") {
-            // console.log("processDataFetch error")
             this.setState({
                 isLoaded: true,
                 error: response.result.message
             }, () => {
-                // console.log("calling from processDataFetch, error: ", this.state.error)
             });
             return
         }
-
-        // console.log("calling from processDataFetch, response: ", response)
 
         var resultData = response['result'][this.state.orderNumber]['line_details'];
         var is_confirmed = response['result'][this.state.orderNumber]['is_confirmed'];
@@ -63,12 +129,6 @@ class MyProvider extends React.Component {
         if (is_confirmed) {
             orderStatusText = 'Order modification is not possible because Order is already confirmed!'
         }
-        // else
-        // {
-        //     if (resultData && resultData.length != 0) {
-        //         orderStatusText = 'Order modification is possible because Order is not confirmed yet!'
-        //     }
-        // }
 
         this.setState({
             isLoaded: true,
@@ -79,7 +139,6 @@ class MyProvider extends React.Component {
             error: '',
             orderStatus: orderStatusText
         }, () => {
-            // console.log("orderStatus: ", this.state.orderStatus)
         });
     }
 
@@ -180,6 +239,35 @@ class MyProvider extends React.Component {
     // }
 
     //version 2
+    // async fetchAllData() {
+    //     try{
+    //         // this.setState({
+    //         //     isLoaded: false
+    //         // }, () => {})
+    //         const responses = await Promise.all([this.dataFetch()]);
+        
+    //         if (responses[0].status == 200) {
+    //             const anotherPromise1 = await responses[0].json();
+    //             // console.log("anotherPromise1: ", anotherPromise1)
+    //             this.processDataFetch(anotherPromise1);
+    //         }
+            
+    //     }catch(error) {
+    //         // console.log("Erroring out, error: ", error);
+            
+    //         this.setState({
+    //             isLoaded: true,
+    //             error: "Data can not be retrieved from QAD. Please contact IT administrator!"
+    //         }, () => {});
+    //         // return [];
+    //     } finally {
+    //         // this.setState({
+    //         //     isLoaded: true
+    //         // }, () => {})
+    //     }
+    // }
+
+    //version 3
     async fetchAllData() {
         try{
             // this.setState({
@@ -191,6 +279,15 @@ class MyProvider extends React.Component {
                 const anotherPromise1 = await responses[0].json();
                 // console.log("anotherPromise1: ", anotherPromise1)
                 this.processDataFetch(anotherPromise1);
+
+                // if (this.state.validLisecItems) {
+                //     console.log("this.state.validLisecItems 2: ", this.state.validLisecItems)
+                //     const responses1 = await Promise.all([this.getReferenceTagsByOrderItem()]);
+
+                //     if (responses1[0].status == 200) {
+                //         console.log("calling from fetchAllData getReferenceTagsByOrderItem")
+                //     }   
+                // }
             }
             
         }catch(error) {
@@ -207,6 +304,8 @@ class MyProvider extends React.Component {
             // }, () => {})
         }
     }
+
+    //getReferenceTagsByOrderItem
 
     getDemoData(order_number) {
         //L191953
@@ -225,9 +324,127 @@ class MyProvider extends React.Component {
         return data;
     }
 
+    //version 1
+    // destructureItems(resultData) {
+    //     const map = new Map();
+
+    //     resultData.forEach(element => {
+    //         if (map.has(element['shipping_date'])) {
+    //             let arr = []
+    //             arr = map.get(element['shipping_date'])
+    //             arr.push(element)
+    //             arr[arr.length-1]["id"] = arr.length-1
+    //             map.set(element['shipping_date'], arr);
+    //         }
+    //         else {
+    //             let arr = []
+    //             arr = [element];
+    //             arr[arr.length-1]["id"] = arr.length-1
+    //             map.set(element['shipping_date'], arr);
+    //         }
+    //     })
+
+    //     const mappedResult = Array.from(map).map(([key, value]) => ({key, value}))
+
+    //     // mappedResult.forEach(element => {
+    //     //     element['isDateEditable'] = false
+    //     // })
+    //     const validIguItemsSet = new Set()
+
+    //     mappedResult.forEach(element => {
+    //         element['isDateEditable'] = true
+    //         element['initialDate'] = element['key']
+    //         // console.log("element['value']: ", element['value'])
+    //         var items = element['value']
+    //         items.forEach(item => {
+    //             if (item['item_description'].toLowerCase() == 'igu') {
+    //                 validIguItemsSet.add(item['item'])
+    //             }
+    //         })
+    //     })
+
+    //     // console.log("validIguItemsSet: ", validIguItemsSet)
+    //     var validIGUItems = Array.from(validIguItemsSet)
+    //     // for (let index = 0; index < validIguItemsSet.length; index++) {
+    //     //     validIGUItems.push(validIguItemsSet[index])
+    //     // }
+    //     // console.log("validIGUItems: ", validIGUItems)
+
+    //     this.setState(
+    //         { itemsByDueDate: mappedResult, itemsByDueDateMap: map, validLisecItems: validIGUItems}, 
+    //         () => {
+    //             // console.log("calling from destructureItems in MyProvider, this.state.itemsByDueDate: ", this.state.itemsByDueDate, ", this.state.itemsByDueDateMap: ", this.state.itemsByDueDateMap, ", this.state.validLisecItems: ", this.state.validLisecItems)
+    //         }
+    //     );
+    // }
+
+    //version 2
+    // destructureItems(resultData) {
+    //     const map = new Map();
+
+    //     resultData.forEach(element => {
+    //         if (map.has(element['shipping_date'])) {
+    //             let arr = []
+    //             arr = map.get(element['shipping_date'])
+    //             arr.push(element)
+    //             arr[arr.length-1]["id"] = arr.length-1
+    //             map.set(element['shipping_date'], arr);
+    //         }
+    //         else {
+    //             let arr = []
+    //             arr = [element];
+    //             arr[arr.length-1]["id"] = arr.length-1
+    //             map.set(element['shipping_date'], arr);
+    //         }
+    //     })
+
+    //     const mappedResult = Array.from(map).map(([key, value]) => ({key, value}))
+
+    //     // mappedResult.forEach(element => {
+    //     //     element['isDateEditable'] = false
+    //     // })
+    //     const validIguItemsSet = new Set()
+
+    //     mappedResult.forEach(element => {
+    //         element['isDateEditable'] = true
+    //         element['initialDate'] = element['key']
+    //         // console.log("element['value']: ", element['value'])
+    //         var items = element['value']
+    //         items.forEach(item => {
+    //             if (item['item_description'].toLowerCase() == 'igu') {
+    //                 validIguItemsSet.add(item['item'])
+    //             }
+    //         })
+    //     })
+
+    //     // console.log("validIguItemsSet: ", validIguItemsSet)
+    //     var validIGUItems = Array.from(validIguItemsSet)
+    //     // for (let index = 0; index < validIguItemsSet.length; index++) {
+    //     //     validIGUItems.push(validIguItemsSet[index])
+    //     // }
+    //     // console.log("validIGUItems: ", validIGUItems)
+
+    //     // var formattedMappedResult = Object.assign([], mappedResult);
+    //     var formattedMappedResult = JSON.parse(JSON.stringify(mappedResult));
+    //     // console.log("calling from destructureItems, formattedMappedResult: ", formattedMappedResult)
+    //     this.getFormatteditemsByDueDate(formattedMappedResult)
+
+    //     this.setState(
+    //         { itemsByDueDate: mappedResult, itemsByDueDateMap: map, validLisecItems: validIGUItems}, 
+    //         () => {
+    //             console.log("calling from destructureItems in MyProvider, this.state.itemsByDueDate: ", this.state.itemsByDueDate, ", this.state.itemsByDueDateMap: ", this.state.itemsByDueDateMap, ", this.state.validLisecItems: ", this.state.validLisecItems)
+    //         }
+    //     );
+    // }
+
+    //version 3
     destructureItems(resultData) {
         const map = new Map();
+        const itemMap = new Map()
 
+        console.log("calling from destructureItems, resultData: ", resultData)
+
+        var itemIndex = 0;
         resultData.forEach(element => {
             if (map.has(element['shipping_date'])) {
                 let arr = []
@@ -242,38 +459,210 @@ class MyProvider extends React.Component {
                 arr[arr.length-1]["id"] = arr.length-1
                 map.set(element['shipping_date'], arr);
             }
+
+            if (!itemMap.has(element['item'])) {
+                itemMap.set(element['item'], itemIndex)
+                itemIndex += 1
+            }
+        })
+
+        itemMap.forEach((itemValue, itemKey) => {
+            map.forEach((mapElementValue, mapElementKey) => {
+                // console.log("mapElement['key']: ", mapElementKey)
+                // console.log("mapElement['value']: ", mapElementValue)
+
+                var newArray = mapElementValue.filter(function (el) {
+                    return el.item == itemKey;
+                });
+                if (newArray.length == 0) {
+                    // console.log("newArray: ", newArray)
+                    mapElementValue.push({id: mapElementValue.length, item: itemKey, order_qty: 0, shipping_date: mapElementKey})
+                }
+            })
         })
 
         const mappedResult = Array.from(map).map(([key, value]) => ({key, value}))
 
-        // mappedResult.forEach(element => {
-        //     element['isDateEditable'] = false
-        // })
         const validIguItemsSet = new Set()
 
         mappedResult.forEach(element => {
             element['isDateEditable'] = true
             element['initialDate'] = element['key']
-            // console.log("element['value']: ", element['value'])
             var items = element['value']
-            items.forEach(item => {
-                if (item['item_description'].toLowerCase() == 'igu') {
-                    validIguItemsSet.add(item['item'])
+            items.forEach(itemElement => {
+                // if (itemElement['item_description']) {
+                //     if (itemElement['item_description'].toLowerCase() == 'igu') {
+                //         validIguItemsSet.add(itemElement['item'])
+                //     }
+                // }
+                if (itemElement['item'].includes('-')) {
+                    validIguItemsSet.add(itemElement['item'])
                 }
             })
         })
 
-        // console.log("validIguItemsSet: ", validIguItemsSet)
+        console.log("calling from destructureItems in MyProvider, validIguItemsSet: ", validIguItemsSet)
+
         var validIGUItems = Array.from(validIguItemsSet)
-        // for (let index = 0; index < validIguItemsSet.length; index++) {
-        //     validIGUItems.push(validIguItemsSet[index])
-        // }
-        // console.log("validIGUItems: ", validIGUItems)
+
+        var formattedMappedResult = JSON.parse(JSON.stringify(mappedResult));
+
+        this.getFormatteditemsByDueDate(formattedMappedResult)
 
         this.setState(
-            { itemsByDueDate: mappedResult, itemsByDueDateMap:  map, validLisecItems: validIGUItems}, 
+            { itemsByDueDate: mappedResult, itemsByDueDateMap: map, validLisecItems: validIGUItems}, 
             () => {
-                // console.log("calling from destructureItems in MyProvider, this.state.itemsByDueDate: ", this.state.itemsByDueDate, ", this.state.itemsByDueDateMap: ", this.state.itemsByDueDateMap, ", this.state.validLisecItems: ", this.state.validLisecItems)
+                console.log("calling from destructureItems in MyProvider, this.state.itemsByDueDate: ", this.state.itemsByDueDate, ", this.state.itemsByDueDateMap: ", this.state.itemsByDueDateMap, ", this.state.validLisecItems: ", this.state.validLisecItems)
+                this.getReferenceTagsByOrderItem();
+            }
+        );
+    }
+
+    // version 1
+    // getFormatteditemsByDueDate(mappedResult) {
+    //     const itemSet = new Set()
+    //     mappedResult.map(({key, value}) => {
+    //         value.forEach(element => {
+    //             itemSet.add(element['item'])
+    //         });
+    //     })
+
+    //     mappedResult.map(({key, value}) => {
+    //         itemSet.forEach(item => {
+    //             let isItemFound = false
+    //             value.forEach(element => {
+    //                 if (item == element['item']) {
+    //                     isItemFound = true
+    //                 }
+    //             });
+        
+    //             if (!isItemFound) {
+    //                 value.push({
+    //                     "item": item,
+    //                     "order_qty": 0,
+    //                     "id": 1
+    //                 })
+    //             }
+    //         })
+    //     })
+
+    //     mappedResult.map(({key, value}) => {
+    //         let index = 0
+    //         value.forEach(element => {
+    //             element['id'] = index
+    //             index += 1
+    //         })
+    //     })
+
+    //     this.setState(
+    //         { formattedItemsByDueDate: mappedResult },
+    //         () => {
+    //             console.log("calling from getFormatteditemsByDueDate in MyProvider, this.state.formattedItemsByDueDate: ", this.state.formattedItemsByDueDate)
+    //         }
+    //     );
+    // }
+
+    //version 2
+    getFormatteditemsByDueDate(mappedResult) {
+        const itemSet = new Set()
+        const itemMap = new Map()
+
+        var index = 0
+        mappedResult.map(({key, value}) => {
+            value.forEach(element => {
+                itemSet.add(element['item'])
+                if (!itemMap.has(element['item'])) {
+                    itemMap.set(element['item'], index)
+                    index += 1
+                }
+            });
+        })
+
+        mappedResult.map(({key, value}) => {
+            itemSet.forEach(item => {
+                let isItemFound = false
+                value.forEach(element => {
+                    if (item == element['item']) {
+                        isItemFound = true
+                    }
+                });
+        
+                if (!isItemFound) {
+                    value.push({
+                        "item": item,
+                        "order_qty": 0,
+                        "id": 1
+                    })
+                }
+            })
+        })
+
+        // console.log("calling from getFormatteditemsByDueDate, mappedResult: ", mappedResult)
+
+        var formattedMappedResult = []
+        var uniqueDatesMap = new Map()
+        var indexCount = 0
+        mappedResult.map(({key, value, isDateEditable, initialDate}) => {
+            var items = []
+            itemMap.forEach((value1, key) => {
+                value.forEach(element => {
+                    if (key == element['item']) {
+                        items.push(element)
+                    }
+                })
+            })
+            var item = {
+                key: key,
+                value: items,
+                isDateEditable: isDateEditable,
+                initialDate: initialDate
+            }
+            formattedMappedResult.push(item)
+
+            //get unique dates
+            uniqueDatesMap.set(initialDate, indexCount)
+            indexCount += 1
+        })
+
+        formattedMappedResult.map(({key, value}) => {
+            let index = 0
+            value.forEach(element => {
+                element['id'] = index
+                index += 1
+            })
+        })
+
+        var formattedMappedResultFinal = new Map();
+        formattedMappedResult.forEach(element => {
+            var items = element['value']
+            items.forEach(itemElement => {
+                if (!formattedMappedResultFinal.has(itemElement['item'])) {
+                    formattedMappedResultFinal.set(itemElement['item'], [{'order_qty': itemElement['order_qty'], 'due_date': element['key'], 'initial_date': element['key']}])
+                }
+                else
+                {
+                    var itemList = formattedMappedResultFinal.get(itemElement['item'])
+                    itemList.push({'order_qty': itemElement['order_qty'], 'due_date': element['key'], 'initial_date': element['key']})
+                    formattedMappedResultFinal.set(itemElement['item'], itemList)
+                }
+            })
+        })
+
+        console.log("calling from getFormatteditemsByDueDate in MyProvider, formattedMappedResultFinal: ", formattedMappedResultFinal)
+        //listOfUniqueDates
+        const uniqueDates = Array.from(uniqueDatesMap).map(([key, value]) => ({key, value}))
+        const formattedItemsByDueDate = Array.from(formattedMappedResultFinal).map(([key, value]) => ({key, value}))
+
+        var index = 0
+        formattedItemsByDueDate.forEach(item => {
+            item['id'] = index
+            index += 1
+        })
+
+        this.setState(
+            { formattedItemsByDueDate: formattedItemsByDueDate, listOfUniqueItems: itemMap, listOfUniqueDates: uniqueDates },
+            () => {
+                console.log("calling from getFormatteditemsByDueDate in MyProvider, this.state.formattedItemsByDueDate: ", this.state.formattedItemsByDueDate, ", listOfUniqueDates: ", this.state.listOfUniqueDates)
             }
         );
     }
@@ -282,34 +671,6 @@ class MyProvider extends React.Component {
         return (
             <MyContext.Provider
                 value={{
-                    getTest: (due_date, selectedItems) => {
-                        var existingItemByDueDate = Object.assign([], this.state.itemsByDueDate);
-                        var existingItemByDueDateMap = this.state.itemsByDueDateMap;
-                        
-                        var existingItems = []
-
-                        var existingItems = existingItemByDueDate.filter(item => item.key == due_date)[0]['value'];
-                        
-                        var modifiedData = [];
-                        existingItems.forEach(element => {
-                            if (!selectedItems.includes(element.id)) {
-                                modifiedData.push(element);
-                            }
-                        })
-                        for (let index = 0; index < modifiedData.length; index++) {
-                            modifiedData[index]['id'] = index
-                        }
-
-                        for (let index = 0; index < existingItemByDueDate.length; index++) {
-                            if(existingItemByDueDate[index]['key'] == due_date) {
-                                existingItemByDueDate[index]['value'] = Object.assign([], modifiedData);
-                                break
-                            }
-                        }
-                        
-                        existingItemByDueDateMap.set(due_date, modifiedData)
-                    },
-
                     setOrderNumber: (event) => {
                         var orderNumber = event.target.value;
                         this.setState({
@@ -408,7 +769,7 @@ class MyProvider extends React.Component {
 
                         var existingItemByDueDate = Object.assign([], this.state.itemsByDueDate);
                         var existingItemByDueDateMap = this.state.itemsByDueDateMap;
-                        // console.log("calling from getTest in MyProvider, existingItemByDueDate: ", existingItemByDueDate, ", existingItemByDueDateMap: ", existingItemByDueDateMap)
+                        // console.log("calling from removeItemByDueDate in MyProvider, existingItemByDueDate: ", existingItemByDueDate, ", existingItemByDueDateMap: ", existingItemByDueDateMap)
                         
                         var existingItems = []
 
@@ -434,7 +795,7 @@ class MyProvider extends React.Component {
                         existingItemByDueDateMap.set(due_date_key, modifiedData)
                         this.setState({itemsByDueDate: modifiedData, itemsByDueDateMap: existingItemByDueDateMap}, 
                             () => {
-                                // console.log("calling from getTest, this.state.itemsByDueDate: ", this.state.itemsByDueDate, ", this.state.itemsByDueDateMap: ", this.state.itemsByDueDateMap)
+                                // console.log("calling from removeItemByDueDate, this.state.itemsByDueDate: ", this.state.itemsByDueDate, ", this.state.itemsByDueDateMap: ", this.state.itemsByDueDateMap)
                             }
                         )
                     },
@@ -516,53 +877,260 @@ class MyProvider extends React.Component {
                             // console.log("error: ", error.message);
                         }
                     },
+
+                    addNewDueDate: (modifiedItemsByDueDate) => {
+                        this.setState({itemsByDueDate: modifiedItemsByDueDate}, () => {
+                            console.log("calling from MyProvider, addNewDueDate, this.state.itemsByDueDate: ", this.state.itemsByDueDate)
+                        })
+                    },
+
+                    updateOrderQuantity: (modifiedItemsByDueDate) => {
+                        this.setState({itemsByDueDate: modifiedItemsByDueDate}, () => {
+                            console.log("calling from MyProvider, updateOrderQuantity, this.state.itemsByDueDate: ", this.state.itemsByDueDate)
+                        })
+                    },
+
+                    addNewItem: (modifiedItemsByDueDate) => {
+                        this.setState({itemsByDueDate: modifiedItemsByDueDate}, () => {
+                            console.log("calling from MyProvider, addNewItem, this.state.itemsByDueDate: ", this.state.itemsByDueDate)
+                        })
+                    },
+
+                    onChangeItemInput: (modifiedItemsByDueDate) => {
+                        this.setState({itemsByDueDate: modifiedItemsByDueDate}, () => {
+                            console.log("calling from MyProvider, onChangeItemInput, this.state.itemsByDueDate: ", this.state.itemsByDueDate)
+                        })
+                    },
+
+                    onChangeDateInput: (modifiedItemsByDueDate) => {
+                        this.setState({itemsByDueDate: modifiedItemsByDueDate}, () => {
+                            console.log("calling from MyProvider, onChangeDateInput, this.state.itemsByDueDate: ", this.state.itemsByDueDate)
+                        })
+                    },
+
+                    handleDeleteByDueDate: (modifiedItemsByDueDate) => {
+                        this.setState({itemsByDueDate: modifiedItemsByDueDate}, () => {
+                            console.log("calling from MyProvider, handleDeleteByDueDate, this.state.itemsByDueDate: ", this.state.itemsByDueDate)
+                        })
+                    },
+
+                    handleDeleteByItem: (modifiedItemsByDueDate) => {
+                        this.setState({itemsByDueDate: modifiedItemsByDueDate}, () => {
+                            console.log("calling from MyProvider, handleDeleteByItem, this.state.itemsByDueDate: ", this.state.itemsByDueDate)
+                        })
+                    },
+                    
+                    //version 1
+                    // submitOrderDetailsToQAD: (event) => {
+                    //     event.preventDefault();
+
+                    //     console.log("calling from submitOrderDetailsToQAD in MyProvider after preventDefault, itemsByDueDate: ", this.state.itemsByDueDate);
+                    //     // console.log("calling from submitOrderDetailsToQAD in MyProvider after preventDefault, itemsByDueDateMap: ", this.state.itemsByDueDateMap);
+
+                    //     //return;
+
+                    //     if (!this.state.itemsByDueDate.length) {
+                    //         alert("Not enough data to submit to QAD!")
+                    //         return
+                    //     }
+                        
+                    //     var isItemListBlank = false
+                    //     var isItemDescriptionBlank = false
+                    //     var isItemQuantityBlank = false
+                    //     var isDuplicateItemExist = false
+                    //     var dateOfBlankItemList = ""
+                    //     var dupliateItemDate = ""
+                    //     var duplicateItem = ""
+                    //     this.state.itemsByDueDate.forEach(element => {
+                    //         // console.log("element: ", element)
+                    //         const itemSet = new Set()
+                    //         let items = element['value']
+                    //         if (items.length == 0) {
+                    //             isItemListBlank = true
+                    //             dateOfBlankItemList = element['key'].replace("T00:00:00.000Z", '')
+                    //         }
+                    //         else
+                    //         {
+                    //             for (let index = 0; index < items.length; index++) {
+                    //                 const item = items[index];
+                    //                 if (!item['item']) {
+                    //                     isItemDescriptionBlank = true
+                    //                     // alert("Item description can not be blank!")
+                    //                     break;
+                    //                 }
+    
+                    //                 if (item['order_qty'] == 0) {
+                    //                     isItemQuantityBlank = true
+                    //                     // alert("Order quantity can not be zero!")
+                    //                     break;
+                    //                 }
+    
+                    //                 if (!itemSet.has(item['item'])) {
+                    //                     itemSet.add(item['item'])
+                    //                 }
+                    //                 else
+                    //                 {
+                    //                     isDuplicateItemExist = true
+                    //                     dupliateItemDate = element['key'].replace("T00:00:00.000Z", '')
+                    //                     duplicateItem = item['item']
+                    //                     break;
+                    //                 }
+                    //             }
+                    //         }
+                    //     })
+
+                    //     if (isItemListBlank) {
+                    //         alert("Item List is Blank for date: " + dateOfBlankItemList + ". Can't submit to QAD!")
+                    //         return;
+                    //     }
+                    //     if (isItemDescriptionBlank) {
+                    //         alert("Item description can not be blank!")
+                    //         return;
+                    //     }
+                    //     if (isItemQuantityBlank) {
+                    //         alert("Item quantity can not be zero!")
+                    //         return;
+                    //     }
+                    //     if (isDuplicateItemExist) {
+                    //         // alert("Duplicate item is not allowed! Duplicate Item: " + duplicateItem + " exist in due date: " + dupliateItemDate)
+                    //         alert("Duplicate item is not allowed! Duplicate Item: " + duplicateItem + " exist!")
+                    //         return;
+                    //     }
+
+                    //     this.setState({
+                    //         isSubmitButtonLoading: true
+                    //     }, () => {})
+                        
+                    //     // baseAPIURLTest, baseAPIURL
+                    //     // fetch('http://127.0.0.1:5000/api/send_req_items_for_cs', {
+                    //     fetch(baseAPIURL + 'send_req_items_for_cs', {
+                    //         method: 'POST',
+                    //         body: JSON.stringify({
+                    //             orderNumber: this.state.orderNumber,
+                    //             itemsByDueDate: this.state.itemsByDueDate,
+                    //             isValidLisecItemsAvailable: this.state.validLisecItems.length,
+                    //             validLisecItems: this.state.validLisecItems,
+                    //             channel: this.state.channel
+                    //         }),
+                    //         headers: {
+                    //             'Content-type': 'application/json; charset=UTF-8',
+                    //         },
+                    //     })
+                    //     .then((res) => res.json())
+                    //     .then((response) => {
+                    //         // console.log("=======Am I here=========");
+                    //         // console.log("response: ", response.data);
+                    //         var unverified_items = ""
+                    //         if (response.data.list_of_unverified_items.length > 0) {
+                    //             for (let index = 0; index < response.data.list_of_unverified_items.length; index++) {
+                    //                 const item = response.data.list_of_unverified_items[index];
+                    //                 // console.log("item: ", item)
+                    //                 unverified_items += item;
+                    //                 unverified_items += ","
+                    //             }
+                    //             unverified_items = unverified_items.replace(/.$/, '');
+                    //             alert("Item " + unverified_items + " does not exist in QAD, so you'll need to correct this before this can be saved.")
+                    //             this.setState({
+                    //                 isSubmitButtonLoading: false
+                    //             }, () => {})
+                    //         }
+                    //         else
+                    //         {
+                    //             if (response.data.is_confirmed) {
+                    //                 this.setState({
+                    //                     isSubmitButtonLoading: false
+                    //                 }, () => {})
+                                    
+                    //                 alert("Sales order is already confirmed! Data can not be submitted to QAD!")
+                    //             }
+                    //             else if (response.data.status == 'success') {
+                    //                 this.setState({
+                    //                     isSubmitButtonLoading: false
+                    //                 }, () => {})
+                                    
+                    //                 alert("Data was submitted successfully!")
+    
+                    //                 this.setState({
+                    //                     itemsByDueDate: [],
+                    //                     isLoaded: false,
+                    //                     error: ''
+                    //                 })
+                    //                 this.fetchAllData();
+                    //             }
+                    //         }
+                    //     })
+                    //     .catch((err) => {
+                    //         // console.log(err);
+                    //         this.setState({
+                    //             isSubmitButtonLoading: false
+                    //         }, () => {})
+                    //         alert("Data was not submitted successfully!Please contact administrator!")
+                    //     });
+                    // },
+
+                    //version 2
                     submitOrderDetailsToQAD: (event) => {
                         event.preventDefault();
 
-                        // console.log("calling from submitOrderDetailsToQAD in MyProvider after preventDefault, itemsByDueDate: ", this.state.itemsByDueDate);
+                        console.log("calling from submitOrderDetailsToQAD in MyProvider after preventDefault, itemsByDueDate: ", this.state.itemsByDueDate);
                         // console.log("calling from submitOrderDetailsToQAD in MyProvider after preventDefault, itemsByDueDateMap: ", this.state.itemsByDueDateMap);
+
+                        //return;
 
                         if (!this.state.itemsByDueDate.length) {
                             alert("Not enough data to submit to QAD!")
                             return
                         }
                         
+                        var isItemListBlank = false
                         var isItemDescriptionBlank = false
                         var isItemQuantityBlank = false
                         var isDuplicateItemExist = false
+                        var dateOfBlankItemList = ""
                         var dupliateItemDate = ""
                         var duplicateItem = ""
                         this.state.itemsByDueDate.forEach(element => {
                             // console.log("element: ", element)
                             const itemSet = new Set()
                             let items = element['value']
-                            for (let index = 0; index < items.length; index++) {
-                                const item = items[index];
-                                if (!item['item']) {
-                                    isItemDescriptionBlank = true
-                                    // alert("Item description can not be blank!")
-                                    break;
-                                }
-
-                                if (item['order_qty'] == 0) {
-                                    isItemQuantityBlank = true
-                                    // alert("Order quantity can not be zero!")
-                                    break;
-                                }
-
-                                if (!itemSet.has(item['item'])) {
-                                    itemSet.add(item['item'])
-                                }
-                                else
-                                {
-                                    isDuplicateItemExist = true
-                                    dupliateItemDate = element['key'].replace("T00:00:00.000Z", '')
-                                    duplicateItem = item['item']
-                                    break;
+                            if (items.length == 0) {
+                                isItemListBlank = true
+                                dateOfBlankItemList = element['key'].replace("T00:00:00.000Z", '')
+                            }
+                            else
+                            {
+                                for (let index = 0; index < items.length; index++) {
+                                    const item = items[index];
+                                    if (!item['item']) {
+                                        isItemDescriptionBlank = true
+                                        // alert("Item description can not be blank!")
+                                        break;
+                                    }
+    
+                                    if (item['order_qty'] == 0) {
+                                        isItemQuantityBlank = true
+                                        // alert("Order quantity can not be zero!")
+                                        break;
+                                    }
+    
+                                    if (!itemSet.has(item['item'])) {
+                                        itemSet.add(item['item'])
+                                    }
+                                    else
+                                    {
+                                        isDuplicateItemExist = true
+                                        dupliateItemDate = element['key'].replace("T00:00:00.000Z", '')
+                                        duplicateItem = item['item']
+                                        break;
+                                    }
                                 }
                             }
                         })
 
+                        if (isItemListBlank) {
+                            alert("Item List is Blank for date: " + dateOfBlankItemList + ". Can't submit to QAD!")
+                            return;
+                        }
                         if (isItemDescriptionBlank) {
                             alert("Item description can not be blank!")
                             return;
@@ -572,7 +1140,8 @@ class MyProvider extends React.Component {
                             return;
                         }
                         if (isDuplicateItemExist) {
-                            alert("Duplicate item is not allowed! Duplicate Item: " + duplicateItem + " exist in due date: " + dupliateItemDate)
+                            // alert("Duplicate item is not allowed! Duplicate Item: " + duplicateItem + " exist in due date: " + dupliateItemDate)
+                            alert("Duplicate item is not allowed! Duplicate Item: " + duplicateItem + " exist!")
                             return;
                         }
 
@@ -646,6 +1215,7 @@ class MyProvider extends React.Component {
                             alert("Data was not submitted successfully!Please contact administrator!")
                         });
                     },
+
                     addNewTableByDueDate: () => {
                         try {
                             var existingData = this.state.itemsByDueDateMap;
@@ -698,7 +1268,10 @@ class MyProvider extends React.Component {
                     submitButtonText: this.state.submitButtonText,
                     isSubmitButtonLoading: this.state.isSubmitButtonLoading,
                     channel: this.state.channel,
-                    orderStatus: this.state.orderStatus
+                    orderStatus: this.state.orderStatus,
+                    formattedItemsByDueDate: this.state.formattedItemsByDueDate,
+                    listOfUniqueItems: this.state.listOfUniqueItems,
+                    listOfUniqueDates: this.state.listOfUniqueDates
                 }}
             >
                 {this.props.children}

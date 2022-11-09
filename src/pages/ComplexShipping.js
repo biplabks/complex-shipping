@@ -47,17 +47,21 @@ import LoadingSpinner from "./LoadingSpinner";
                 context.isLoaded && context.error.length != 0 &&
                 <p>{context.error}</p>
               }
-            </>
-            <AccordionData />
-            <>
               {
+                context.isLoaded && context.error.length == 0 &&
+                <AccordionData />
+              }
+            </>
+            {/* <AccordionData /> */}
+            <>
+              {/* {
                 !context.isConfirmed && context.itemsByDueDate.length != 0 &&
                 <Container className="d-flex justify-content-between pb-3">
                   <Button disabled={context.isSubmitButtonLoading} onClick={context.addNewTableByDueDate} variant="primary">
                     Add New Due Date
                   </Button>
                 </Container>
-              }
+              } */}
               <Container className='pb-3'>
                 {
                   // !context.isConfirmed && !context.isSubmitButtonLoading && 
