@@ -36,8 +36,9 @@ const AccordionData = () => (
             <Container className="p-3">
               <BootstrapTable2
                 orderDetails={context.formattedItemsByDueDate}
-                listOfUniqueItems={context.listOfUniqueItems}
+                listOfPromiseDates={context.listOfPromiseDates}
                 listOfUniqueDates={context.listOfUniqueDates}
+                listOfUniqueDueDates={context.listOfUniqueDueDates}
               />
             </Container>
           }

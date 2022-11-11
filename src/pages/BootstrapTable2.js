@@ -14,8 +14,10 @@ class BootstrapTable2 extends React.Component {
           dueDatesColspan: 1,
           listOfUniqueItems: new Map(),
           listOfUniqueDates: [],
+          listOfPromiseDates: [],
           sumOfIgusRowWise: [],
-          sumOfIgusColumnWise: []
+          sumOfIgusColumnWise: [],
+          listOfUniqueDueDates: []
         };
     }
 
@@ -24,10 +26,13 @@ class BootstrapTable2 extends React.Component {
         this.setState({
             items: this.props.orderDetails,
             dueDatesColspan: this.props.listOfUniqueDates.length,
-            listOfUniqueItems: this.props.listOfUniqueItems,
-            listOfUniqueDates: this.props.listOfUniqueDates
+            listOfPromiseDates: this.props.listOfPromiseDates,
+            listOfUniqueDates: this.props.listOfUniqueDates,
+            listOfUniqueDueDates: this.props.listOfUniqueDueDates
         }, () => {
-            console.log("calling from Bootstraptable2 componentDidMount, items: ", this.state.items, ", type of this.state.items: ", typeof this.state.items, ", dueDatesColspan: ", this.state.dueDatesColspan, ", listOfUniqueDates: ", this.state.listOfUniqueDates)
+            console.log("calling from Bootstraptable2 componentDidMount, listOfUniqueDueDates: ", this.state.listOfUniqueDueDates)
+            //console.log("calling from Bootstraptable2 componentDidMount, listOfPromiseDates: ", this.state.listOfPromiseDates)
+            // console.log("calling from Bootstraptable2 componentDidMount, items: ", this.state.items, ", type of this.state.items: ", typeof this.state.items, ", dueDatesColspan: ", this.state.dueDatesColspan, ", listOfUniqueDates: ", this.state.listOfUniqueDates)
             
             // let sumOfIgusByRow = []
             // this.state.items.forEach(item => {
@@ -76,7 +81,7 @@ class BootstrapTable2 extends React.Component {
 
     componentDidUpdate(prevProps) {
         if(prevProps.orderDetails !== this.props.orderDetails){
-            console.log("calling from componentDidUpdate in BootstrapTable")
+            // console.log("calling from componentDidUpdate in BootstrapTable")
             this.setState({
                 items: this.props.orderDetails
             });
@@ -87,24 +92,85 @@ class BootstrapTable2 extends React.Component {
         // var modified_due_date = this.state.due_date + "T00:00:00.000Z"
         // this.context.insertItemByDueDate(modified_due_date);
 
-        console.log("calling from BootstrapTable2 insertItemByDueDate")
+        // console.log("calling from BootstrapTable2 insertItemByDueDate")
     }
 
+    //version 1
+    // addNewItem = () => {
+    //     // console.log("calling from BootstrapTable2 addNewItem")
+
+    //     var existingItems = JSON.parse(JSON.stringify(this.state.items));
+    //     var existingItemsByDueDate = JSON.parse(JSON.stringify(this.context.itemsByDueDate));
+    //     var existingPromiseDates = JSON.parse(JSON.stringify(this.state.listOfPromiseDates))
+
+    //     // var baseItem = existingItems[0];
+
+    //     console.log("calling from addNewItem, existingItems: ", existingItems, ", existingItemsByDueDate: ", existingItemsByDueDate)
+
+    //     var baseItem = JSON.parse(JSON.stringify(existingItems[0]));
+    //     console.log("baseItem: ", baseItem)
+
+    //     baseItem['key'] = ''
+    //     baseItem['reference_tag'] = ''
+    //     baseItem['value'].forEach(item => {
+    //         item['order_qty'] = 1
+    //     })
+
+    //     existingItems.push(baseItem);
+
+    //     var index = 0
+    //     existingItems.forEach(item => {
+    //         item['id'] = index
+    //         index += 1
+    //     })
+
+    //     existingItemsByDueDate.forEach(element => {
+    //         let items = element['value']
+    //         items.push({
+    //             "item": '',
+    //             "order_qty": 1,
+    //             "shipping_date": element['key']
+    //         })
+    //     })
+
+    //     existingItemsByDueDate.forEach(element => {
+    //         let items = element['value']
+    //         var index = 0
+    //         items.forEach(itemElement => {
+    //             itemElement['id'] = index
+    //             index += 1
+    //         })
+    //     })
+
+    //     this.setState({items: existingItems}, () => {
+    //         //console.log("calling from insertItem, items: ", this.state.items);
+    //         this.updateSumOfIguByRow();
+    //         this.updateSumOfIguByColumn();
+    //         this.context.addNewItem(existingItemsByDueDate);
+    //     })
+    // }
+
+    //version 2
     addNewItem = () => {
-        console.log("calling from BootstrapTable2 addNewItem")
+        // console.log("calling from BootstrapTable2 addNewItem")
 
         var existingItems = JSON.parse(JSON.stringify(this.state.items));
         var existingItemsByDueDate = JSON.parse(JSON.stringify(this.context.itemsByDueDate));
+        var existingPromiseDates = JSON.parse(JSON.stringify(this.state.listOfPromiseDates))
 
         // var baseItem = existingItems[0];
+
+        console.log("calling from addNewItem, existingItems: ", existingItems, ", existingItemsByDueDate: ", existingItemsByDueDate)
 
         var baseItem = JSON.parse(JSON.stringify(existingItems[0]));
         //console.log("baseItem: ", baseItem)
 
         baseItem['key'] = ''
+        baseItem['reference_tag'] = ''
         baseItem['value'].forEach(item => {
             item['order_qty'] = 1
         })
+        baseItem['is_item_editable'] = true
 
         existingItems.push(baseItem);
 
@@ -119,7 +185,9 @@ class BootstrapTable2 extends React.Component {
             items.push({
                 "item": '',
                 "order_qty": 1,
-                "shipping_date": element['key']
+                "shipping_date": element['key'],
+                "promise_date": element['promiseDate'],
+                'is_item_editable': true
             })
         })
 
@@ -142,7 +210,7 @@ class BootstrapTable2 extends React.Component {
 
     getNextAvailableDate() {
         let dateArray = []
-		const existingUniqueDates = this.state.listOfUniqueDates;
+		const existingUniqueDates = JSON.parse(JSON.stringify(this.state.listOfUniqueDates));
 		for (let index = 0; index < existingUniqueDates.length; index++) {
             var element = existingUniqueDates[index]
 			const dateElement = new Date(element['key']);
@@ -155,6 +223,32 @@ class BootstrapTable2 extends React.Component {
 
 		nextAvailableDate = nextAvailableDate.toISOString();
 
+        return nextAvailableDate
+    }
+
+    getNextAvailablePromiseDate() {
+        let dateArray = []
+		const existingPromiseDates = JSON.parse(JSON.stringify(this.state.listOfPromiseDates));
+		for (let index = 0; index < existingPromiseDates.length; index++) {
+            var element = existingPromiseDates[index]
+            if (element['promiseDate']) {
+                const dateElement = new Date(element['promiseDate']);
+                dateArray.push(dateElement)
+            }
+		}
+        var nextAvailableDate = new Date()
+        if (dateArray.length>=1) {
+            const maxDate = new Date(Math.max.apply(null, dateArray));
+            nextAvailableDate = new Date(maxDate);
+            nextAvailableDate.setDate(maxDate.getDate()+1);
+
+            nextAvailableDate = nextAvailableDate.toISOString();
+        }
+        else
+        {
+            dateArray.push(new Date())
+            nextAvailableDate = new Date(Math.max.apply(null, dateArray));
+        }
         return nextAvailableDate
     }
 
@@ -199,18 +293,88 @@ class BootstrapTable2 extends React.Component {
     // }
 
     //version 2
+    // addNewDueDate = () => {
+    //     var nextAvailableDate = this.getNextAvailableDate();
+
+    //     // console.log("calling from addNewDueDate, nextAvailableDate: ", nextAvailableDate)
+
+    //     var existingItemsByDueDate = JSON.parse(JSON.stringify(this.context.itemsByDueDate));
+    //     // console.log("calling from addNewDueDate, this.context.itemsByDueDate: ", existingItemsByDueDate)
+
+    //     var existingItems = JSON.parse(JSON.stringify(this.state.items));
+    //     var existingUniqueDates = JSON.parse(JSON.stringify(this.state.listOfUniqueDates));
+
+    //     // console.log("addNewDueDate, existingItems before: ", existingItems)
+
+    //     existingItems.forEach(element => {
+    //         var items = element['value']
+    //         items.push({
+    //             "order_qty": 0,
+    //             "due_date": nextAvailableDate,
+    //             "initial_date": nextAvailableDate
+    //         })
+    //     })
+    //     // console.log("addNewDueDate, existingItems after: ", existingItems)
+
+    //     var listOfItems = []
+    //     // existingItems.forEach(element => {
+    //     //     element['value'].forEach(item => {
+    //     //         listOfItems.push({
+    //     //             "item": element['key'],
+    //     //             "order_qty": 0,
+    //     //             "shipping_date": nextAvailableDate
+    //     //         })
+    //     //     })
+    //     // })
+
+    //     existingItems.forEach(element => {
+    //         listOfItems.push({
+    //             "item": element['key'],
+    //             "order_qty": 0,
+    //             "shipping_date": nextAvailableDate
+    //         })
+    //     })
+
+    //     var itemByDueDate = {
+    //         "key": nextAvailableDate,
+    //         "isDateEditable": true,
+    //         "value": listOfItems
+    //     }
+    //     existingItemsByDueDate.push(itemByDueDate)
+
+    //     var listOfRanks = []
+    //     for (let date of existingUniqueDates) {
+    //         listOfRanks.push(date['value'])
+    //     }
+    //     var nextRank = Math.max.apply(null, listOfRanks)
+    //     existingUniqueDates.push({
+    //         "key": nextAvailableDate,
+    //         "value": nextRank+1
+    //     })
+        
+    //     this.context.addNewDueDate(existingItemsByDueDate);
+    //     // console.log("calling from addNewDueDate after, this.context.itemsByDueDate: ", this.context.itemsByDueDate)
+
+    //     this.setState({items: existingItems, listOfUniqueDates: existingUniqueDates, dueDatesColspan: existingUniqueDates.length}, () => {
+    //         //console.log("calling from addNewDueDate, items: ", this.state.items, ", listOfUniqueDates: ", this.state.listOfUniqueDates);
+    //     })
+    // }
+
+    //version 3
     addNewDueDate = () => {
         var nextAvailableDate = this.getNextAvailableDate();
+        var nextAvailablePromiseDate = this.getNextAvailablePromiseDate();
 
-        console.log("calling from addNewDueDate, nextAvailableDate: ", nextAvailableDate)
+        //console.log("calling from addNewDueDate, nextAvailablePromiseDate: ", nextAvailablePromiseDate)
 
         var existingItemsByDueDate = JSON.parse(JSON.stringify(this.context.itemsByDueDate));
-        console.log("calling from addNewDueDate, this.context.itemsByDueDate: ", existingItemsByDueDate)
+        // console.log("calling from addNewDueDate, this.context.itemsByDueDate: ", existingItemsByDueDate)
 
-        var existingItems = this.state.items;
-        var existingUniqueDates = this.state.listOfUniqueDates;
+        var existingItems = JSON.parse(JSON.stringify(this.state.items));
+        var existingUniqueDates = JSON.parse(JSON.stringify(this.state.listOfUniqueDates));
+        var existingPromiseDates = JSON.parse(JSON.stringify(this.state.listOfPromiseDates));
 
-        console.log("addNewDueDate, existingItems before: ", existingItems)
+        //console.log("addNewDueDate, existingItems before: ", existingItems)
 
         existingItems.forEach(element => {
             var items = element['value']
@@ -220,7 +384,7 @@ class BootstrapTable2 extends React.Component {
                 "initial_date": nextAvailableDate
             })
         })
-        console.log("addNewDueDate, existingItems after: ", existingItems)
+        //console.log("addNewDueDate, existingItems after: ", existingItems)
 
         var listOfItems = []
         // existingItems.forEach(element => {
@@ -237,13 +401,15 @@ class BootstrapTable2 extends React.Component {
             listOfItems.push({
                 "item": element['key'],
                 "order_qty": 0,
-                "shipping_date": nextAvailableDate
+                "shipping_date": nextAvailableDate,
+                "promise_date": nextAvailablePromiseDate
             })
         })
 
         var itemByDueDate = {
             "key": nextAvailableDate,
             "isDateEditable": true,
+            "promiseDate": nextAvailablePromiseDate,
             "value": listOfItems
         }
         existingItemsByDueDate.push(itemByDueDate)
@@ -257,12 +423,19 @@ class BootstrapTable2 extends React.Component {
             "key": nextAvailableDate,
             "value": nextRank+1
         })
+
+        existingPromiseDates.push({
+            "promiseDate": nextAvailablePromiseDate,
+            "promiseDateIndex": existingPromiseDates.length
+        })
+
+        //console.log("addNewDueDate, existingPromiseDates: ", existingPromiseDates)
         
         this.context.addNewDueDate(existingItemsByDueDate);
-        console.log("calling from addNewDueDate after, this.context.itemsByDueDate: ", this.context.itemsByDueDate)
+        // console.log("calling from addNewDueDate after, this.context.itemsByDueDate: ", this.context.itemsByDueDate)
 
-        this.setState({items: existingItems, listOfUniqueDates: existingUniqueDates, dueDatesColspan: existingUniqueDates.length}, () => {
-            console.log("calling from addNewDueDate, items: ", this.state.items, ", listOfUniqueDates: ", this.state.listOfUniqueDates);
+        this.setState({items: existingItems, listOfUniqueDates: existingUniqueDates, dueDatesColspan: existingUniqueDates.length, listOfPromiseDates: existingPromiseDates}, () => {
+            //console.log("calling from addNewDueDate, items: ", this.state.items, ", listOfUniqueDates: ", this.state.listOfUniqueDates);
         })
     }
 
@@ -270,7 +443,7 @@ class BootstrapTable2 extends React.Component {
         // var modified_due_date = this.state.due_date + "T00:00:00.000Z"
         // this.context.copyItemsByDueDate(modified_due_date);
 
-        console.log("calling from copyItemsByDueDate")
+        //console.log("calling from copyItemsByDueDate")
     }
 
     setDueDate = (event) => {
@@ -284,16 +457,16 @@ class BootstrapTable2 extends React.Component {
         //     console.log("this.state.due_date: ", this.state.due_date)
         // })
 
-        console.log("calling from setDueDate")
+        //console.log("calling from setDueDate")
     }
 
     handleDeleteByItem = (e, id, key) => {
-        console.log("calling from Bootstraptable handleDeleteByItem, e: ", e, ", key: ", key, ", id: ", id)
+        //console.log("calling from Bootstraptable handleDeleteByItem, e: ", e, ", key: ", key, ", id: ", id)
 
         var existingItem = JSON.parse(JSON.stringify(this.state.items));
         var existingItemsByDueDate = JSON.parse(JSON.stringify(this.context.itemsByDueDate));
 
-        console.log("calling from Bootstraptable, existingItemsByDueDate before: ", existingItemsByDueDate)
+        //console.log("calling from Bootstraptable, existingItemsByDueDate before: ", existingItemsByDueDate)
         var modifiedData = [];
 
         existingItem.forEach(element => {
@@ -326,7 +499,7 @@ class BootstrapTable2 extends React.Component {
             })
         })
 
-        console.log("calling from Bootstraptable, existingItemsByDueDate after: ", existingItemsByDueDate)
+        //console.log("calling from Bootstraptable, existingItemsByDueDate after: ", existingItemsByDueDate)
 
         this.setState({items: modifiedData}, () => {
             //console.log("modified items: ", this.state.items);
@@ -363,7 +536,7 @@ class BootstrapTable2 extends React.Component {
         //     console.log("modified items: ", this.state.items);
         // })
 
-        console.log("calling from handleDeleteByItem")
+        //console.log("calling from handleDeleteByItem")
     }
 
     handleDeleteByDueDate = (e, key) => {
@@ -376,7 +549,7 @@ class BootstrapTable2 extends React.Component {
 
         var existingItem =  JSON.parse(JSON.stringify(this.state.items));
         var existingItemsByDueDate = JSON.parse(JSON.stringify(this.context.itemsByDueDate));
-        console.log("calling from handleDeleteByDueDate before, existingItemsByDueDate: ", existingItemsByDueDate)
+        //console.log("calling from handleDeleteByDueDate before, existingItemsByDueDate: ", existingItemsByDueDate)
 
         existingItem.forEach(element => {
             let items = element['value']
@@ -391,10 +564,10 @@ class BootstrapTable2 extends React.Component {
         })
 
         existingItemsByDueDate.splice(indexOfItemByDueDate, 1);
-        console.log("calling from handleDeleteByDueDate after, existingItemsByDueDate: ", existingItemsByDueDate)
+        //console.log("calling from handleDeleteByDueDate after, existingItemsByDueDate: ", existingItemsByDueDate)
 
         var existingUniqueDates = JSON.parse(JSON.stringify(this.state.listOfUniqueDates));
-        console.log("existingUniqueDates before: ", existingUniqueDates)
+        //console.log("existingUniqueDates before: ", existingUniqueDates)
         const indexOfDate = existingUniqueDates.findIndex(element => {
             return element.key === key;
         })
@@ -406,10 +579,10 @@ class BootstrapTable2 extends React.Component {
             index += 1
         });
 
-        console.log("existingUniqueDates after: ", existingUniqueDates.length)
+        //console.log("existingUniqueDates after: ", existingUniqueDates.length)
 
         this.setState({items: existingItem, listOfUniqueDates: existingUniqueDates, dueDatesColspan: existingUniqueDates.length}, () => {
-            console.log("modified items in handleDeleteByDueDate: ", this.state.items);
+            //console.log("modified items in handleDeleteByDueDate: ", this.state.items);
             this.updateSumOfIguByRow();
             this.updateSumOfIguByColumn();
             this.context.handleDeleteByDueDate(existingItemsByDueDate);
@@ -422,9 +595,13 @@ class BootstrapTable2 extends React.Component {
             let items = item['value']
             let sum = 0;
             let id = item['id']
-            items.forEach(itemElement => {
-                sum += parseInt(itemElement['order_qty'])
-            })
+
+            if(item['key'].includes("-"))
+            {
+                items.forEach(itemElement => {
+                    sum += parseInt(itemElement['order_qty'])
+                })
+            }
             sumOfIgusByRow.push({
                 "rowId": id,
                 "itemKey": item['key'],
@@ -435,7 +612,7 @@ class BootstrapTable2 extends React.Component {
         this.setState({
             sumOfIgusRowWise: sumOfIgusByRow
         }, () => {
-            console.log("calling from updateSumOfIguByRow, this.state.sumOfIgusRowWise: ", this.state.sumOfIgusRowWise)
+            //console.log("calling from updateSumOfIguByRow, this.state.sumOfIgusRowWise: ", this.state.sumOfIgusRowWise)
         })
     }
 
@@ -447,7 +624,12 @@ class BootstrapTable2 extends React.Component {
                 let items = item['value']
                 items.forEach(itemElement => {
                     if (itemElement['due_date'] == element['key']) {
-                        sum += parseInt(itemElement['order_qty'])
+
+                        if(item['key'].includes("-"))
+                        {
+                            sum += parseInt(itemElement['order_qty'])
+                        }
+                        // sum += parseInt(itemElement['order_qty'])
                     }
                 })
             })
@@ -461,15 +643,15 @@ class BootstrapTable2 extends React.Component {
         this.setState({
             sumOfIgusColumnWise: sumOfIgusByColumn
         }, () => {
-            console.log("calling from updateSumOfIguByColumn, this.state.sumOfIgusColumnWise: ", this.state.sumOfIgusColumnWise)
+            //console.log("calling from updateSumOfIguByColumn, this.state.sumOfIgusColumnWise: ", this.state.sumOfIgusColumnWise)
         })
     }
 
     checkForDuplicateDate(key) {
-        console.log("calling from checkForDuplicateDate")
+        //console.log("calling from checkForDuplicateDate")
 
         var existingItem = this.state.items;
-        console.log("existingItem: ", existingItem)
+        //console.log("existingItem: ", existingItem)
 
         // existingItem.forEach(element => {
         //     element['value'].forEach(item => {
@@ -494,7 +676,7 @@ class BootstrapTable2 extends React.Component {
     }
 
     onChangeDateInput = (e, key) => {
-        console.log("calling from Bootstraptable onChangeDateInput, e: ", e.target.value, ", key: ", key, ", this.state.listOfUniqueDates: ", this.state.listOfUniqueDates)
+        //console.log("calling from Bootstraptable onChangeDateInput, e: ", e.target.value, ", key: ", key, ", this.state.listOfUniqueDates: ", this.state.listOfUniqueDates)
 
         var newDateKey = e.target.value + 'T00:00:00.000Z'
         var isDuplicateDateFound = this.checkForDuplicateDate(newDateKey);
@@ -507,7 +689,7 @@ class BootstrapTable2 extends React.Component {
         var existingItem = JSON.parse(JSON.stringify(this.state.items));
         var existingItemsByDueDate = JSON.parse(JSON.stringify(this.context.itemsByDueDate));
 
-        console.log("calling from onChangeDateInput, existingItemsByDueDate before: ", existingItemsByDueDate)
+        //console.log("calling from onChangeDateInput, existingItemsByDueDate before: ", existingItemsByDueDate)
 
         existingItem.forEach(element => {
             element['value'].forEach(item => {
@@ -527,7 +709,7 @@ class BootstrapTable2 extends React.Component {
             }
         })
 
-        console.log("calling from onChangeDateInput, existingItemsByDueDate after: ", existingItemsByDueDate)
+        //console.log("calling from onChangeDateInput, existingItemsByDueDate after: ", existingItemsByDueDate)
 
         var existingUniqueDates = JSON.parse(JSON.stringify(this.state.listOfUniqueDates));
         existingUniqueDates.forEach(element => {
@@ -537,26 +719,82 @@ class BootstrapTable2 extends React.Component {
         })
 
         this.setState({items: existingItem, listOfUniqueDates: existingUniqueDates}, () => {
-            console.log("onChangeDateInput, modified items: ", this.state.items);
+            //console.log("onChangeDateInput, modified items: ", this.state.items);
             this.context.onChangeDateInput(existingItemsByDueDate)
             this.updateSumOfIguByColumn();
         })
     }
 
+    onChangePromiseDateInput = (e, keyIndex) => {
+        //console.log("calling from Bootstraptable onChangePromiseDateInput, e: ", e.target.value, ", keyIndex: ", keyIndex)
+
+        var newPromiseDateKey = e.target.value + 'T00:00:00.000Z'
+
+        var existingItem = JSON.parse(JSON.stringify(this.state.items));
+        var existingItemsByDueDate = JSON.parse(JSON.stringify(this.context.itemsByDueDate));
+
+        //console.log("calling from onChangePromiseDateInput, existingItem: ", existingItem, ", existingItemsByDueDate before: ", existingItemsByDueDate)
+
+        existingItem.forEach(element => {
+            var index = 0
+            element['value'].forEach(item => {
+                if (index == keyIndex) {
+                    item['promise_date'] = newPromiseDateKey
+                }
+                index += 1
+            })
+        })
+
+        //console.log("calling from onChangePromiseDateInput, existingItem after: ",existingItem)
+
+        var index = 0
+        existingItemsByDueDate.forEach(element => {
+            if (index == keyIndex) {
+                element['promiseDate'] = newPromiseDateKey
+
+                let items = element['value']
+                items.forEach(itemElement => {
+                    itemElement['promise_date'] = newPromiseDateKey
+                })
+            }
+            index += 1
+        })
+
+        //console.log("calling from onChangePromiseDateInput, existingItemsByDueDate after: ", existingItemsByDueDate)
+
+        var existingPromiseDates = JSON.parse(JSON.stringify(this.state.listOfPromiseDates));
+
+        //console.log("calling from onChangePromiseDateInput, existingPromiseDates: ", existingPromiseDates)
+
+        existingPromiseDates.forEach(element => {
+            if (element['promiseDateIndex'] == keyIndex) {
+                element['promiseDate'] = newPromiseDateKey
+            }
+        })
+
+        //console.log("calling from onChangePromiseDateInput, existingPromiseDates after: ", existingPromiseDates)
+
+        this.setState({items: existingItem, listOfPromiseDates: existingPromiseDates}, () => {
+            //console.log("onChangeDateInput, modified items: ", this.state.items);
+            this.context.onChangePromiseDateInput(existingItemsByDueDate)
+            //this.updateSumOfIguByColumn();
+        })
+    }
+
     onChangeItemInput = (e, id, key) => {
-        console.log("calling from Bootstraptable onChangeItemInput, e: ", e.target.value, ", key: ", key, ", id: ", id)
+        //console.log("calling from Bootstraptable onChangeItemInput, e: ", e.target.value, ", key: ", key, ", id: ", id)
         
         var existingItems = JSON.parse(JSON.stringify(this.state.items));
         var existingItemsByDueDate = JSON.parse(JSON.stringify(this.context.itemsByDueDate));
 
-        console.log("calling from onChangeItemInput before, existingItems: ", existingItems)
-        console.log("calling from onChangeItemInput before, existingItemsByDueDate: ", existingItemsByDueDate)
+        //console.log("calling from onChangeItemInput before, existingItems: ", existingItems)
+        //console.log("calling from onChangeItemInput before, existingItemsByDueDate: ", existingItemsByDueDate)
         existingItems.forEach(element => {
             if (element['id'] == id) {
                 element['key'] = e.target.value
             }
         })
-        console.log("calling from onChangeItemInput after, existingItems: ", existingItems)
+        //console.log("calling from onChangeItemInput after, existingItems: ", existingItems)
 
         existingItemsByDueDate.forEach(element => {
             let items = element['value']
@@ -567,13 +805,14 @@ class BootstrapTable2 extends React.Component {
             })
         })
 
-        console.log("calling from onChangeItemInput after, existingItemsByDueDate: ", existingItemsByDueDate)
+        //console.log("calling from onChangeItemInput after, existingItemsByDueDate: ", existingItemsByDueDate)
 
         this.setState({
             items: existingItems
         }, () => {
-            console.log("calling from Bootstraptable2, onChangeItemInput, this.state.items: ", this.state.items)
+            //console.log("calling from Bootstraptable2, onChangeItemInput, this.state.items: ", this.state.items)
             this.updateSumOfIguByRow()
+            this.updateSumOfIguByColumn()
             this.context.onChangeItemInput(existingItemsByDueDate);
         })
 
@@ -617,7 +856,7 @@ class BootstrapTable2 extends React.Component {
         // }
         // contextValue['itemsByDueDateMap'].set(modified_due_date, editedData)
 
-        console.log("calling from onChangeItemInput")
+        //console.log("calling from onChangeItemInput")
     }
 
     //version 1
@@ -645,11 +884,11 @@ class BootstrapTable2 extends React.Component {
 
     //version 2
     onChangeOrderQuantityInput = (e, id, key, due_date) => {
-        console.log("calling from Bootstraptable onChangeOrderQuantityInput, e: ", e.target.value, ", key: ", key, ", due_date: ", due_date)
+        //console.log("calling from Bootstraptable onChangeOrderQuantityInput, e: ", e.target.value, ", key: ", key, ", due_date: ", due_date)
 
         var existingItem = this.state.items;
         var existingItemsByDueDate = JSON.parse(JSON.stringify(this.context.itemsByDueDate));
-        console.log("existingItem before: ", existingItem)
+        //console.log("existingItem before: ", existingItem)
 
         existingItem.forEach(element => {
             if (element['key'] == key && element['id'] == id) {
@@ -660,7 +899,7 @@ class BootstrapTable2 extends React.Component {
                 })
             }
         })
-        console.log("existingItem after: ", existingItem)
+        //console.log("existingItem after: ", existingItem)
 
         existingItemsByDueDate.forEach(element => {
             if (element['key'] == due_date) {
@@ -676,7 +915,7 @@ class BootstrapTable2 extends React.Component {
         this.context.updateOrderQuantity(existingItemsByDueDate)
 
         this.setState({items: existingItem}, () => {
-            console.log("modified items: ", this.state.items);
+            //console.log("modified items: ", this.state.items);
             this.updateSumOfIguByRow();
             this.updateSumOfIguByColumn();
         })
@@ -726,6 +965,7 @@ class BootstrapTable2 extends React.Component {
                         <thead>
                             <tr>
                                 <th>Item</th>
+                                <th>Reference Tag</th>
                                 {/* <th>Ref Tags</th> */}
                                 {/* <th colSpan={this.state.dueDatesColspan}>Due Dates</th> */}
                                 {
@@ -736,6 +976,7 @@ class BootstrapTable2 extends React.Component {
                                 <th>Remove</th>
                             </tr>
                             <tr>
+                                <td></td>
                                 <td></td>
                                 {
                                     this.state.listOfUniqueDates.map(({key, value}) => (
@@ -754,19 +995,56 @@ class BootstrapTable2 extends React.Component {
                                     ))
                                 }
                             </tr>
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                {
+                                    this.state.dueDatesColspan>=1 && 
+                                    <th colSpan={this.state.dueDatesColspan}>Promise Dates</th>
+                                }
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                {
+                                    this.state.listOfPromiseDates.map(({promiseDate, promiseDateIndex}) => (
+                                        // console.log("key: ", element['key'])
+                                        <td key={promiseDateIndex}>
+                                            {/* <Form.Control onChange={event => this.setDueDate(event)} disabled={this.context.isSubmitButtonLoading || this.context.isConfirmed} type="date" value={key.replace("T00:00:00.000Z", '')} placeholder="Enter date" /> */}
+                                            <Form.Control
+                                                value={promiseDate.replace("T00:00:00.000Z", '')}
+                                                type="date"
+                                                onChange={(e) => this.onChangePromiseDateInput(e, promiseDateIndex)}
+                                                className="text-center"
+                                                disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading}
+                                            />
+                                        </td>
+                                    ))
+                                }
+                            </tr>
                         </thead>
                         <tbody>
-                            {this.state.items.map(({key, value, id}) => (
+                            {this.state.items.map(({key, value, id, reference_tag, is_item_editable}) => (
                                 <tr key={id}>
                                     <td style={{ width: '200px' }}>
                                         <Form.Control 
-                                            name="item" 
-                                            value={key} 
+                                            name="item"
+                                            value={key}
                                             type="text" 
                                             onChange={(e) => this.onChangeItemInput(e, id, key)}
                                             placeholder="Type Item Name"
                                             className="text-center"
-                                            disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading}
+                                            disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading || !is_item_editable}
+                                        />
+                                    </td>
+                                    <td>
+                                        <Form.Control 
+                                            name="reference_tag" 
+                                            value={reference_tag} 
+                                            type="text" 
+                                            onChange={(e) => this.onChangeItemInput(e, id, key)}
+                                            className="text-center"
+                                            disabled={true}
                                         />
                                     </td>
                                     {
@@ -801,10 +1079,10 @@ class BootstrapTable2 extends React.Component {
                                     </td>
                                 </tr>
                             ))}
-
                             {
                                 this.state.dueDatesColspan>=1 && 
                                 <tr>
+                                    <td></td>
                                     <td></td>
                                     {
                                         this.state.listOfUniqueDates.map(({key, value}) => (
@@ -821,6 +1099,7 @@ class BootstrapTable2 extends React.Component {
                             {
                                 this.state.dueDatesColspan>=1 && 
                                 <tr>
+                                    <td></td>
                                     <td></td>
                                     {
                                         this.state.listOfUniqueDates.map(({key, value}) => (

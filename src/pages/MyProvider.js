@@ -12,8 +12,11 @@ class MyProvider extends React.Component {
         items: [],
         listOfUniqueItems: new Map(),
         listOfUniqueDates: new Map(),
+        listOfPromiseDates: [],
+        listOfUniqueDueDates: [],
         itemsByDueDateMap: new Map(),
         itemsByDueDate: [],
+        refTagsByOrderItem: [],
         formattedItemsByDueDate: new Map(),
         orderNumber: '',
         isConfirmed: null,
@@ -42,9 +45,60 @@ class MyProvider extends React.Component {
         return await fetch(baseAPIURL + "get-items")
     }
 
+    //refTagsByOrderItem
+    //version 1
+    // async getReferenceTagsByOrderItem() {
+    //     //return await fetch(baseAPIURL + "get-ref-tag-by-order-item/"+this.state.orderNumber)
+    //     console.log("calling from getReferenceTagsByOrderItem, this.state.validLisecItems: ", this.state.validLisecItems)
+    //     return await fetch(baseAPIURL + 'get-ref-tag-by-order-item', {
+    //         method: 'POST',
+    //         body: JSON.stringify({
+    //             items: this.state.validLisecItems,
+    //         }),
+    //         headers: {
+    //             'Content-type': 'application/json; charset=UTF-8',
+    //         },
+    //     })
+    //     .then((res) => res.json())
+    //     .then((response) => {
+    //         console.log("calling from getReferenceTagsByOrderItem, response: ", response, ", this.state.itemsByDueDate: ", this.state.itemsByDueDate)
+
+    //         var refTagsByOrderItem = response['results']
+    //         var existingItemsByDueDate = JSON.parse(JSON.stringify(this.state.itemsByDueDate));
+
+    //         refTagsByOrderItem.forEach(refTagElement => {
+    //             var item = refTagElement['order_no'] + '-' + refTagElement['item_no']
+
+    //             existingItemsByDueDate.forEach(itemElement => {
+    //                 var items = itemElement['value']
+
+    //                 items.forEach(itemEl => {
+    //                     if (itemEl['item'] == item) {
+    //                         itemEl['reference_tag'] = refTagElement['reference_tag']   
+    //                     }
+    //                     else
+    //                     {
+    //                         itemEl['reference_tag'] = ""
+    //                     }
+    //                 })
+    //             })
+    //         })
+
+    //         this.setState({
+    //             itemsByDueDate: existingItemsByDueDate
+    //         }, () => {
+    //             console.log("calling from getReferenceTagsByOrderItem, itemsByDueDate: ", this.state.itemsByDueDate)
+    //         })
+    //     })
+    //     .catch((err) => {
+    //         console.log("calling from getReferenceTagsByOrderItem, err: ", err)
+    //     });
+    // }
+
+    //version 2
     async getReferenceTagsByOrderItem() {
         //return await fetch(baseAPIURL + "get-ref-tag-by-order-item/"+this.state.orderNumber)
-        console.log("calling from getReferenceTagsByOrderItem, this.state.validLisecItems: ", this.state.validLisecItems)
+        //console.log("calling from getReferenceTagsByOrderItem, this.state.validLisecItems: ", this.state.validLisecItems)
         return await fetch(baseAPIURL + 'get-ref-tag-by-order-item', {
             method: 'POST',
             body: JSON.stringify({
@@ -56,59 +110,55 @@ class MyProvider extends React.Component {
         })
         .then((res) => res.json())
         .then((response) => {
-            console.log("calling from getReferenceTagsByOrderItem, response: ", response)
+            //console.log("calling from getReferenceTagsByOrderItem, response: ", response, ", this.state.itemsByDueDate: ", this.state.itemsByDueDate)
+
+            var refTagByOrderItem = response['results']
+
+            this.setState({
+                refTagsByOrderItem: refTagByOrderItem
+            },() => {
+                //console.log("calling from getReferenceTagsByOrderItem, refTagsByOrderItem: ", this.state.refTagsByOrderItem)
+            })
+
+            var existingItemsByDueDate = JSON.parse(JSON.stringify(this.state.itemsByDueDate));
+
+            refTagByOrderItem.forEach(refTagElement => {
+                var item = refTagElement['order_no'] + '-' + refTagElement['item_no']
+
+                existingItemsByDueDate.forEach(itemElement => {
+                    var items = itemElement['value']
+
+                    items.forEach(itemEl => {
+                        if (itemEl['item'] == item) {
+                            itemEl['reference_tag'] = refTagElement['reference_tag']
+                            //console.log("itemEl['item']: ", itemEl['item'], ", itemEl['reference_tag']: ", itemEl['reference_tag'])
+                        }
+                        else
+                        {
+                            if (!itemEl['reference_tag']) {
+                                itemEl['reference_tag'] = ""
+                            }
+                        }
+                    })
+                })
+
+                //console.log("updated existingItemsByDueDate: ", existingItemsByDueDate)
+            })
+
+
+
+            this.setState({
+                itemsByDueDate: existingItemsByDueDate
+            }, () => {
+                console.log("calling from getReferenceTagsByOrderItem, itemsByDueDate: ", this.state.itemsByDueDate)
+                this.getFormatteditemsByDueDate();
+            })
         })
         .catch((err) => {
-            console.log("calling from getReferenceTagsByOrderItem, err: ", err)
+            //console.log("calling from getReferenceTagsByOrderItem, err: ", err)
         });
     }
 
-    //version 1
-    // processDataFetch(response) {
-    //     if(response.result.status == "Error") {
-    //         // console.log("processDataFetch error")
-    //         this.setState({
-    //             isLoaded: true,
-    //             error: response.result.message
-    //         }, () => {
-    //             // console.log("calling from processDataFetch, error: ", this.state.error)
-    //         });
-    //         return
-    //     }
-
-    //     // console.log("calling from processDataFetch, response: ", response)
-
-    //     var resultData = response['result'][this.state.orderNumber]['line_details'];
-    //     var is_confirmed = response['result'][this.state.orderNumber]['is_confirmed'];
-    //     var channel = response['result'][this.state.orderNumber]['channel'];
-    //     var orderStatusText = ''
-
-    //     this.destructureItems(resultData);
-
-    //     if (is_confirmed) {
-    //         orderStatusText = 'Order modification is not possible because Order is already confirmed!'
-    //     }
-    //     // else
-    //     // {
-    //     //     if (resultData && resultData.length != 0) {
-    //     //         orderStatusText = 'Order modification is possible because Order is not confirmed yet!'
-    //     //     }
-    //     // }
-
-    //     this.setState({
-    //         isLoaded: true,
-    //         items: response['result'][this.state.orderNumber]['line_details'],
-    //         orderNumber: this.state.orderNumber,
-    //         isConfirmed: is_confirmed,
-    //         channel: channel,
-    //         error: '',
-    //         orderStatus: orderStatusText
-    //     }, () => {
-    //         // console.log("orderStatus: ", this.state.orderStatus)
-    //     });
-    // }
-
-    //version 2
     processDataFetch(response) {
         if(response.result.status == "Error") {
             this.setState({
@@ -199,75 +249,6 @@ class MyProvider extends React.Component {
         })
     }
 
-    // version 1
-    // async fetchAllData() {
-    //     try{
-    //         // this.setState({
-    //         //     isLoaded: false
-    //         // }, () => {})
-    //         const responses = await Promise.all([this.dataFetch(), this.getValidLisecOrderItems(), this.getValidQADOrderItems()]);
-        
-    //         if (responses[0].status == 200) {
-    //             const anotherPromise1 = await responses[0].json();
-    //             console.log("anotherPromise1: ", anotherPromise1)
-    //             this.processDataFetch(anotherPromise1);
-    //         }
-    //         if (responses[1].status == 200) {
-    //             const anotherPromise2 = await responses[1].json();
-    //             console.log("anotherPromise2: ", anotherPromise2)
-    //             this.processValidLisecOrderItems(anotherPromise2)
-    //         }
-    //         if (responses[2].status == 200) {
-    //             const anotherPromise3 = await responses[2].json();
-    //             console.log("anotherPromise3: ", anotherPromise3)
-    //             this.processValidQADOrderItems(anotherPromise3)
-    //         }
-            
-    //     }catch(error) {
-    //         console.log("Erroring out, error: ", error);
-            
-    //         this.setState({
-    //             isLoaded: true,
-    //             error: "Data can not be retrieved from QAD. Please contact IT administrator!"
-    //         }, () => {});
-    //         // return [];
-    //     } finally {
-    //         // this.setState({
-    //         //     isLoaded: true
-    //         // }, () => {})
-    //     }
-    // }
-
-    //version 2
-    // async fetchAllData() {
-    //     try{
-    //         // this.setState({
-    //         //     isLoaded: false
-    //         // }, () => {})
-    //         const responses = await Promise.all([this.dataFetch()]);
-        
-    //         if (responses[0].status == 200) {
-    //             const anotherPromise1 = await responses[0].json();
-    //             // console.log("anotherPromise1: ", anotherPromise1)
-    //             this.processDataFetch(anotherPromise1);
-    //         }
-            
-    //     }catch(error) {
-    //         // console.log("Erroring out, error: ", error);
-            
-    //         this.setState({
-    //             isLoaded: true,
-    //             error: "Data can not be retrieved from QAD. Please contact IT administrator!"
-    //         }, () => {});
-    //         // return [];
-    //     } finally {
-    //         // this.setState({
-    //         //     isLoaded: true
-    //         // }, () => {})
-    //     }
-    // }
-
-    //version 3
     async fetchAllData() {
         try{
             // this.setState({
@@ -305,29 +286,14 @@ class MyProvider extends React.Component {
         }
     }
 
-    //getReferenceTagsByOrderItem
-
-    getDemoData(order_number) {
-        //L191953
-        var data = ""
-        
-        if (order_number === 'L191953') {
-            return {"result":{"L191953":{"crate_language":"","crates":null,"is_confirmed":true,"lid_required":false,"line_details":[],"sales_order_number":"L191953","special_instructions":""},"status":"Success"}}   
-        }
-        else if (order_number === 'L210636') {
-            return {"result":{"L210636":{"crate_language":"","crates":{"CR21000002":{"211219-12-C":{"quantity":1},"actual_gross_weight":5,"crate_type ":"P","location":"CC-TGT"},"CR21000008":{"210636-10":{"quantity":1},"210636-12":{"quantity":1},"actual_gross_weight":0,"crate_type ":"P","location":"R1A1"},"CR21000013":{"210636-16":{"quantity":1},"actual_gross_weight":0,"crate_type":"P","location":"HVMST05"}," CR21000015":{"210636-16":{"quantity":1},"actual_gross_weight":0,"crate_type":"P","location":"CR"},"CR22000024":{"210636-16":{"quan tity":1},"211068-1":{"quantity":1},"actual_gross_weight":0,"crate_type":"S","location":"CARRESEQ"},"CR22000026":{"210636-16":{"qua ntity":1},"actual_gross_weight":0,"crate_type":"P","location":"CARRESEQ"},"CR22000027":{"210636-16":{"quantity":1},"actual_gross_w eight":0,"crate_type":"P","location":"CARRESEQ"},"CR22000029":{"210636-16":{"quantity":1},"actual_gross_weight":0,"crate_type":"S" ,"location":"CARRESEQ"},"CR22000031":{"210636-16":{"quantity":1},"actual_gross_weight":0,"crate_type":"P","location":"CARRESEQ"}," CR22000032":{"210636-16":{"quantity":1},"actual_gross_weight":0,"crate_type":"Q","location":"CARRESEQ"},"CR22000033":{"210636-16": {"quantity":1},"actual_gross_weight":0,"crate_type":"P","location":"CARRESEQ"}},"is_confirmed":true,"item_details":{"210636-10":{" count_of_devices_packed":1},"210636-11":{"count_of_devices_packed":0},"210636-12":{"count_of_devices_packed":1},"210636-13":{"coun t_of_devices_packed":0},"210636-14":{"count_of_devices_packed":0},"210636-15":{"count_of_devices_packed":0},"210636-16":{"count_of _devices_packed":9},"210636-7":{"count_of_devices_packed":0}},"lid_required":false,"line_details":[{"item":"210636-7","order_qty": 13,"shipped_qty":0,"shipping_date":"2021-10-11T00:00:00.000Z"},{"item":"210636-10","order_qty":9,"shipped_qty":0,"shipping_date":" 2021-10-11T00:00:00.000Z"},{"item":"210636-11","order_qty":9,"shipped_qty":0,"shipping_date":"2021-10-11T00:00:00.000Z"},{"item":" 210636-12","order_qty":9,"shipped_qty":0,"shipping_date":"2021-10-11T00:00:00.000Z"},{"item":"210636-13","order_qty":9,"shipped_qt y":0,"shipping_date":"2021-10-11T00:00:00.000Z"},{"item":"210636-14","order_qty":9,"shipped_qty":0,"shipping_date":"2021-10-11T00: 00:00.000Z"},{"item":"210636-15","order_qty":9,"shipped_qty":0,"shipping_date":"2021-10-11T00:00:00.000Z"},{"item":"210636-16","or der_qty":13,"shipped_qty":0,"shipping_date":"2021-10-11T00:00:00.000Z"}],"sales_order_number":"L210636","special_instructions":""} ,"status":"Success"}}
-        }
-        else if (order_number === 'L200401') {
-            return {"result":{"L200401":{"crate_language":"","crates":null,"is_confirmed":false,"item_details":{"200401-1":{"count_of_devices_packed" :0},"200401-10":{"count_of_devices_packed":0},"200401-11":{"count_of_devices_packed":0},"200401-12":{"count_of_devices_packed":0}, "200401-13":{"count_of_devices_packed":0},"200401-14":{"count_of_devices_packed":0},"200401-2":{"count_of_devices_packed":0},"2004 01-3":{"count_of_devices_packed":0},"200401-4":{"count_of_devices_packed":0},"200401-5":{"count_of_devices_packed":0},"200401-6":{ "count_of_devices_packed":0},"200401-7":{"count_of_devices_packed":0},"200401-8":{"count_of_devices_packed":0},"200401-9":{"count_ of_devices_packed":0}},"lid_required":false,"line_details":[{"item":"200401-1","order_qty":1,"shipped_qty":0,"shipping_date":"2020 -06-01T00:00:00.000Z"},{"item":"200401-2","order_qty":1,"shipped_qty":0,"shipping_date":"2020-06-01T00:00:00.000Z"},{"item":"20040 1-3","order_qty":1,"shipped_qty":0,"shipping_date":"2020-06-01T00:00:00.000Z"},{"item":"200401-4","order_qty":1,"shipped_qty":0,"s hipping_date":"2020-06-01T00:00:00.000Z"},{"item":"200401-5","order_qty":1,"shipped_qty":0,"shipping_date":"2020-06-01T00:00:00.00 0Z"},{"item":"200401-6","order_qty":1,"shipped_qty":0,"shipping_date":"2020-06-01T00:00:00.000Z"},{"item":"200401-7","order_qty":1 ,"shipped_qty":0,"shipping_date":"2020-06-01T00:00:00.000Z"},{"item":"200401-8","order_qty":1,"shipped_qty":0,"shipping_date":"202 0-06-01T00:00:00.000Z"},{"item":"200401-9","order_qty":6,"shipped_qty":0,"shipping_date":"2020-06-01T00:00:00.000Z"},{"item":"2004 01-10","order_qty":12,"shipped_qty":0,"shipping_date":"2020-06-01T00:00:00.000Z"},{"item":"200401-11","order_qty":4,"shipped_qty": 0,"shipping_date":"2020-06-01T00:00:00.000Z"},{"item":"200401-12","order_qty":8,"shipped_qty":0,"shipping_date":"2020-06-01T00:00: 00.000Z"},{"item":"200401-13","order_qty":2,"shipped_qty":0,"shipping_date":"2020-06-01T00:00:00.000Z"},{"item":"200401-14","order _qty":4,"shipped_qty":0,"shipping_date":"2020-06-01T00:00:00.000Z"}],"sales_order_number":"L200401","special_instructions":""},"st atus":"Success"}}
-        }
-
-        return data;
-    }
-
     //version 1
     // destructureItems(resultData) {
     //     const map = new Map();
+    //     const itemMap = new Map()
 
+    //     console.log("calling from destructureItems, resultData: ", resultData)
+
+    //     var itemIndex = 0;
     //     resultData.forEach(element => {
     //         if (map.has(element['shipping_date'])) {
     //             let arr = []
@@ -342,38 +308,61 @@ class MyProvider extends React.Component {
     //             arr[arr.length-1]["id"] = arr.length-1
     //             map.set(element['shipping_date'], arr);
     //         }
+
+    //         if (!itemMap.has(element['item'])) {
+    //             itemMap.set(element['item'], itemIndex)
+    //             itemIndex += 1
+    //         }
+    //     })
+
+    //     itemMap.forEach((itemValue, itemKey) => {
+    //         map.forEach((mapElementValue, mapElementKey) => {
+    //             // console.log("mapElement['key']: ", mapElementKey)
+    //             // console.log("mapElement['value']: ", mapElementValue)
+
+    //             var newArray = mapElementValue.filter(function (el) {
+    //                 return el.item == itemKey;
+    //             });
+    //             if (newArray.length == 0) {
+    //                 // console.log("newArray: ", newArray)
+    //                 mapElementValue.push({id: mapElementValue.length, item: itemKey, order_qty: 0, shipping_date: mapElementKey})
+    //             }
+    //         })
     //     })
 
     //     const mappedResult = Array.from(map).map(([key, value]) => ({key, value}))
 
-    //     // mappedResult.forEach(element => {
-    //     //     element['isDateEditable'] = false
-    //     // })
     //     const validIguItemsSet = new Set()
 
     //     mappedResult.forEach(element => {
     //         element['isDateEditable'] = true
     //         element['initialDate'] = element['key']
-    //         // console.log("element['value']: ", element['value'])
     //         var items = element['value']
-    //         items.forEach(item => {
-    //             if (item['item_description'].toLowerCase() == 'igu') {
-    //                 validIguItemsSet.add(item['item'])
+    //         items.forEach(itemElement => {
+    //             // if (itemElement['item_description']) {
+    //             //     if (itemElement['item_description'].toLowerCase() == 'igu') {
+    //             //         validIguItemsSet.add(itemElement['item'])
+    //             //     }
+    //             // }
+    //             if (itemElement['item'].includes('-')) {
+    //                 validIguItemsSet.add(itemElement['item'])
     //             }
     //         })
     //     })
 
-    //     // console.log("validIguItemsSet: ", validIguItemsSet)
+    //     console.log("calling from destructureItems in MyProvider, validIguItemsSet: ", validIguItemsSet)
+
     //     var validIGUItems = Array.from(validIguItemsSet)
-    //     // for (let index = 0; index < validIguItemsSet.length; index++) {
-    //     //     validIGUItems.push(validIguItemsSet[index])
-    //     // }
-    //     // console.log("validIGUItems: ", validIGUItems)
+
+    //     var formattedMappedResult = JSON.parse(JSON.stringify(mappedResult));
+
+    //     this.getFormatteditemsByDueDate(formattedMappedResult)
 
     //     this.setState(
     //         { itemsByDueDate: mappedResult, itemsByDueDateMap: map, validLisecItems: validIGUItems}, 
     //         () => {
-    //             // console.log("calling from destructureItems in MyProvider, this.state.itemsByDueDate: ", this.state.itemsByDueDate, ", this.state.itemsByDueDateMap: ", this.state.itemsByDueDateMap, ", this.state.validLisecItems: ", this.state.validLisecItems)
+    //             console.log("calling from destructureItems in MyProvider, this.state.itemsByDueDate: ", this.state.itemsByDueDate, ", this.state.itemsByDueDateMap: ", this.state.itemsByDueDateMap, ", this.state.validLisecItems: ", this.state.validLisecItems)
+    //             this.getReferenceTagsByOrderItem();
     //         }
     //     );
     // }
@@ -381,7 +370,11 @@ class MyProvider extends React.Component {
     //version 2
     // destructureItems(resultData) {
     //     const map = new Map();
+    //     const itemMap = new Map()
 
+    //     console.log("calling from destructureItems, resultData: ", resultData)
+
+    //     var itemIndex = 0;
     //     resultData.forEach(element => {
     //         if (map.has(element['shipping_date'])) {
     //             let arr = []
@@ -396,43 +389,68 @@ class MyProvider extends React.Component {
     //             arr[arr.length-1]["id"] = arr.length-1
     //             map.set(element['shipping_date'], arr);
     //         }
+
+    //         if (!itemMap.has(element['item'])) {
+    //             itemMap.set(element['item'], itemIndex)
+    //             itemIndex += 1
+    //         }
     //     })
+
+    //     itemMap.forEach((itemValue, itemKey) => {
+    //         map.forEach((mapElementValue, mapElementKey) => {
+    //             // console.log("mapElement['key']: ", mapElementKey)
+    //             // console.log("mapElement['value']: ", mapElementValue)
+
+    //             var newArray = mapElementValue.filter(function (el) {
+    //                 return el.item == itemKey;
+    //             });
+    //             if (newArray.length == 0) {
+    //                 // console.log("newArray: ", newArray)
+    //                 mapElementValue.push({id: mapElementValue.length, item: itemKey, order_qty: 0, shipping_date: mapElementKey})
+    //             }
+    //         })
+    //     })
+
+    //     console.log("calling from destructureItems, map: ", map)
 
     //     const mappedResult = Array.from(map).map(([key, value]) => ({key, value}))
 
-    //     // mappedResult.forEach(element => {
-    //     //     element['isDateEditable'] = false
-    //     // })
     //     const validIguItemsSet = new Set()
 
     //     mappedResult.forEach(element => {
     //         element['isDateEditable'] = true
     //         element['initialDate'] = element['key']
-    //         // console.log("element['value']: ", element['value'])
     //         var items = element['value']
-    //         items.forEach(item => {
-    //             if (item['item_description'].toLowerCase() == 'igu') {
-    //                 validIguItemsSet.add(item['item'])
+
+    //         var promiseDate = ""
+    //         items.forEach(itemElement => {
+    //             if (itemElement['promise_date'] && promiseDate == "") {
+    //                 promiseDate = itemElement['promise_date']
+    //             }
+    //             if (itemElement['item'].includes('-')) {
+    //                 validIguItemsSet.add(itemElement['item'])
     //             }
     //         })
+    //         element['promiseDate'] = promiseDate
+    //         element['initialPromiseDate'] = promiseDate
     //     })
 
-    //     // console.log("validIguItemsSet: ", validIguItemsSet)
     //     var validIGUItems = Array.from(validIguItemsSet)
-    //     // for (let index = 0; index < validIguItemsSet.length; index++) {
-    //     //     validIGUItems.push(validIguItemsSet[index])
-    //     // }
-    //     // console.log("validIGUItems: ", validIGUItems)
 
-    //     // var formattedMappedResult = Object.assign([], mappedResult);
-    //     var formattedMappedResult = JSON.parse(JSON.stringify(mappedResult));
-    //     // console.log("calling from destructureItems, formattedMappedResult: ", formattedMappedResult)
-    //     this.getFormatteditemsByDueDate(formattedMappedResult)
+    //     this.setState({
+    //         itemsByDueDate: mappedResult,
+    //         validLisecItems: validIGUItems
+    //     }, () => {
+    //         console.log("calling from destructureItems in MyProvider, this.state.itemsByDueDate: ", this.state.itemsByDueDate, ", this.state.validLisecItems: ", this.state.validLisecItems)
+    //         this.getReferenceTagsByOrderItem();
+    //     })
+
+    //     //console.log("calling from destructureItems in MyProvider, validIguItemsSet: ", validIguItemsSet)
 
     //     this.setState(
-    //         { itemsByDueDate: mappedResult, itemsByDueDateMap: map, validLisecItems: validIGUItems}, 
+    //         { itemsByDueDateMap: map }, 
     //         () => {
-    //             console.log("calling from destructureItems in MyProvider, this.state.itemsByDueDate: ", this.state.itemsByDueDate, ", this.state.itemsByDueDateMap: ", this.state.itemsByDueDateMap, ", this.state.validLisecItems: ", this.state.validLisecItems)
+    //             console.log("calling from destructureItems in MyProvider, this.state.itemsByDueDateMap: ", this.state.itemsByDueDateMap)
     //         }
     //     );
     // }
@@ -441,6 +459,8 @@ class MyProvider extends React.Component {
     destructureItems(resultData) {
         const map = new Map();
         const itemMap = new Map()
+        const itemSetMap = new Map()
+        
 
         console.log("calling from destructureItems, resultData: ", resultData)
 
@@ -464,7 +484,18 @@ class MyProvider extends React.Component {
                 itemMap.set(element['item'], itemIndex)
                 itemIndex += 1
             }
+
+            if (!itemSetMap.has(element['item'])) {
+                itemSetMap.set(element['item'], 1)
+            }
+            else {
+                var itemCount = itemSetMap.get(element['item'])
+                itemSetMap.set(element['item'], itemCount+1)
+            }
         })
+
+        //console.log("calling from destructureItems, itemSetMap: ", itemSetMap)
+        console.log("calling from destructureItems, map: ", map)
 
         itemMap.forEach((itemValue, itemKey) => {
             map.forEach((mapElementValue, mapElementKey) => {
@@ -481,49 +512,76 @@ class MyProvider extends React.Component {
             })
         })
 
+        //console.log("calling from destructureItems, map: ", map)
+
         const mappedResult = Array.from(map).map(([key, value]) => ({key, value}))
+
+        console.log("calling from destructureItems, mappedResult before: ", mappedResult)
 
         const validIguItemsSet = new Set()
 
         mappedResult.forEach(element => {
-            element['isDateEditable'] = true
+            element['isDateEditable'] = false
             element['initialDate'] = element['key']
             var items = element['value']
+
+            var promiseDate = ""
             items.forEach(itemElement => {
-                // if (itemElement['item_description']) {
-                //     if (itemElement['item_description'].toLowerCase() == 'igu') {
-                //         validIguItemsSet.add(itemElement['item'])
-                //     }
-                // }
+                if (itemElement['promise_date'] && promiseDate == "") {
+                    promiseDate = itemElement['promise_date']
+                }
                 if (itemElement['item'].includes('-')) {
                     validIguItemsSet.add(itemElement['item'])
                 }
             })
+            element['promiseDate'] = promiseDate
+            element['initialPromiseDate'] = promiseDate
         })
 
-        console.log("calling from destructureItems in MyProvider, validIguItemsSet: ", validIguItemsSet)
+        mappedResult.forEach(element => {
+            var items = element['value']
+            var promiseDate = element['promiseDate']
+            items.forEach(itemElement => {
+                itemElement['promise_date'] = promiseDate
+                itemElement['is_item_editable'] = false
+            })
+        })
+
+        console.log("calling from destructureItems, mappedResult after: ", mappedResult)
 
         var validIGUItems = Array.from(validIguItemsSet)
 
-        var formattedMappedResult = JSON.parse(JSON.stringify(mappedResult));
+        this.setState({
+            itemsByDueDate: mappedResult,
+            validLisecItems: validIGUItems
+        }, () => {
+            console.log("calling from destructureItems in MyProvider, this.state.itemsByDueDate: ", this.state.itemsByDueDate, ", this.state.validLisecItems: ", this.state.validLisecItems)
+            this.getReferenceTagsByOrderItem();
+        })
 
-        this.getFormatteditemsByDueDate(formattedMappedResult)
+        //console.log("calling from destructureItems in MyProvider, validIguItemsSet: ", validIguItemsSet)
 
         this.setState(
-            { itemsByDueDate: mappedResult, itemsByDueDateMap: map, validLisecItems: validIGUItems}, 
+            { itemsByDueDateMap: map }, 
             () => {
-                console.log("calling from destructureItems in MyProvider, this.state.itemsByDueDate: ", this.state.itemsByDueDate, ", this.state.itemsByDueDateMap: ", this.state.itemsByDueDateMap, ", this.state.validLisecItems: ", this.state.validLisecItems)
-                this.getReferenceTagsByOrderItem();
+                //console.log("calling from destructureItems in MyProvider, this.state.itemsByDueDateMap: ", this.state.itemsByDueDateMap)
             }
         );
     }
 
-    // version 1
+    //version 1
     // getFormatteditemsByDueDate(mappedResult) {
     //     const itemSet = new Set()
+    //     const itemMap = new Map()
+
+    //     var index = 0
     //     mappedResult.map(({key, value}) => {
     //         value.forEach(element => {
     //             itemSet.add(element['item'])
+    //             if (!itemMap.has(element['item'])) {
+    //                 itemMap.set(element['item'], index)
+    //                 index += 1
+    //             }
     //         });
     //     })
 
@@ -546,7 +604,34 @@ class MyProvider extends React.Component {
     //         })
     //     })
 
-    //     mappedResult.map(({key, value}) => {
+    //     // console.log("calling from getFormatteditemsByDueDate, mappedResult: ", mappedResult)
+
+    //     var formattedMappedResult = []
+    //     var uniqueDatesMap = new Map()
+    //     var indexCount = 0
+    //     mappedResult.map(({key, value, isDateEditable, initialDate}) => {
+    //         var items = []
+    //         itemMap.forEach((value1, key) => {
+    //             value.forEach(element => {
+    //                 if (key == element['item']) {
+    //                     items.push(element)
+    //                 }
+    //             })
+    //         })
+    //         var item = {
+    //             key: key,
+    //             value: items,
+    //             isDateEditable: isDateEditable,
+    //             initialDate: initialDate
+    //         }
+    //         formattedMappedResult.push(item)
+
+    //         //get unique dates
+    //         uniqueDatesMap.set(initialDate, indexCount)
+    //         indexCount += 1
+    //     })
+
+    //     formattedMappedResult.map(({key, value}) => {
     //         let index = 0
     //         value.forEach(element => {
     //             element['id'] = index
@@ -554,31 +639,219 @@ class MyProvider extends React.Component {
     //         })
     //     })
 
+    //     var formattedMappedResultFinal = new Map();
+    //     formattedMappedResult.forEach(element => {
+    //         var items = element['value']
+    //         items.forEach(itemElement => {
+    //             if (!formattedMappedResultFinal.has(itemElement['item'])) {
+    //                 formattedMappedResultFinal.set(itemElement['item'], [{'order_qty': itemElement['order_qty'], 'due_date': element['key'], 'initial_date': element['key']}])
+    //             }
+    //             else
+    //             {
+    //                 var itemList = formattedMappedResultFinal.get(itemElement['item'])
+    //                 itemList.push({'order_qty': itemElement['order_qty'], 'due_date': element['key'], 'initial_date': element['key']})
+    //                 formattedMappedResultFinal.set(itemElement['item'], itemList)
+    //             }
+    //         })
+    //     })
+
+    //     console.log("calling from getFormatteditemsByDueDate in MyProvider, formattedMappedResultFinal: ", formattedMappedResultFinal)
+    //     //listOfUniqueDates
+    //     const uniqueDates = Array.from(uniqueDatesMap).map(([key, value]) => ({key, value}))
+    //     const formattedItemsByDueDate = Array.from(formattedMappedResultFinal).map(([key, value]) => ({key, value}))
+
+    //     var index = 0
+    //     formattedItemsByDueDate.forEach(item => {
+    //         item['id'] = index
+    //         index += 1
+    //     })
+
     //     this.setState(
-    //         { formattedItemsByDueDate: mappedResult },
+    //         { formattedItemsByDueDate: formattedItemsByDueDate, listOfUniqueItems: itemMap, listOfUniqueDates: uniqueDates },
     //         () => {
-    //             console.log("calling from getFormatteditemsByDueDate in MyProvider, this.state.formattedItemsByDueDate: ", this.state.formattedItemsByDueDate)
+    //             console.log("calling from getFormatteditemsByDueDate in MyProvider, this.state.formattedItemsByDueDate: ", this.state.formattedItemsByDueDate, ", listOfUniqueDates: ", this.state.listOfUniqueDates)
     //         }
     //     );
     // }
 
     //version 2
-    getFormatteditemsByDueDate(mappedResult) {
+    // getFormatteditemsByDueDate() {
+    //     const itemSet = new Set()
+    //     const itemMap = new Map()
+
+    //     var existingItemsByDueDate = JSON.parse(JSON.stringify(this.state.itemsByDueDate));
+    //     var existingRefTagsByOrderItem = JSON.parse(JSON.stringify(this.state.refTagsByOrderItem))
+
+    //     console.log("calling from getFormatteditemsByDueDate, existingItemsByDueDate: ", existingItemsByDueDate)
+
+    //     var index = 0
+    //     existingItemsByDueDate.map(({key, value}) => {
+    //         value.forEach(element => {
+    //             itemSet.add(element['item'])
+    //             if (!itemMap.has(element['item'])) {
+    //                 itemMap.set(element['item'], index)
+    //                 index += 1
+    //             }
+    //         });
+    //     })
+
+    //     existingItemsByDueDate.map(({key, value}) => {
+    //         itemSet.forEach(item => {
+    //             let isItemFound = false
+    //             value.forEach(element => {
+    //                 if (item == element['item']) {
+    //                     isItemFound = true
+    //                 }
+    //             });
+        
+    //             if (!isItemFound) {
+    //                 value.push({
+    //                     "item": item,
+    //                     "order_qty": 0,
+    //                     "id": 1
+    //                 })
+    //             }
+    //         })
+    //     })
+
+    //     console.log("calling from getFormatteditemsByDueDate 2, existingItemsByDueDate: ", existingItemsByDueDate)
+
+    //     var formattedMappedResult = []
+    //     var uniqueDatesMap = new Map()
+    //     var uniquePromiseDates = []
+    //     var indexCount = 0
+    //     existingItemsByDueDate.map(({key, value, isDateEditable, initialDate, initialPromiseDate}) => {
+    //         var items = []
+    //         itemMap.forEach((value1, key) => {
+    //             value.forEach(element => {
+    //                 if (key == element['item']) {
+    //                     items.push(element)
+    //                 }
+    //             })
+    //         })
+    //         var item = {
+    //             key: key,
+    //             value: items,
+    //             isDateEditable: isDateEditable,
+    //             initialDate: initialDate
+    //         }
+    //         formattedMappedResult.push(item)
+
+    //         //get unique dates
+    //         uniqueDatesMap.set(initialDate, indexCount)
+    //         uniquePromiseDates.push(
+    //             {
+    //                 "promiseDate": initialPromiseDate,
+    //                 "promiseDateIndex": indexCount
+    //             }
+    //         )
+    //         indexCount += 1
+    //     })
+
+    //     console.log("calling from getFormatteditemsByDueDate 2, uniquePromiseDates: ", uniquePromiseDates)
+
+    //     formattedMappedResult.map(({key, value}) => {
+    //         let index = 0
+    //         value.forEach(element => {
+    //             element['id'] = index
+    //             index += 1
+    //         })
+    //     })
+
+    //     var formattedMappedResultFinal = new Map();
+    //     console.log("calling from getFormatteditemsByDueDate before building main map, formattedMappedResult: ", formattedMappedResult)
+    //     formattedMappedResult.forEach(element => {
+    //         var items = element['value']
+    //         items.forEach(itemElement => {
+    //             if (!formattedMappedResultFinal.has(itemElement['item'])) {
+    //                 formattedMappedResultFinal.set(itemElement['item'], [{'order_qty': itemElement['order_qty'], 'due_date': element['key'], 'initial_date': element['key'], 
+    //                 'promise_date': itemElement['promise_date'], 'initial_promise_date': itemElement['promise_date']}])
+    //             }
+    //             else
+    //             {
+    //                 var itemList = formattedMappedResultFinal.get(itemElement['item'])
+    //                 itemList.push({'order_qty': itemElement['order_qty'], 'due_date': element['key'], 'initial_date': element['key'], 
+    //                 'promise_date': itemElement['promise_date'], 'initial_promise_date': itemElement['promise_date']})
+    //                 formattedMappedResultFinal.set(itemElement['item'], itemList)
+    //             }
+    //         })
+    //     })
+
+    //     console.log("calling from getFormatteditemsByDueDate in MyProvider, formattedMappedResultFinal: ", formattedMappedResultFinal)
+
+    //     const uniqueDates = Array.from(uniqueDatesMap).map(([key, value]) => ({key, value}))
+    //     const formattedItemsByDueDate1 = Array.from(formattedMappedResultFinal).map(([key, value]) => ({key, value}))
+
+    //     var index = 0
+    //     formattedItemsByDueDate1.forEach(item => {
+    //         item['id'] = index
+    //         index += 1
+    //     })
+
+    //     existingRefTagsByOrderItem.forEach(refTagElement => {
+    //         var item = refTagElement['order_no'] + '-' + refTagElement['item_no']
+
+    //         formattedItemsByDueDate1.forEach(itemElement => {
+    //             var itemCode = itemElement['key']
+    //             if (itemCode == item) {
+    //                 itemElement['reference_tag'] = refTagElement['reference_tag']
+    //             }
+    //             else {
+    //                 itemElement['reference_tag'] = ""
+    //             }
+    //         })
+    //     })
+
+    //     this.setState({
+    //         listOfUniqueItems: itemMap, 
+    //         listOfUniqueDates: uniqueDates,
+    //         listOfPromiseDates: uniquePromiseDates
+    //     }, () => {
+    //         console.log("calling from getFormatteditemsByDueDate in MyProvider, listOfUniqueDates: ", this.state.listOfUniqueDates,
+    //             ", listOfPromiseDates: ", this.state.listOfPromiseDates)
+            
+    //         this.setState(
+    //             { formattedItemsByDueDate: formattedItemsByDueDate1 },
+    //             () => {
+    //                 console.log("calling from getFormatteditemsByDueDate in MyProvider, this.state.formattedItemsByDueDate: ", 
+    //                 this.state.formattedItemsByDueDate)
+    //             }
+    //         );
+    //     })
+    // }
+
+    //version 3
+    getFormatteditemsByDueDate() {
         const itemSet = new Set()
         const itemMap = new Map()
+        //const itemSetMap = new Map()
+
+        var existingItemsByDueDate = JSON.parse(JSON.stringify(this.state.itemsByDueDate));
+        var existingRefTagsByOrderItem = JSON.parse(JSON.stringify(this.state.refTagsByOrderItem))
+
+        console.log("calling from getFormatteditemsByDueDate, existingItemsByDueDate: ", existingItemsByDueDate)
 
         var index = 0
-        mappedResult.map(({key, value}) => {
+        existingItemsByDueDate.map(({key, value}) => {
             value.forEach(element => {
                 itemSet.add(element['item'])
                 if (!itemMap.has(element['item'])) {
                     itemMap.set(element['item'], index)
                     index += 1
                 }
+
+                // if (!itemSetMap.has(element['item'])) {
+                //     itemSetMap.set(element['item'], 1)
+                // }
+                // else
+                // {
+                //     var itemCount = itemSetMap.get(element['item'])
+                //     itemSetMap.set(element['item'], itemCount+1)
+                // }
             });
         })
 
-        mappedResult.map(({key, value}) => {
+        existingItemsByDueDate.map(({key, value}) => {
             itemSet.forEach(item => {
                 let isItemFound = false
                 value.forEach(element => {
@@ -597,12 +870,14 @@ class MyProvider extends React.Component {
             })
         })
 
-        // console.log("calling from getFormatteditemsByDueDate, mappedResult: ", mappedResult)
+        //console.log("calling from getFormatteditemsByDueDate 2, existingItemsByDueDate: ", existingItemsByDueDate)
 
         var formattedMappedResult = []
         var uniqueDatesMap = new Map()
+        var uniqueDueDates = []
+        var uniquePromiseDates = []
         var indexCount = 0
-        mappedResult.map(({key, value, isDateEditable, initialDate}) => {
+        existingItemsByDueDate.map(({key, value, isDateEditable, initialDate, initialPromiseDate}) => {
             var items = []
             itemMap.forEach((value1, key) => {
                 value.forEach(element => {
@@ -621,8 +896,24 @@ class MyProvider extends React.Component {
 
             //get unique dates
             uniqueDatesMap.set(initialDate, indexCount)
+            uniquePromiseDates.push(
+                {
+                    "promiseDate": initialPromiseDate,
+                    "promiseDateIndex": indexCount,
+                    "dueDate": key
+                }
+            )
+            
+            uniqueDueDates.push({
+                "id": indexCount,
+                "dueDate": initialDate,
+                "promiseDate": initialPromiseDate,
+            })
+
             indexCount += 1
         })
+
+        console.log("calling from getFormatteditemsByDueDate 2, uniqueDueDates: ", uniqueDueDates)
 
         formattedMappedResult.map(({key, value}) => {
             let index = 0
@@ -633,38 +924,73 @@ class MyProvider extends React.Component {
         })
 
         var formattedMappedResultFinal = new Map();
+        console.log("calling from getFormatteditemsByDueDate before building main map, formattedMappedResult: ", formattedMappedResult)
         formattedMappedResult.forEach(element => {
             var items = element['value']
             items.forEach(itemElement => {
                 if (!formattedMappedResultFinal.has(itemElement['item'])) {
-                    formattedMappedResultFinal.set(itemElement['item'], [{'order_qty': itemElement['order_qty'], 'due_date': element['key'], 'initial_date': element['key']}])
+                    formattedMappedResultFinal.set(itemElement['item'], [{'order_qty': itemElement['order_qty'], 'due_date': element['key'], 'initial_date': element['key'], 
+                    'promise_date': itemElement['promise_date'], 'initial_promise_date': itemElement['promise_date']}])
                 }
                 else
                 {
                     var itemList = formattedMappedResultFinal.get(itemElement['item'])
-                    itemList.push({'order_qty': itemElement['order_qty'], 'due_date': element['key'], 'initial_date': element['key']})
+                    itemList.push({'order_qty': itemElement['order_qty'], 'due_date': element['key'], 'initial_date': element['key'], 
+                    'promise_date': itemElement['promise_date'], 'initial_promise_date': itemElement['promise_date']})
                     formattedMappedResultFinal.set(itemElement['item'], itemList)
                 }
             })
         })
 
-        console.log("calling from getFormatteditemsByDueDate in MyProvider, formattedMappedResultFinal: ", formattedMappedResultFinal)
-        //listOfUniqueDates
+        //console.log("calling from getFormatteditemsByDueDate in MyProvider, formattedMappedResultFinal: ", formattedMappedResultFinal)
+
         const uniqueDates = Array.from(uniqueDatesMap).map(([key, value]) => ({key, value}))
-        const formattedItemsByDueDate = Array.from(formattedMappedResultFinal).map(([key, value]) => ({key, value}))
+        const formattedItemsByDueDate1 = Array.from(formattedMappedResultFinal).map(([key, value]) => ({key, value}))
 
         var index = 0
-        formattedItemsByDueDate.forEach(item => {
+        formattedItemsByDueDate1.forEach(item => {
             item['id'] = index
             index += 1
+            item['is_item_editable'] = false
         })
 
-        this.setState(
-            { formattedItemsByDueDate: formattedItemsByDueDate, listOfUniqueItems: itemMap, listOfUniqueDates: uniqueDates },
-            () => {
-                console.log("calling from getFormatteditemsByDueDate in MyProvider, this.state.formattedItemsByDueDate: ", this.state.formattedItemsByDueDate, ", listOfUniqueDates: ", this.state.listOfUniqueDates)
-            }
-        );
+        existingRefTagsByOrderItem.forEach(refTagElement => {
+            var item = refTagElement['order_no'] + '-' + refTagElement['item_no']
+
+            formattedItemsByDueDate1.forEach(itemElement => {
+                var itemCode = itemElement['key']
+                if (itemCode == item) {
+                    itemElement['reference_tag'] = refTagElement['reference_tag']
+                }
+                else {
+                    if (!itemElement['reference_tag']) {
+                        itemElement['reference_tag'] = ""
+                    }
+                }
+            })
+        })
+
+        // existingItemsByDueDate.forEach(eItemElement => {
+        //     if (!eItemElement['isDateEditable']) {
+                
+        //     }
+        // })
+
+        this.setState({
+            listOfUniqueItems: itemMap, 
+            listOfUniqueDates: uniqueDates,
+            listOfUniqueDueDates: uniqueDueDates,
+            listOfPromiseDates: uniquePromiseDates
+        }, () => {
+            console.log("calling from getFormatteditemsByDueDate in MyProvider, listOfUniqueDates: ", this.state.listOfUniqueDates, ", listOfPromiseDates: ", this.state.listOfPromiseDates, ", listOfUniqueDueDates: ", this.state.listOfUniqueDueDates)
+            
+            this.setState(
+                { formattedItemsByDueDate: formattedItemsByDueDate1 },
+                () => {
+                    console.log("calling from getFormatteditemsByDueDate in MyProvider, this.state.formattedItemsByDueDate: ", this.state.formattedItemsByDueDate)
+                }
+            );
+        })
     }
 
     render() {
@@ -905,6 +1231,12 @@ class MyProvider extends React.Component {
                     onChangeDateInput: (modifiedItemsByDueDate) => {
                         this.setState({itemsByDueDate: modifiedItemsByDueDate}, () => {
                             console.log("calling from MyProvider, onChangeDateInput, this.state.itemsByDueDate: ", this.state.itemsByDueDate)
+                        })
+                    },
+
+                    onChangePromiseDateInput: (modifiedItemsByDueDate) => {
+                        this.setState({itemsByDueDate: modifiedItemsByDueDate}, () => {
+                            console.log("calling from MyProvider, onChangePromiseDateInput, this.state.itemsByDueDate: ", this.state.itemsByDueDate)
                         })
                     },
 
@@ -1201,8 +1533,11 @@ class MyProvider extends React.Component {
                                     this.setState({
                                         itemsByDueDate: [],
                                         isLoaded: false,
-                                        error: ''
-                                    })
+                                        error: '',
+                                        formattedItemsByDueDate: [],
+                                        listOfPromiseDates:[],
+                                        listOfUniqueDates:[]
+                                    }, () => {})
                                     this.fetchAllData();
                                 }
                             }
@@ -1271,7 +1606,9 @@ class MyProvider extends React.Component {
                     orderStatus: this.state.orderStatus,
                     formattedItemsByDueDate: this.state.formattedItemsByDueDate,
                     listOfUniqueItems: this.state.listOfUniqueItems,
-                    listOfUniqueDates: this.state.listOfUniqueDates
+                    listOfUniqueDates: this.state.listOfUniqueDates,
+                    listOfPromiseDates: this.state.listOfPromiseDates,
+                    listOfUniqueDueDates: this.state.listOfUniqueDueDates
                 }}
             >
                 {this.props.children}
