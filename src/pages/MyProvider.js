@@ -150,7 +150,7 @@ class MyProvider extends React.Component {
             this.setState({
                 itemsByDueDate: existingItemsByDueDate
             }, () => {
-                console.log("calling from getReferenceTagsByOrderItem, itemsByDueDate: ", this.state.itemsByDueDate)
+                //console.log("calling from getReferenceTagsByOrderItem, itemsByDueDate: ", this.state.itemsByDueDate)
                 this.getFormatteditemsByDueDate();
             })
         })
@@ -495,7 +495,7 @@ class MyProvider extends React.Component {
         })
 
         //console.log("calling from destructureItems, itemSetMap: ", itemSetMap)
-        console.log("calling from destructureItems, map: ", map)
+        //console.log("calling from destructureItems, map: ", map)
 
         itemMap.forEach((itemValue, itemKey) => {
             map.forEach((mapElementValue, mapElementKey) => {
@@ -516,7 +516,7 @@ class MyProvider extends React.Component {
 
         const mappedResult = Array.from(map).map(([key, value]) => ({key, value}))
 
-        console.log("calling from destructureItems, mappedResult before: ", mappedResult)
+        //console.log("calling from destructureItems, mappedResult before: ", mappedResult)
 
         const validIguItemsSet = new Set()
 
@@ -547,7 +547,7 @@ class MyProvider extends React.Component {
             })
         })
 
-        console.log("calling from destructureItems, mappedResult after: ", mappedResult)
+        //console.log("calling from destructureItems, mappedResult after: ", mappedResult)
 
         var validIGUItems = Array.from(validIguItemsSet)
 
@@ -829,7 +829,7 @@ class MyProvider extends React.Component {
         var existingItemsByDueDate = JSON.parse(JSON.stringify(this.state.itemsByDueDate));
         var existingRefTagsByOrderItem = JSON.parse(JSON.stringify(this.state.refTagsByOrderItem))
 
-        console.log("calling from getFormatteditemsByDueDate, existingItemsByDueDate: ", existingItemsByDueDate)
+        //console.log("calling from getFormatteditemsByDueDate, existingItemsByDueDate: ", existingItemsByDueDate)
 
         var index = 0
         existingItemsByDueDate.map(({key, value}) => {
@@ -913,7 +913,7 @@ class MyProvider extends React.Component {
             indexCount += 1
         })
 
-        console.log("calling from getFormatteditemsByDueDate 2, uniqueDueDates: ", uniqueDueDates)
+        //console.log("calling from getFormatteditemsByDueDate 2, uniqueDueDates: ", uniqueDueDates)
 
         formattedMappedResult.map(({key, value}) => {
             let index = 0
@@ -924,7 +924,7 @@ class MyProvider extends React.Component {
         })
 
         var formattedMappedResultFinal = new Map();
-        console.log("calling from getFormatteditemsByDueDate before building main map, formattedMappedResult: ", formattedMappedResult)
+        //console.log("calling from getFormatteditemsByDueDate before building main map, formattedMappedResult: ", formattedMappedResult)
         formattedMappedResult.forEach(element => {
             var items = element['value']
             items.forEach(itemElement => {
@@ -1056,11 +1056,22 @@ class MyProvider extends React.Component {
                     searchOrderDetails: (event) => {
                         event.preventDefault();
 
+                        // this.setState({
+                        //     itemsByDueDate: [],
+                        //     isLoaded: false,
+                        //     error: '',
+                        //     orderStatus: ''
+                        // })
+
                         this.setState({
                             itemsByDueDate: [],
                             isLoaded: false,
                             error: '',
-                            orderStatus: ''
+                            orderStatus: '',
+                            formattedItemsByDueDate: [],
+                            listOfPromiseDates:[],
+                            listOfUniqueDates:[],
+                            listOfUniqueDueDates: []
                         })
                         
                         /*
@@ -1405,7 +1416,6 @@ class MyProvider extends React.Component {
                         event.preventDefault();
 
                         console.log("calling from submitOrderDetailsToQAD in MyProvider after preventDefault, itemsByDueDate: ", this.state.itemsByDueDate);
-                        // console.log("calling from submitOrderDetailsToQAD in MyProvider after preventDefault, itemsByDueDateMap: ", this.state.itemsByDueDateMap);
 
                         //return;
 
@@ -1439,11 +1449,11 @@ class MyProvider extends React.Component {
                                         break;
                                     }
     
-                                    if (item['order_qty'] == 0) {
-                                        isItemQuantityBlank = true
-                                        // alert("Order quantity can not be zero!")
-                                        break;
-                                    }
+                                    // if (item['order_qty'] == 0) {
+                                    //     isItemQuantityBlank = true
+                                    //     // alert("Order quantity can not be zero!")
+                                    //     break;
+                                    // }
     
                                     if (!itemSet.has(item['item'])) {
                                         itemSet.add(item['item'])
@@ -1477,13 +1487,17 @@ class MyProvider extends React.Component {
                             return;
                         }
 
+                        //console.log("calling from submitOrderDetailsToQAD in MyProvider after preventDefault, itemsByDueDate: ", this.state.itemsByDueDate);
+
+                        //return;
+
                         this.setState({
                             isSubmitButtonLoading: true
                         }, () => {})
                         
                         // baseAPIURLTest, baseAPIURL
-                        // fetch('http://127.0.0.1:5000/api/send_req_items_for_cs', {
-                        fetch(baseAPIURL + 'send_req_items_for_cs', {
+                        fetch('http://127.0.0.1:5000/api/send_req_items_for_cs', {
+                        //fetch(baseAPIURL + 'send_req_items_for_cs', {
                             method: 'POST',
                             body: JSON.stringify({
                                 orderNumber: this.state.orderNumber,
@@ -1537,8 +1551,9 @@ class MyProvider extends React.Component {
                                         formattedItemsByDueDate: [],
                                         listOfPromiseDates:[],
                                         listOfUniqueDates:[]
-                                    }, () => {})
-                                    this.fetchAllData();
+                                    }, () => {
+                                        this.fetchAllData();
+                                    })
                                 }
                             }
                         })

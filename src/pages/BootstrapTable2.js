@@ -160,7 +160,7 @@ class BootstrapTable2 extends React.Component {
 
         // var baseItem = existingItems[0];
 
-        console.log("calling from addNewItem, existingItems: ", existingItems, ", existingItemsByDueDate: ", existingItemsByDueDate)
+        //console.log("calling from addNewItem, existingItems: ", existingItems, ", existingItemsByDueDate: ", existingItemsByDueDate)
 
         var baseItem = JSON.parse(JSON.stringify(existingItems[0]));
         //console.log("baseItem: ", baseItem)
@@ -168,7 +168,7 @@ class BootstrapTable2 extends React.Component {
         baseItem['key'] = ''
         baseItem['reference_tag'] = ''
         baseItem['value'].forEach(item => {
-            item['order_qty'] = 1
+            item['order_qty'] = 0
         })
         baseItem['is_item_editable'] = true
 
@@ -184,7 +184,7 @@ class BootstrapTable2 extends React.Component {
             let items = element['value']
             items.push({
                 "item": '',
-                "order_qty": 1,
+                "order_qty": 0,
                 "shipping_date": element['key'],
                 "promise_date": element['promiseDate'],
                 'is_item_editable': true
@@ -372,6 +372,7 @@ class BootstrapTable2 extends React.Component {
 
         var existingItems = JSON.parse(JSON.stringify(this.state.items));
         var existingUniqueDates = JSON.parse(JSON.stringify(this.state.listOfUniqueDates));
+        var existingUniqueDueDates = JSON.parse(JSON.stringify(this.state.listOfUniqueDueDates));
         var existingPromiseDates = JSON.parse(JSON.stringify(this.state.listOfPromiseDates));
 
         //console.log("addNewDueDate, existingItems before: ", existingItems)
@@ -424,9 +425,23 @@ class BootstrapTable2 extends React.Component {
             "value": nextRank+1
         })
 
+
+        //existing due dates modification
+        var listOfRanks = []
+        for (let element of existingUniqueDueDates) {
+            listOfRanks.push(element['id'])
+        }
+        var nextRank = Math.max.apply(null, listOfRanks)
+        existingUniqueDueDates.push({
+            "dueDate": nextAvailableDate,
+            "id": nextRank+1,
+            "promiseDate": nextAvailablePromiseDate
+        })
+
         existingPromiseDates.push({
             "promiseDate": nextAvailablePromiseDate,
-            "promiseDateIndex": existingPromiseDates.length
+            "promiseDateIndex": existingPromiseDates.length,
+            "dueDate": nextAvailableDate
         })
 
         //console.log("addNewDueDate, existingPromiseDates: ", existingPromiseDates)
@@ -434,7 +449,10 @@ class BootstrapTable2 extends React.Component {
         this.context.addNewDueDate(existingItemsByDueDate);
         // console.log("calling from addNewDueDate after, this.context.itemsByDueDate: ", this.context.itemsByDueDate)
 
-        this.setState({items: existingItems, listOfUniqueDates: existingUniqueDates, dueDatesColspan: existingUniqueDates.length, listOfPromiseDates: existingPromiseDates}, () => {
+        this.setState({items: existingItems, listOfUniqueDates: existingUniqueDates, 
+            dueDatesColspan: existingUniqueDates.length, listOfPromiseDates: existingPromiseDates,
+            listOfUniqueDueDates: existingUniqueDueDates
+        }, () => {
             //console.log("calling from addNewDueDate, items: ", this.state.items, ", listOfUniqueDates: ", this.state.listOfUniqueDates);
         })
     }
@@ -539,8 +557,8 @@ class BootstrapTable2 extends React.Component {
         //console.log("calling from handleDeleteByItem")
     }
 
-    handleDeleteByDueDate = (e, key) => {
-        console.log("calling from Bootstraptable handleDeleteByDueDate, e: ", e, ", key: ", key)
+    handleDeleteByDueDate = (e, dueDateKey, promiseDateKey) => {
+        //console.log("calling from Bootstraptable handleDeleteByDueDate, e: ", e, ", dueDateKey: ", dueDateKey)
 
         // if (this.state.listOfUniqueDates.length==1) {
         //     alert("Can't delete!Only one due date is left.")
@@ -554,13 +572,13 @@ class BootstrapTable2 extends React.Component {
         existingItem.forEach(element => {
             let items = element['value']
             const indexOfItem = items.findIndex(item => {
-                return item.due_date === key;
+                return item.due_date === dueDateKey;
             })
             items.splice(indexOfItem, 1)
         })
 
         const indexOfItemByDueDate = existingItemsByDueDate.findIndex(element => {
-            return element.key === key;
+            return element.key === dueDateKey;
         })
 
         existingItemsByDueDate.splice(indexOfItemByDueDate, 1);
@@ -569,19 +587,44 @@ class BootstrapTable2 extends React.Component {
         var existingUniqueDates = JSON.parse(JSON.stringify(this.state.listOfUniqueDates));
         //console.log("existingUniqueDates before: ", existingUniqueDates)
         const indexOfDate = existingUniqueDates.findIndex(element => {
-            return element.key === key;
+            return element.key === dueDateKey;
         })
         existingUniqueDates.splice(indexOfDate,1);
 
-        let index = 0
+        var index = 0
         existingUniqueDates.forEach(element => {
             element['value'] = index
             index += 1
         });
 
+        var existingUniqueDueDates = JSON.parse(JSON.stringify(this.state.listOfUniqueDueDates));
+        const indexOfDueDate = existingUniqueDueDates.findIndex(element => {
+            return element['dueDate'] === dueDateKey;
+        })
+        existingUniqueDueDates.splice(indexOfDueDate,1);
+
+        var index = 0
+        existingUniqueDueDates.forEach(element => {
+            element['id'] = index
+            index += 1
+        });
+
+        var existingPromiseDates = JSON.parse(JSON.stringify(this.state.listOfPromiseDates));
+        const indexOfPromiseDate = existingPromiseDates.findIndex(element => {
+            return element['dueDate'] === dueDateKey && element['promiseDate'] === promiseDateKey;
+        })
+        existingPromiseDates.splice(indexOfPromiseDate,1);
+
+        var index = 0
+        existingPromiseDates.forEach(element => {
+            element['promiseDateIndex'] = index
+            index += 1
+        });
+
         //console.log("existingUniqueDates after: ", existingUniqueDates.length)
 
-        this.setState({items: existingItem, listOfUniqueDates: existingUniqueDates, dueDatesColspan: existingUniqueDates.length}, () => {
+        this.setState({items: existingItem, listOfUniqueDates: existingUniqueDates, dueDatesColspan: existingUniqueDates.length,
+        listOfUniqueDueDates: existingUniqueDueDates, listOfPromiseDates: existingPromiseDates}, () => {
             //console.log("modified items in handleDeleteByDueDate: ", this.state.items);
             this.updateSumOfIguByRow();
             this.updateSumOfIguByColumn();
@@ -675,8 +718,8 @@ class BootstrapTable2 extends React.Component {
         return false;
     }
 
-    onChangeDateInput = (e, key) => {
-        //console.log("calling from Bootstraptable onChangeDateInput, e: ", e.target.value, ", key: ", key, ", this.state.listOfUniqueDates: ", this.state.listOfUniqueDates)
+    onChangeDateInput = (e, dueDateKey, promiseDateKey) => {
+        //console.log("calling from Bootstraptable onChangeDateInput, e: ", e.target.value, ", dueDateKey: ", dueDateKey, ", promiseDateKey: ", promiseDateKey)
 
         var newDateKey = e.target.value + 'T00:00:00.000Z'
         var isDuplicateDateFound = this.checkForDuplicateDate(newDateKey);
@@ -693,14 +736,14 @@ class BootstrapTable2 extends React.Component {
 
         existingItem.forEach(element => {
             element['value'].forEach(item => {
-                if (item['due_date'] == key) {
+                if (item['due_date'] == dueDateKey) {
                     item['due_date'] = newDateKey
                 }
             })
         })
 
         existingItemsByDueDate.forEach(element => {
-            if (element['key'] == key) {
+            if (element['key'] == dueDateKey) {
                 element['key'] = newDateKey
                 let items = element['value']
                 items.forEach(itemElement => {
@@ -713,19 +756,34 @@ class BootstrapTable2 extends React.Component {
 
         var existingUniqueDates = JSON.parse(JSON.stringify(this.state.listOfUniqueDates));
         existingUniqueDates.forEach(element => {
-            if (element['key'] == key) {
+            if (element['key'] == dueDateKey) {
                 element['key'] = newDateKey
             }
         })
 
-        this.setState({items: existingItem, listOfUniqueDates: existingUniqueDates}, () => {
-            //console.log("onChangeDateInput, modified items: ", this.state.items);
+        var existingUniqueDueDates = JSON.parse(JSON.stringify(this.state.listOfUniqueDueDates));
+        existingUniqueDueDates.forEach(element => {
+            if (element['dueDate'] == dueDateKey) {
+                element['dueDate'] = newDateKey
+            }
+        })
+
+        var existingPromiseDates = JSON.parse(JSON.stringify(this.state.listOfPromiseDates));
+        existingPromiseDates.forEach(element => {
+            if (element['dueDate'] == dueDateKey && element['promiseDate'] == promiseDateKey) {
+                element['dueDate'] = newDateKey
+            }
+        })
+
+        this.setState({items: existingItem, listOfUniqueDates: existingUniqueDates, listOfUniqueDueDates: existingUniqueDueDates,
+            listOfPromiseDates: existingPromiseDates}, () => {
+            //console.log("onChangeDateInput, listOfUniqueDueDates: ", this.state.listOfUniqueDueDates, ", listOfPromiseDates: ", this.state.listOfPromiseDates);
             this.context.onChangeDateInput(existingItemsByDueDate)
             this.updateSumOfIguByColumn();
         })
     }
 
-    onChangePromiseDateInput = (e, keyIndex) => {
+    onChangePromiseDateInput = (e, keyIndex, dueDateKey) => {
         //console.log("calling from Bootstraptable onChangePromiseDateInput, e: ", e.target.value, ", keyIndex: ", keyIndex)
 
         var newPromiseDateKey = e.target.value + 'T00:00:00.000Z'
@@ -764,10 +822,18 @@ class BootstrapTable2 extends React.Component {
 
         var existingPromiseDates = JSON.parse(JSON.stringify(this.state.listOfPromiseDates));
 
+        var existingUniqueDueDates = JSON.parse(JSON.stringify(this.state.listOfUniqueDueDates));
+
         //console.log("calling from onChangePromiseDateInput, existingPromiseDates: ", existingPromiseDates)
 
         existingPromiseDates.forEach(element => {
             if (element['promiseDateIndex'] == keyIndex) {
+                element['promiseDate'] = newPromiseDateKey
+            }
+        })
+
+        existingUniqueDueDates.forEach(element => {
+            if (element['dueDate'] == dueDateKey) {
                 element['promiseDate'] = newPromiseDateKey
             }
         })
@@ -979,14 +1045,29 @@ class BootstrapTable2 extends React.Component {
                                 <td></td>
                                 <td></td>
                                 {
-                                    this.state.listOfUniqueDates.map(({key, value}) => (
+                                    // this.state.listOfUniqueDates.map(({key, value}) => (
+                                    //     // console.log("key: ", element['key'])
+                                    //     <td key={key}>
+                                    //         {/* <Form.Control onChange={event => this.setDueDate(event)} disabled={this.context.isSubmitButtonLoading || this.context.isConfirmed} type="date" value={key.replace("T00:00:00.000Z", '')} placeholder="Enter date" /> */}
+                                    //         <Form.Control
+                                    //             value={key.replace("T00:00:00.000Z", '')}
+                                    //             type="date"
+                                    //             onChange={(e) => this.onChangeDateInput(e, key)}
+                                    //             placeholder="Type Item Name"
+                                    //             className="text-center"
+                                    //             disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading}
+                                    //         />
+                                    //     </td>
+                                    // ))
+
+                                    this.state.listOfUniqueDueDates.map(({dueDate, promiseDate}) => (
                                         // console.log("key: ", element['key'])
-                                        <td key={key}>
+                                        <td key={dueDate}>
                                             {/* <Form.Control onChange={event => this.setDueDate(event)} disabled={this.context.isSubmitButtonLoading || this.context.isConfirmed} type="date" value={key.replace("T00:00:00.000Z", '')} placeholder="Enter date" /> */}
                                             <Form.Control
-                                                value={key.replace("T00:00:00.000Z", '')}
+                                                value={dueDate.replace("T00:00:00.000Z", '')}
                                                 type="date"
-                                                onChange={(e) => this.onChangeDateInput(e, key)}
+                                                onChange={(e) => this.onChangeDateInput(e, dueDate, promiseDate)}
                                                 placeholder="Type Item Name"
                                                 className="text-center"
                                                 disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading}
@@ -1007,14 +1088,14 @@ class BootstrapTable2 extends React.Component {
                                 <td></td>
                                 <td></td>
                                 {
-                                    this.state.listOfPromiseDates.map(({promiseDate, promiseDateIndex}) => (
+                                    this.state.listOfPromiseDates.map(({promiseDate, promiseDateIndex, dueDate}) => (
                                         // console.log("key: ", element['key'])
                                         <td key={promiseDateIndex}>
                                             {/* <Form.Control onChange={event => this.setDueDate(event)} disabled={this.context.isSubmitButtonLoading || this.context.isConfirmed} type="date" value={key.replace("T00:00:00.000Z", '')} placeholder="Enter date" /> */}
                                             <Form.Control
                                                 value={promiseDate.replace("T00:00:00.000Z", '')}
                                                 type="date"
-                                                onChange={(e) => this.onChangePromiseDateInput(e, promiseDateIndex)}
+                                                onChange={(e) => this.onChangePromiseDateInput(e, promiseDateIndex, dueDate)}
                                                 className="text-center"
                                                 disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading}
                                             />
@@ -1054,7 +1135,7 @@ class BootstrapTable2 extends React.Component {
                                                     name="order_qty"
                                                     value={order_qty}
                                                     type="number"
-                                                    min={1}
+                                                    min={0}
                                                     onChange={(e) => this.onChangeOrderQuantityInput(e, id, key, due_date)}
                                                     placeholder="Type Order Quantity"
                                                     className="text-center"
@@ -1085,11 +1166,11 @@ class BootstrapTable2 extends React.Component {
                                     <td></td>
                                     <td></td>
                                     {
-                                        this.state.listOfUniqueDates.map(({key, value}) => (
-                                            <td key={key}>
+                                        this.state.listOfUniqueDueDates.map(({dueDate}) => (
+                                            <td key={dueDate}>
                                                 {
-                                                    this.state.sumOfIgusColumnWise.find(({ dateKey }) => dateKey === key) &&
-                                                    this.state.sumOfIgusColumnWise.find(({ dateKey }) => dateKey === key)['total']
+                                                    this.state.sumOfIgusColumnWise.find(({ dateKey }) => dateKey === dueDate) &&
+                                                    this.state.sumOfIgusColumnWise.find(({ dateKey }) => dateKey === dueDate)['total']
                                                 }
                                             </td>
                                     ))}
@@ -1102,9 +1183,9 @@ class BootstrapTable2 extends React.Component {
                                     <td></td>
                                     <td></td>
                                     {
-                                        this.state.listOfUniqueDates.map(({key, value}) => (
-                                            <td key={key}>
-                                                <Button disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading} variant="danger" onClick={(e) => this.handleDeleteByDueDate(e, key)}>
+                                        this.state.listOfUniqueDueDates.map(({dueDate, promiseDate}) => (
+                                            <td key={dueDate}>
+                                                <Button disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading} variant="danger" onClick={(e) => this.handleDeleteByDueDate(e, dueDate, promiseDate)}>
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-trash" viewBox="0 0 16 16">
                                                         <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
                                                         <path fillRule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
