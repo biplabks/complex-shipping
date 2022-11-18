@@ -16,7 +16,7 @@ import LoadingSpinner from "./LoadingSpinner";
             
             <SearchForm setOrderNumber={context.setOrderNumber} searchOrderDetails={context.searchOrderDetails}/>
             
-            <Container style={{ textAlign: 'left' }}>
+            <Container fluid style={{ textAlign: 'left' }}>
               {
                 context.orderStatus.length != 0 &&
                 <>
@@ -34,7 +34,7 @@ import LoadingSpinner from "./LoadingSpinner";
             } */}
             {
               context.isLoaded && context.itemsByDueDate.length != 0 &&
-              <Container className="d-flex justify-content-between">
+              <Container fluid className="d-flex justify-content-between">
                 <h2>Order by Due Date</h2>
               </Container>
             }

@@ -28,7 +28,7 @@ const SearchForm = () => (
                 <Container fluid>        
                     <Form onSubmit={context.searchOrderDetails}>
                         <Row>
-                            <Col className='col-2'>
+                            <Col className='col-3'>
                                 <Form.Control 
                                     maxLength={7} 
                                     type='input' 

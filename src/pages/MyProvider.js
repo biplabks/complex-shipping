@@ -117,7 +117,7 @@ class MyProvider extends React.Component {
             this.setState({
                 refTagsByOrderItem: refTagByOrderItem
             },() => {
-                //console.log("calling from getReferenceTagsByOrderItem, refTagsByOrderItem: ", this.state.refTagsByOrderItem)
+                console.log("calling from getReferenceTagsByOrderItem, refTagsByOrderItem: ", this.state.refTagsByOrderItem)
             })
 
             var existingItemsByDueDate = JSON.parse(JSON.stringify(this.state.itemsByDueDate));
@@ -150,7 +150,7 @@ class MyProvider extends React.Component {
             this.setState({
                 itemsByDueDate: existingItemsByDueDate
             }, () => {
-                //console.log("calling from getReferenceTagsByOrderItem, itemsByDueDate: ", this.state.itemsByDueDate)
+                console.log("calling from getReferenceTagsByOrderItem, itemsByDueDate: ", this.state.itemsByDueDate)
                 this.getFormatteditemsByDueDate();
             })
         })
@@ -1496,8 +1496,8 @@ class MyProvider extends React.Component {
                         }, () => {})
                         
                         // baseAPIURLTest, baseAPIURL
-                        fetch('http://127.0.0.1:5000/api/send_req_items_for_cs', {
-                        //fetch(baseAPIURL + 'send_req_items_for_cs', {
+                        //fetch('http://127.0.0.1:5000/api/send_req_items_for_cs', {
+                        fetch(baseAPIURL + 'send_req_items_for_cs', {
                             method: 'POST',
                             body: JSON.stringify({
                                 orderNumber: this.state.orderNumber,

@@ -9,28 +9,7 @@ const AccordionData = () => (
   <MyContext.Consumer>
     {context => (
       <React.Fragment>
-        <div>
-        {/* {
-          context.itemsByDueDate.map(element => {
-            return <Container className="p-3" key={element.key}>
-              <BootstrapTable2
-                due_date={element.key}
-                isDateEditable={element.isDateEditable} 
-                orderDetails={element.value}
-              />
-            </Container>
-          })
-        } */}
-
-          {/* {
-            context.itemsByDueDate.length > 0 &&
-            <Container className="p-3">
-              <BootstrapTable2
-                orderDetails={context.itemsByDueDate}
-              />
-            </Container>
-          } */}
-
+        {/* <div>
           {
             context.formattedItemsByDueDate.length > 0 &&
             <Container className="p-3">
@@ -42,8 +21,18 @@ const AccordionData = () => (
               />
             </Container>
           }
-          
-        </div>
+        </div> */}
+          {
+            context.formattedItemsByDueDate.length > 0 &&
+            <div>
+              <BootstrapTable2
+                orderDetails={context.formattedItemsByDueDate}
+                listOfPromiseDates={context.listOfPromiseDates}
+                listOfUniqueDates={context.listOfUniqueDates}
+                listOfUniqueDueDates={context.listOfUniqueDueDates}
+              />
+            </div>
+          }
       </React.Fragment>
     )}
   </MyContext.Consumer>

@@ -1,5 +1,9 @@
 .App {
   text-align: center;
+  /* overflow: scroll; */
+  overflow-y: scroll; /* Show vertical scrollbar */
+  overflow-x: scroll; /* Show horizontal scrollbar */
+  overflow: visible;
 }
 
 .App-logo {
