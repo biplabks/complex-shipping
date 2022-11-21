@@ -7,6 +7,7 @@ import moment from 'moment';
 import debounce from "lodash.debounce";
 
 const baseAPIURL = "https://vanna.zh.if.atcsg.net:453/api/v1/"
+
 class BootstrapTable2 extends React.Component {
     constructor(props) {
         super(props);
@@ -291,6 +292,8 @@ class BootstrapTable2 extends React.Component {
             dueDatesColspan: existingUniqueDates.length, listOfPromiseDates: existingPromiseDates,
             listOfUniqueDueDates: existingUniqueDueDates
         }, () => {
+            this.updateSumOfIguByRow();
+            this.updateSumOfIguByColumn();
             //console.log("calling from addNewDueDate, items: ", this.state.items, ", listOfUniqueDates: ", this.state.listOfUniqueDates);
         })
     }
@@ -675,15 +678,10 @@ class BootstrapTable2 extends React.Component {
             items: existingItems
         }, () => {
             console.log("calling from Bootstraptable2, onChangeItemInput, this.state.items: ", this.state.items, ", existingItemsByDueDate: ", existingItemsByDueDate)
-            // debounce(() => this.testInput(), 500)
             this.updateSumOfIguByRow()
             this.updateSumOfIguByColumn()
             this.context.onChangeItemInput(existingItemsByDueDate);
         })
-    }
-
-    testInput() {
-        console.log("calling from testInput")
     }
 
     onChangeOrderQuantityInput = (e, id, key, due_date) => {
@@ -776,7 +774,9 @@ class BootstrapTable2 extends React.Component {
             return
         }
 
-        this.getReferenceTagsByOrderItem(key)
+        if (key.includes('-')) {
+            this.getReferenceTagsByOrderItem(key)    
+        }
     }
 
     getReferenceTagsByOrderItem(orderItem) {
@@ -824,7 +824,6 @@ class BootstrapTable2 extends React.Component {
                 items: existingItems
             }, () => {
                 console.log("calling from Bootstraptable2, getReferenceTagsByOrderItem, this.state.items: ", this.state.items, ", existingItemsByDueDate: ", existingItemsByDueDate)
-                // debounce(() => this.testInput(), 500)
                 this.updateSumOfIguByRow()
                 this.updateSumOfIguByColumn()
                 this.context.onChangeItemInput(existingItemsByDueDate);
@@ -890,7 +889,7 @@ class BootstrapTable2 extends React.Component {
                     </Col>
                     {/* style={{ width: '1000px' }} */}
                     {/* style={{'table-layout': "fixed"}} */}
-                    <Table responsive striped bordered hover size="sm" style={{ position: 'relative' }}>
+                    <Table striped bordered hover size="sm" style={{ position: 'relative' }}>
                         <thead style={{ position: 'sticky', top: 0, backgroundColor: 'green' }}>
                             <tr>
                                 <th></th>
@@ -908,21 +907,6 @@ class BootstrapTable2 extends React.Component {
                                 <td></td>
                                 <td style={{ width: '100px' }}></td>
                                 {
-                                    // this.state.listOfUniqueDates.map(({key, value}) => (
-                                    //     // console.log("key: ", element['key'])
-                                    //     <td key={key}>
-                                    //         {/* <Form.Control onChange={event => this.setDueDate(event)} disabled={this.context.isSubmitButtonLoading || this.context.isConfirmed} type="date" value={key.replace("T00:00:00.000Z", '')} placeholder="Enter date" /> */}
-                                    //         <Form.Control
-                                    //             value={key.replace("T00:00:00.000Z", '')}
-                                    //             type="date"
-                                    //             onChange={(e) => this.onChangeDateInput(e, key)}
-                                    //             placeholder="Type Item Name"
-                                    //             className="text-center"
-                                    //             disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading}
-                                    //         />
-                                    //     </td>
-                                    // ))
-
                                     this.state.listOfUniqueDueDates.map(({dueDate, promiseDate}) => (
                                         // console.log("key: ", element['key'])
                                         <td key={dueDate}>
@@ -935,6 +919,7 @@ class BootstrapTable2 extends React.Component {
                                                 className="text-center"
                                                 disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading}
                                                 size='sm'
+                                                style={{ width: '115px', margin: 'auto'}}
                                             />
                                         </td>
                                     ))
@@ -967,11 +952,12 @@ class BootstrapTable2 extends React.Component {
                                                 className="text-center"
                                                 disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading}
                                                 size='sm'
+                                                style={{ width: '115px', margin: 'auto'}}
                                             />
                                         </td>
                                     ))
                                 }
-                                <th>Order Quantity</th>
+                                <th style={{ width: '130px' }}>Order Quantity</th>
                                 <th>Remove</th>
                             </tr>
                         </thead>
@@ -1027,11 +1013,13 @@ class BootstrapTable2 extends React.Component {
                                             </td>
                                         ))
                                     }
-                                    <td style={{ width: '120px' }}>
-                                        {
-                                            this.state.sumOfIgusRowWise.find(({ itemKey, rowId }) => itemKey === key && rowId === id) &&
-                                            this.state.sumOfIgusRowWise.find(({ itemKey, rowId }) => itemKey === key && rowId === id)['total']
-                                        }
+                                    <td style={{ width: '100px' }}>
+                                        <Form.Text style={{ width: '100px' }}>
+                                            {
+                                                this.state.sumOfIgusRowWise.find(({ itemKey, rowId }) => itemKey === key && rowId === id) &&
+                                                this.state.sumOfIgusRowWise.find(({ itemKey, rowId }) => itemKey === key && rowId === id)['total']
+                                            }
+                                        </Form.Text>
                                     </td>
                                     <td style={{ width: '200px' }}>
                                         {/* <Button style={{ height: '35px' }} disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading} variant="danger" onClick={(e) => this.handleDeleteByItem(e, id, key)}>

@@ -1417,8 +1417,6 @@ class MyProvider extends React.Component {
 
                         console.log("calling from submitOrderDetailsToQAD in MyProvider after preventDefault, itemsByDueDate: ", this.state.itemsByDueDate);
 
-                        //return;
-
                         if (!this.state.itemsByDueDate.length) {
                             alert("Not enough data to submit to QAD!")
                             return
@@ -1508,7 +1506,7 @@ class MyProvider extends React.Component {
                             }),
                             headers: {
                                 'Content-type': 'application/json; charset=UTF-8',
-                            },
+                            }
                         })
                         .then((res) => res.json())
                         .then((response) => {
