@@ -1,0 +1,643 @@
+business/app.py
+===============
+@app.route('/api/send_req_items_for_cs', methods=['POST'])
+def send_req_items_for_cs():
+    response = requisitionFormInterface.send_req_items_for_cs(request.json['orderNumber'], request.json['itemsByDueDate'], request.json['isValidLisecItemsAvailable'], request.json['validLisecItems'], request.json['channel'])
+    #print("calling from send_req_items_for_cs, response: ", response)
+    response.update(status='success')
+    return jsonify({'data': response})
+
+business/qad_interface.py
+=========================
+import re
+
+def get_line_items_for_cs(self, po_number):
+    li = LineItem("salesorder")
+    response = li.get_new_line_item_collection(po_number, ERP_DOMAIN_CODE)
+    return response.json()['data']
+
+def get_line_items_by_order_for_cs(self, po_number):
+    li = LineItem("salesorder")
+    response = li.get_line_items_by_order_number(po_number, ERP_DOMAIN_CODE)
+    return response.json()['data']
+
+import logging
+logging.basicConfig(filename="std.log", format='%(message)s', filemode='w') 
+logger=logging.getLogger()
+
+def send_req_items_for_cs(self, orderNumber, itemsByDueDate, isValidLisecItemsAvailable, validLisecItems, channel):
+    result = {}
+    
+    logger.info("orderNumber: " + str(orderNumber) + ", isValidLisecItemsAvailable: " + str(isValidLisecItemsAvailable) + ", itemsByDueDate: " + str(itemsByDueDate) + ", validLisecItems: " + str(validLisecItems))
+    
+    #return result
+
+    so = SalesOrder()
+    so_header = so.so_code_lookup(ERP_DOMAIN_CODE, orderNumber)
+    so_header_data = so_header.json().get('data').get('salesOrderHeaders')
+
+    result.update(list_of_unverified_items=[]) #default value
+    if so_header_data:
+        print("so_header_data confirm data: ", so_header_data[0]['isConfirmed'])
+        result.update(is_confirmed=so_header_data[0]['isConfirmed'])
+        if so_header_data[0]['isConfirmed']:
+            return result
+
+    list_of_unverified_items = self.verify_qad_items(itemsByDueDate)
+    result.update(list_of_unverified_items=list_of_unverified_items)
+
+    if len(list_of_unverified_items)>0:
+        return result
+
+    line_items_details = self.get_line_items_by_order_for_cs(orderNumber)
+    #print("calling from send_req_items_for_cs, line_items_details: ", line_items_details)
+
+    gl_account = line_items_details['salesOrderLines'][0]['salesAcct']
+    cost_center = line_items_details['salesOrderLines'][0]['salesCC']
+
+    for line_item in line_items_details['salesOrderLines']:
+        self.NeedsToBeUpdatedData(orderNumber, line_item, itemsByDueDate)
+        self.NeedsToBeDeletedData(orderNumber, line_item, line_items_details['salesOrderLines'], itemsByDueDate)
+
+    self.NeedsToBeInsertedData(gl_account, cost_center, orderNumber, itemsByDueDate)
+    self.ReInsertItemsInQAD(orderNumber, validLisecItems, channel)
+
+    return result
+
+def verify_qad_items(self, itemsByDueDate):
+    list_of_item_set = set([])
+    for data in itemsByDueDate:
+        items = data['value']
+        for item in items:
+            list_of_item_set.add(item['item'])
+    
+    # list_of_items.append('Test1')
+    list_of_items = list(list_of_item_set) 
+    
+    print("calling from verify_qad_items, list_of_items: ", list_of_items)
+    lines = Item('salesorder')
+    response = lines.get_items_by_item_codes(item_codes=list_of_items)
+    # print("response: ", response.json()['data'])
+    items = response.json()['data']
+    qad_items = []
+    for item in items:
+        qad_items.append(item['pt_part'])
+    #print("qad_items: ", qad_items)
+
+    list_of_non_qad_items = []
+    for item in list_of_items:
+        qad_item = [qad_item for qad_item in qad_items if qad_item == item]
+        if not qad_item:
+            list_of_non_qad_items.append(item)
+
+    return list_of_non_qad_items
+
+def isItemFound(self, searchText, txt, searchForAllKeywords = True):
+    if searchForAllKeywords:
+        all_found=True
+        for w in searchText:
+            if not re.search(".*"+w+".*", txt.lower()):
+                all_found=False
+                break
+    else:
+        all_found=False
+        for w in searchText:
+            if re.search(".*"+w+".*", txt.lower()):
+                all_found=True
+                break
+
+    if all_found:
+        print(txt + " searching is successfull!")
+
+    return all_found
+
+def purifyItemsByDueDateMap(self, itemsByDueDate):
+    def customSort(k):
+        return int(k['item'].split('-')[1])
+
+    itemsByDueDateMap = []
+    rankItems = {}
+
+    for item1 in itemsByDueDate:
+        modified_items = {}
+        modified_list_items = []
+        value = item1['value']
+        count = 1
+        item_list = []
+        for val in value:
+            # print("val: ", val)
+            txt = val['item']
+
+            searchText = ['advance payment', 'adv. payment']
+            searchForAllKeywords = False
+            isFound = self.isItemFound(searchText, txt, searchForAllKeywords)
+            if isFound:
+                rankItems[1] = val
+                count = count + 1
+                continue
+            
+            searchText = ['ship payment', 'shipment', 'shipment pymt', 'shipment pymt ssge']
+            searchForAllKeywords = False
+            isFound = self.isItemFound(searchText, txt, searchForAllKeywords)
+            if isFound:
+                rankItems[2] = val
+                count = count + 1
+                continue
+
+            searchText = ['balance payment']
+            searchForAllKeywords = True
+            isFound = self.isItemFound(searchText, txt, searchForAllKeywords)
+            if isFound:
+                rankItems[3] = val
+                count = count + 1
+                continue
+                
+            searchText = ['freight glass', 'freight controls']
+            searchForAllKeywords = False
+            isFound = self.isItemFound(searchText, txt, searchForAllKeywords)
+            if isFound:
+                rankItems[4] = val
+                count = count + 1
+                continue
+            
+            item_list.append(val)
+            count = count + 1
+
+        item_list.sort(key=customSort)
+        modified_list_items.append(rankItems[1])
+
+        for item in item_list:
+            modified_list_items.append(item)
+
+        modified_list_items.append(rankItems[2])
+        modified_list_items.append(rankItems[3])
+        modified_list_items.append(rankItems[4])
+        
+        modified_items['key'] = item1['key']
+        modified_items['value'] = modified_list_items
+        
+        itemsByDueDateMap.append(modified_items)
+
+    return itemsByDueDateMap
+
+def purifyQADLineItems(self, qad_list_items, validLisecItems, channel):
+    def customSort(k):
+        return int(k['itemCode'].split('-')[1])
+    
+    # validLisecItems = ['211659-2', '211659-22', '211659-3']
+
+    list_of_lisec_items = []
+    list_of_qad_items = []
+    modified_list_of_items = []
+
+    rankItems = {}
+    rankItems_advance_payment = []
+    rankItems_ship_payment = []
+    rankItems_balance_payment = []
+    rankItems_freight = []
+    #print("qad_list_items count: ", len(qad_list_items))
+
+    for item in qad_list_items:
+        lisec_item = [lisec_item for lisec_item in validLisecItems if lisec_item == item['itemCode']]
+        if lisec_item:
+            list_of_lisec_items.append(item)
+            continue
+        
+        searchText = ['advance payment', 'adv. payment']
+        searchForAllKeywords = False
+        isFound = self.isItemFound(searchText, item['itemCode'], searchForAllKeywords)
+        if isFound:
+            rankItems[1] = item
+            rankItems_advance_payment.append(item)
+            continue
+
+        searchText = ['ship payment', 'shipment', 'shipment pymt', 'shipment pymt ssge']
+        searchForAllKeywords = False
+        isFound = self.isItemFound(searchText, item['itemCode'], searchForAllKeywords)
+        if isFound:
+            rankItems[2] = item
+            rankItems_ship_payment.append(item)
+            continue
+
+        searchText = ['balance payment']
+        searchForAllKeywords = True
+        isFound = self.isItemFound(searchText, item['itemCode'], searchForAllKeywords)
+        if isFound:
+            rankItems[3] = item
+            rankItems_balance_payment.append(item)
+            continue
+
+        searchText = ['freight glass', 'freight controls']
+        searchForAllKeywords = False
+        isFound = self.isItemFound(searchText, item['itemCode'], searchForAllKeywords)
+        if isFound:
+            rankItems[4] = item
+            rankItems_freight.append(item)
+            continue
+
+        list_of_qad_items.append(item)
+
+    # if str(channel).lower() == "control":
+    #     list_of_lisec_items.sort(key=customSort)
+    #print("str(channel).lower(): ", str(channel).lower())
+    if str(channel).lower() == "glass":
+        #print("channel: ", channel, ", str(channel).lower(): ", str(channel).lower())
+        list_of_lisec_items.sort(key=customSort)
+
+    if rankItems_advance_payment:
+        for li_item in rankItems_advance_payment:
+            modified_list_of_items.append(li_item)
+
+    if list_of_lisec_items:
+        for li_item in list_of_lisec_items:
+            modified_list_of_items.append(li_item)
+
+    if list_of_qad_items:
+        for li_item in list_of_qad_items:
+            modified_list_of_items.append(li_item)
+
+    if rankItems_ship_payment:
+        for li_item in rankItems_ship_payment:
+            modified_list_of_items.append(li_item)
+
+    if rankItems_balance_payment:
+        for li_item in rankItems_balance_payment:
+            modified_list_of_items.append(li_item)
+
+    if rankItems_freight:
+        for li_item in rankItems_freight:
+            modified_list_of_items.append(li_item)
+
+    #print("modified_list_of_items: ", len(modified_list_of_items))
+
+    #print("modified_list_of_items: ", modified_list_of_items)
+    
+    return modified_list_of_items
+
+def NeedsToBeInsertedData(self, gl_account, cost_center, orderNumber, itemsByDueDate):
+    for data in itemsByDueDate:
+        list_of_items = data['value']
+        logger.info("calling from NeedsToBeInsertedData, list_of_items: " + str(list_of_items))
+        for item in list_of_items:
+            is_new_sales_order_exist = item.get('sales_order_line')
+            if is_new_sales_order_exist is None and item['order_qty'] != 0:
+                #print("calling from NeedsToBeInsertedData, item: ", item)
+                li = self.get_line_items_for_cs(orderNumber)
+                logger.info("calling from NeedsToBeInsertedData, item: " + str(item))
+                #print("salesOrderLine: ", li['salesOrderLines'][0]['salesOrderLine'])
+                logger.info("calling from NeedsToBeInsertedData, li: " + str(li))
+
+                lines = LineItem('salesorder')
+                li['salesOrderLines'][0]['itemCode'] = item['item']
+                li['salesOrderLines'][0]['quantityOrdered'] = item['order_qty']
+                li['salesOrderLines'][0]['unitOfMeasure'] = "EA"
+                li['salesOrderLines'][0]['salesOrderNumber'] = orderNumber
+                li['salesOrderLines'][0]['salesAcct'] = gl_account
+                li['salesOrderLines'][0]['salesCC'] = cost_center
+                li['salesOrderLines'][0]['dueDate'] = data['key'] #item['shipping_date']
+                li['salesOrderLines'][0]['promiseDate'] = item['promise_date']
+                li['salesOrderLines'][0]['performanceDate'] = data['key']
+                #print("calling from NeedsToBeInsertedData, li: ", li)
+                logger.info("calling from NeedsToBeInsertedData, li: " + str(li))
+                response = lines.set_field1("itemCode", line_item = li)
+                logger.info("calling from NeedsToBeInsertedData, response 1: " + str(response.json()))
+                data1 = response.json().get('data')
+
+                for key in data1:
+                    if 'salesOrderLineConfs' in key:
+                        confs = data1.get(key)
+                        for line in confs:
+                            line.update(isProcessedByClient=True)
+                        response = lines.set_field1("itemCode", line_item = data1)
+                        logger.info("calling from NeedsToBeInsertedData, response 2: " + str(response.json()))
+
+                response = lines.li_upsert(data = data1)
+                logger.info("calling from NeedsToBeInsertedData, li_upsert: " + str(response.json()))
+
+                #update promise date
+                line_item = response.json().get('data').get('salesOrderLines')[0]
+                response = lines.set_field(orderNumber, ERP_DOMAIN_CODE, line_item['salesOrderLine'], "promiseDate", item['promise_date'], line_item)
+                logger.info("calling from NeedsToBeInsertedData, updating promise date: " + str(response.json()))
+
+
+def _check_confs(self, data, lines):
+    for key in data:
+        # print("key: ", key)
+        if 'salesOrderLineConfs' in key:
+            confs = data.get(key)
+            for line in confs:
+                line.update(isProcessedByClient='true')
+                # print("line: ", line)
+                print("final data: ", data)
+            response = lines.li_upsert(data)
+            return response
+    return None
+
+# version 1
+# def ReInsertItemsInQAD(self, orderNumber, validLisecItems, channel):
+#     li = self.get_line_items_by_order_for_cs(orderNumber)
+#     self.DeleteAllItemsFromQADByOrder(li, orderNumber)
+    
+#     list_items = li['salesOrderLines']
+
+#     # print("calling from ReInsertItemsInQAD, list_items: ", list_items)
+    
+#     modified_list_of_items = self.purifyQADLineItems(list_items, validLisecItems, channel)
+#     # print("modified_list_of_items: ", modified_list_of_items)
+
+#     count = 1
+#     for item in modified_list_of_items:
+#         print("item code: ", item['itemCode'])
+#         li_test =  {'supplementaryMessages': [], 'salesOrderLines': []}
+#         lines = LineItem('salesorder')
+#         item.pop('uri')
+#         # item.pop('salesOrderLine')
+#         item['salesOrderLine'] = count
+#         li_test['salesOrderLines'].append(item)
+        
+#         print("li_test: ", li_test)
+#         # response = lines.li_upsert(data = li_test)
+#         response = lines.set_field1("itemCode", line_item = li_test)
+#         # print("response.json(): ", response.json())
+        
+#         data1 = response.json().get('data')
+        
+#         for key in data1:
+#             if 'salesOrderLineConfs' in key:
+#                 confs = data1.get(key)
+#                 for line in confs:
+#                     line.update(isProcessedByClient=True)
+#                 response = lines.set_field1("itemCode", line_item = data1)
+#                 print("=================I am here=================")
+#                 # test2 = response.json().get('data')
+#                 # lines.li_upsert(data = test2)
+#                 continue
+        
+#         print("============Am I coming here============")
+#         print("data1: ", data1)
+#         lines.li_upsert(data = data1)
+#         count = count + 1
+
+# version 2
+def ReInsertItemsInQAD(self, orderNumber, validLisecItems, channel):
+    li = self.get_line_items_by_order_for_cs(orderNumber)
+    self.DeleteAllItemsFromQADByOrder(li, orderNumber)
+    
+    list_items = li['salesOrderLines']
+
+    # print("calling from ReInsertItemsInQAD, list_items: ", list_items)
+    
+    modified_list_of_items = self.purifyQADLineItems(list_items, validLisecItems, channel)
+    # print("modified_list_of_items: ", modified_list_of_items)
+    #logger.info("modified_list_of_items: " + str(modified_list_of_items))
+
+    count = 1
+    for item in modified_list_of_items:
+        #print("item code: ", item['itemCode'])
+        #logger.info("item: " + str(item))
+        if item['quantityOrdered'] == 0:
+            continue
+
+        li_test =  {'supplementaryMessages': [], 'salesOrderLines': []}
+        lines = LineItem('salesorder')
+        item.pop('uri')
+        # item.pop('salesOrderLine')
+        item['salesOrderLine'] = count
+        li_test['salesOrderLines'].append(item)
+        
+        #logger.info("li_test promiseDate 1: " + str(li_test))
+        # response = lines.li_upsert(data = li_test)
+
+        response = lines.set_field1("promiseDate", line_item = li_test)
+        #logger.info("response json set_field1 promiseDate 1: " + str(response.json()))
+
+        data1 = response.json().get('data')
+        
+        for key in data1:
+            if 'salesOrderLineConfs' in key:
+                confs = data1.get(key)
+                for line in confs:
+                    line.update(isProcessedByClient=True)
+                response = lines.set_field1("promiseDate", line_item = data1)
+                #logger.info("response json set_field1 promiseDate 2: " + str(response.json()))
+                #logger.info("=================I am here 1=================")
+                # test2 = response.json().get('data')
+                # lines.li_upsert(data = test2)
+                continue
+        response = lines.li_upsert(data = data1)
+        #logger.info("response json li_upsert promiseDate 1: " + str(response.json()))
+        
+        # li_test = response.json().get('data')
+        # logger.info("li_test itemCode 1: " + str(li_test))
+
+        # response = lines.set_field1("itemCode", line_item = li_test)
+        
+        # logger.info("response json set_field1 itemCode 1:" + str(response.json()))
+        
+        # data1 = response.json().get('data')
+        
+        # for key in data1:
+        #     if 'salesOrderLineConfs' in key:
+        #         confs = data1.get(key)
+        #         for line in confs:
+        #             line.update(isProcessedByClient=True)
+        #         response = lines.set_field1("itemCode", line_item = data1)
+        #         logger.info("response json set_field1 itemCode 2:" + str(response.json()))
+        #         logger.info("=================I am here=================")
+        #         # test2 = response.json().get('data')
+        #         # lines.li_upsert(data = test2)
+        #         continue
+        
+        # logger.info("============Am I coming here============")
+        
+        # data1['salesOrderLines'][0].pop('uri')
+        # logger.info("data1 itemCode: " + str(data1))
+
+        # response = lines.li_upsert(data = data1)
+        # logger.info("response json li_upsert itemCode 1: " + str(response.json()))
+        count = count + 1
+    
+    print("Done with ReInsertItemsInQAD")
+
+#version 1
+# def NeedsToBeUpdatedData(self, orderNumber, line_item, itemsByDueDate):
+#     for data in itemsByDueDate:
+#         if line_item['dueDate'] == data['key']:
+#             list_of_items = data['value']
+#             for item in list_of_items:
+#                 if line_item['itemCode'] == item['item'] and line_item['quantityOrdered'] != item['order_qty']:
+#                     lines = LineItem('salesorder')
+#                     print("calling from NeedsToBeUpdatedData")
+#                     lines.set_field(orderNumber, ERP_DOMAIN_CODE, line_item['salesOrderLine'], "quantityOrdered", item['order_qty'], line_item)
+
+def NeedsToBeUpdatedData(self, orderNumber, line_item, itemsByDueDate):
+    # print("calling from NeedsToBeUpdatedData, line_item: ", line_item)
+    for data in itemsByDueDate:
+        initial_date = data.get('initialDate')
+        current_due_date = data['key']
+
+        if initial_date:
+            if line_item['dueDate'] == initial_date:
+                list_of_items = data['value']
+                for item in list_of_items:
+                    if line_item['itemCode'] == item['item'] and line_item['quantityOrdered'] != item['order_qty']:
+                        lines = LineItem('salesorder')
+                        #print("calling from NeedsToBeUpdatedData updating order quantity")
+                        logger.info("calling from NeedsToBeUpdatedData updating order quantity , line_item: " + str(line_item))
+                        lines.set_field(orderNumber, ERP_DOMAIN_CODE, line_item['salesOrderLine'], "quantityOrdered", item['order_qty'], line_item)
+
+    for data in itemsByDueDate:
+        initial_date = data.get('initialDate')
+        current_due_date = data['key']
+
+        if initial_date:
+            if line_item['dueDate'] == initial_date:
+                list_of_items = data['value']
+                for item in list_of_items:
+                    if line_item['itemCode'] == item['item'] and line_item['dueDate'] != current_due_date:
+                        lines = LineItem('salesorder')
+                        #print("calling from NeedsToBeUpdatedData updating due date")
+                        logger.info("calling from NeedsToBeUpdatedData updating due date and performance date, line_item: " + str(line_item))
+                        lines.set_field(orderNumber, ERP_DOMAIN_CODE, line_item['salesOrderLine'], "dueDate", current_due_date, line_item)
+                        lines.set_field(orderNumber, ERP_DOMAIN_CODE, line_item['salesOrderLine'], "performanceDate", current_due_date, line_item)
+                        lines.set_field(orderNumber, ERP_DOMAIN_CODE, line_item['salesOrderLine'], "promiseDate", item['promise_date'], line_item)
+    for data in itemsByDueDate:
+        initial_date = data.get('initialDate')
+        current_due_date = data['key']
+
+        if initial_date:
+            if line_item['dueDate'] == initial_date:
+                list_of_items = data['value']
+                for item in list_of_items:
+                    if line_item['itemCode'] == item['item']:
+                        lines = LineItem('salesorder')
+                        if 'promiseDate' in line_item:
+                            if line_item['promiseDate'] != item['promise_date']:
+                                logger.info("calling from NeedsToBeUpdatedData updating promise date 1, line_item: " + str(line_item))
+                                #print("calling from NeedsToBeUpdatedData updating promise date 1, line_item['promiseDate']: ", line_item['promiseDate'], ", item['promise_date']: ", item['promise_date'])
+                                lines.set_field(orderNumber, ERP_DOMAIN_CODE, line_item['salesOrderLine'], "promiseDate", item['promise_date'], line_item)
+                        else:
+                            logger.info("calling from NeedsToBeUpdatedData updating promise date 2, line_item: " + str(line_item))
+                            #print("calling from NeedsToBeUpdatedData updating promise date 2, item['promise_date']: ", item['promise_date'])
+                            lines.set_field(orderNumber, ERP_DOMAIN_CODE, line_item['salesOrderLine'], "promiseDate", item['promise_date'], line_item)
+def NeedsToBeDeletedData(self, orderNumber, line_item, salesOrderLines, itemsByDueDate):
+    is_sales_order_line_exist = False
+    for data in itemsByDueDate:
+        list_of_items = data['value']
+        for item in list_of_items:
+            if item.get("sales_order_line") and line_item['salesOrderLine'] == item['sales_order_line']:
+                is_sales_order_line_exist = True
+                return is_sales_order_line_exist
+    
+    for item in salesOrderLines:
+        if line_item['salesOrderLine'] == item['salesOrderLine']:
+            # print("calling from NeedsToBeDeletedData, item: ", item)
+            lines = LineItem('salesorder')
+            lines.li_delete(orderNumber, ERP_DOMAIN_CODE, item['salesOrderLine'], data = item)
+
+    #print("Sales order line: ", line_item['salesOrderLine'], " needs to be deleted")
+
+def DeleteAllItemsFromQADByOrder(self, li, orderNumber):
+    # li = self.get_line_items_by_order_for_cs(orderNumber)
+    for item in li['salesOrderLines']:
+        lines = LineItem('salesorder')
+        lines.li_delete(orderNumber, ERP_DOMAIN_CODE, item['salesOrderLine'], data = item)
+
+
+business/requisition_form_interface.py
+======================================
+def send_req_items_for_cs(self, orderNumber, itemsByDueDate, isValidLisecItemsAvailable, validLisecItems, channel):
+    # po_number = self.send_req_items_for_cs(req_id, ad_info)
+    qad_interface = QadInterface()
+    response = qad_interface.send_req_items_for_cs(orderNumber, itemsByDueDate, isValidLisecItemsAvailable, validLisecItems, channel)
+    return response
+
+business/qad/Workers/Consumer/Apis/items.py
+===========================================
+    def get_items_by_item_codes(self, item_codes: list) -> \
+            requests.Response():
+        """
+        Get list of Items from QAD by item codes
+        """
+        filters = ""
+        
+        for item in item_codes:
+            filters += f"filter=pt_part,eq,{item},literal&"
+
+        full_url = f"{CUSTOM_ITEM_BROWSE_URL}{self.erp_browse_code}&page=1&pageSize=100&{filters}"
+        print("calling from get_items_by_item_codes, full url: ", full_url)
+        response = self.erp_session.http_request('GET', full_url)
+        #logger.info(response.json())
+        return response
+    
+business/qad/Workers/Consumer/Apis/line_items.py
+================================================
+def set_field1(self, field_name: str, line_item: Dict = None) -> requests.Response():
+        """
+        Sets the given field name to a given value
+        """
+        data = {}
+        if self.line_item_url == PO_ITEM_URL:
+            data["purchaseOrderLines"] = [line_item]
+        elif self.line_item_url == SO_ITEM_URL:
+            data["salesOrderLines"] = [line_item]
+
+        # params = {
+        #     "fieldName": field_name,
+        #     "dataOperation": "CREATE"
+        # }
+
+        filters = f"fieldName={field_name}&dataOperation=CREATE"
+
+        full_url = f"{self.line_item_field_change}?{filters}"
+
+        response = self.erp_session.http_request('POST', full_url, json=line_item)
+        #print("2 response.json() : ", response.json())
+        # print("I am here hello")
+        return response
+        
+# version 2
+def set_field(self, order_number: str, domain_code: str, sales_order_line: str, field_name: str, field_value: str, line_item: Dict = None) -> requests.Response():
+    """
+    Sets the given field name to a given value
+    """
+    data = {}
+    if self.line_item_url == PO_ITEM_URL:
+        data["purchaseOrderLines"] = [line_item]
+    elif self.line_item_url == SO_ITEM_URL:
+        data["salesOrderLines"] = [line_item]
+
+    params = {
+        "fieldName": field_name,
+        # "dataOperation": "CREATE"
+        "dataOperation": "UPDATE"
+    }
+    line_item[field_name] = field_value
+    response = self.erp_session.http_request('POST', self.line_item_field_change, params=params, json=data)
+    # logger.info(response.json())
+
+    params1 = {
+        "domainCode": domain_code,
+        "salesOrderNumber": order_number,
+        "salesOrderLine": sales_order_line
+    }
+    response = self.erp_session.http_request('POST', self.line_item_url, params=params1, json=data)
+    #logger.info(response.json())
+    return response
+
+def li_delete(self, order_number: str, domain_code: str, sales_order_line: str, data: Dict = None) -> requests.Response():
+    """
+    Delete Line Item in QAD
+    """
+    params = {
+        "domainCode": domain_code, 
+        "salesOrderNumber": order_number,
+        "salesOrderLine": sales_order_line,
+        "dataOperation": "DELETE"
+    }
+
+    response = self.erp_session.http_request('DELETE', self.line_item_url, params=params, json=data)
+
+    # response = self.erp_session.http_request('POST', self.line_item_url, json=data)
+    # logger.info(response.json())
+    return response

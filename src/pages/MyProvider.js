@@ -141,11 +141,8 @@ class MyProvider extends React.Component {
                         }
                     })
                 })
-
                 //console.log("updated existingItemsByDueDate: ", existingItemsByDueDate)
             })
-
-
 
             this.setState({
                 itemsByDueDate: existingItemsByDueDate
@@ -1494,8 +1491,8 @@ class MyProvider extends React.Component {
                         }, () => {})
                         
                         // baseAPIURLTest, baseAPIURL
-                        //fetch('http://127.0.0.1:5000/api/send_req_items_for_cs', {
-                        fetch(baseAPIURL + 'send_req_items_for_cs', {
+                        fetch('http://127.0.0.1:5000/api/send_req_items_for_cs', {
+                        //fetch(baseAPIURL + 'send_req_items_for_cs', {
                             method: 'POST',
                             body: JSON.stringify({
                                 orderNumber: this.state.orderNumber,
@@ -1511,7 +1508,7 @@ class MyProvider extends React.Component {
                         .then((res) => res.json())
                         .then((response) => {
                             // console.log("=======Am I here=========");
-                            // console.log("response: ", response.data);
+                            console.log("response: ", response.data);
                             var unverified_items = ""
                             if (response.data.list_of_unverified_items.length > 0) {
                                 for (let index = 0; index < response.data.list_of_unverified_items.length; index++) {
@@ -1556,7 +1553,7 @@ class MyProvider extends React.Component {
                             }
                         })
                         .catch((err) => {
-                            // console.log(err);
+                            console.log("err: ", err);
                             this.setState({
                                 isSubmitButtonLoading: false
                             }, () => {})

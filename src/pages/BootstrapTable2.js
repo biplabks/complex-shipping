@@ -1,7 +1,6 @@
 // import {React, createRef} from 'react';
 import React from 'react';
-import createRef from 'react';
-import { Container, Button, Form, Row, Col, Table, Card } from 'react-bootstrap';
+import { Container, Button, Form, Col, Table, Tooltip, OverlayTrigger } from 'react-bootstrap';
 import MyContext from './MyContext';
 import moment from 'moment';
 import debounce from "lodash.debounce";
@@ -325,6 +324,13 @@ class BootstrapTable2 extends React.Component {
         var existingItem = JSON.parse(JSON.stringify(this.state.items));
         var existingItemsByDueDate = JSON.parse(JSON.stringify(this.context.itemsByDueDate));
 
+        //console.log("calling from Bootstraptable, handleDeleteByItem: ", existingItem.length)
+
+        if (existingItem.length <= 1) {
+            alert("Only one item is left. Can't delete the last item!")
+            return;
+        }
+
         //console.log("calling from Bootstraptable, existingItemsByDueDate before: ", existingItemsByDueDate)
         var modifiedData = [];
 
@@ -378,8 +384,13 @@ class BootstrapTable2 extends React.Component {
 
         var existingItem =  JSON.parse(JSON.stringify(this.state.items));
         var existingItemsByDueDate = JSON.parse(JSON.stringify(this.context.itemsByDueDate));
-        //console.log("calling from handleDeleteByDueDate before, existingItemsByDueDate: ", existingItemsByDueDate)
+        console.log("calling from handleDeleteByDueDate before, existingItem: ", existingItem,  ", existingItemsByDueDate: ", existingItemsByDueDate)
 
+        if (existingItemsByDueDate.length <= 1) {
+            alert("Only one due date is left. Can't delete the due date!");
+            return;
+        }
+        
         existingItem.forEach(element => {
             let items = element['value']
             const indexOfItem = items.findIndex(item => {
@@ -851,100 +862,114 @@ class BootstrapTable2 extends React.Component {
         return (
             // <Container className="p-3">
             <Container fluid>
-            {/* <Card style={{ width: '35rem' }}> */}
-            {/* <Card> */}
-                {/* <Card.Header>
-                {
-                    <div>
-                        <Form>
-                            <Form.Group as={Row} className="mb-3" controlId="formGroupDueDate">
-                                <Form.Label style={{display: 'flex', justifyContent:'left'}} column sm="2">
-                                Due Date
-                                </Form.Label>
-                                <Col sm="4" className='m-6'>
-                                    <Form.Control onChange={event => this.setDueDate(event)} disabled={!this.state.isDateEditable || this.context.isSubmitButtonLoading || this.context.isConfirmed} type="date" value={this.state.due_date} placeholder="Enter date" />
-                                </Col>
-                                {!this.context.isConfirmed && 
-                                <>
-                                    <Col className='d-flex flex-row mb-3'>
-                                        <Button className='mx-1' disabled={this.context.isSubmitButtonLoading} onClick={this.copyItemsByDueDate}>
-                                            Duplicate this Due Date
-                                        </Button>
-                                    </Col>
-                                </>
-                                }
-                            </Form.Group>
-                        </Form>
-                    </div>
-                }
-                </Card.Header> */}
-                {/* <Card.Body> */}
-                    <Col className='d-flex justify-content-end mb-2'>
-                        {
-                            !this.context.isConfirmed && 
-                            <Button className='mx-1' disabled={this.context.isSubmitButtonLoading} onClick={this.addNewDueDate}>
-                                Add Due Date
-                            </Button>
-                        }
-                    </Col>
-                    {/* style={{ width: '1000px' }} */}
-                    {/* style={{'table-layout': "fixed"}} */}
-                    <Table striped bordered hover size="sm" style={{ position: 'relative' }}>
-                        <thead style={{ position: 'sticky', top: 0, backgroundColor: 'green' }}>
-                            <tr>
-                                <th></th>
-                                <th style={{ width: '100px' }}></th>
-                                {/* <th>Ref Tags</th> */}
-                                {/* <th colSpan={this.state.dueDatesColspan}>Due Dates</th> */}
+                {/* <Col className='d-flex justify-content-end mb-2'>
+                    {
+                        !this.context.isConfirmed && 
+                        <Button className='mx-1' disabled={this.context.isSubmitButtonLoading} onClick={this.addNewDueDate}>
+                            Add Due Date
+                        </Button>
+                    }
+                </Col> */}
+                <Table striped bordered hover size="sm" style={{ position: 'relative', borderColor: '#BDC3C7', width: '50%' }}>
+                    <thead style={{ position: 'sticky', top: 0, backgroundColor: '#f5f7f7', zIndex: 1 }}>
+                        {/* <tr>
+                            <th style={{position: '-webkit-sticky', position: 'sticky', backgroundColor: '#f5f7f7', left: '0px', width: '100px' }}></th>
+                            <th style={{position: '-webkit-sticky', position: 'sticky', backgroundColor: '#f5f7f7', left: '159px', width: '100px' }}></th>
+                            {
+                                this.state.dueDatesColspan>=1 && 
+                                <th colSpan={this.state.dueDatesColspan}>Due Dates</th>
+                            }
+                            <th></th>
+                            <th></th>
+                        </tr> */}
+                        <tr>
+                            <td style={{position: 'sticky', backgroundColor: '#f5f7f7', left: '0px'}}>
                                 {
-                                    this.state.dueDatesColspan>=1 && 
-                                    <th colSpan={this.state.dueDatesColspan}>Due Dates</th>
+                                    !this.context.isConfirmed && 
+                                    <Button className='mx-1' disabled={this.context.isSubmitButtonLoading} onClick={this.addNewDueDate}>
+                                        Add Due Date
+                                    </Button>
                                 }
-                                <th></th>
-                                <th></th>
-                            </tr>
-                            <tr>
-                                <td></td>
-                                <td style={{ width: '100px' }}></td>
-                                {
-                                    this.state.listOfUniqueDueDates.map(({dueDate, promiseDate}) => (
-                                        // console.log("key: ", element['key'])
-                                        <td key={dueDate}>
-                                            {/* <Form.Control onChange={event => this.setDueDate(event)} disabled={this.context.isSubmitButtonLoading || this.context.isConfirmed} type="date" value={key.replace("T00:00:00.000Z", '')} placeholder="Enter date" /> */}
+                            </td>
+                            <th style={{position: 'sticky', backgroundColor: '#f5f7f7', left: '159px', textAlign: 'right', width: '100px' }}>
+                                Due Dates
+                            </th>
+                            {
+                                this.state.listOfUniqueDueDates.map(({dueDate, promiseDate}) => (
+                                    // console.log("key: ", element['key'])
+                                    <td key={dueDate}>
+                                        {/* <Form.Control onChange={event => this.setDueDate(event)} disabled={this.context.isSubmitButtonLoading || this.context.isConfirmed} type="date" value={key.replace("T00:00:00.000Z", '')} placeholder="Enter date" /> */}
+                                        {/* <Form.Control
+                                            value={dueDate.replace("T00:00:00.000Z", '')}
+                                            type="date"
+                                            onChange={(e) => this.onChangeDateInput(e, dueDate, promiseDate)}
+                                            placeholder="Type Item Name"
+                                            className="text-center"
+                                            disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading}
+                                            size='sm'
+                                            style={{ width: '115px', margin: 'auto'}}
+                                        /> */}
+
+                                        <OverlayTrigger
+                                            placement='top'
+                                            overlay={
+                                                <Tooltip>
+                                                    Due Dates
+                                                </Tooltip>
+                                            }
+                                        >
                                             <Form.Control
                                                 value={dueDate.replace("T00:00:00.000Z", '')}
                                                 type="date"
                                                 onChange={(e) => this.onChangeDateInput(e, dueDate, promiseDate)}
-                                                placeholder="Type Item Name"
                                                 className="text-center"
                                                 disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading}
                                                 size='sm'
                                                 style={{ width: '115px', margin: 'auto'}}
                                             />
-                                        </td>
-                                    ))
-                                }
-                                <td></td>
-                                <td></td>
-                            </tr>
-                            <tr>
-                                <td></td>
-                                <td style={{ width: '100px' }}></td>
-                                {
-                                    this.state.dueDatesColspan>=1 && 
-                                    <th colSpan={this.state.dueDatesColspan}>Promise Dates</th>
-                                }
-                                <td></td>
-                                <td></td>
-                            </tr>
-                            <tr>
-                                <th>Item</th>
-                                <th style={{ width: '100px' }}>Reference Tag</th>
-                                {
-                                    this.state.listOfPromiseDates.map(({promiseDate, promiseDateIndex, dueDate}) => (
-                                        // console.log("key: ", element['key'])
-                                        <td key={promiseDateIndex}>
-                                            {/* <Form.Control onChange={event => this.setDueDate(event)} disabled={this.context.isSubmitButtonLoading || this.context.isConfirmed} type="date" value={key.replace("T00:00:00.000Z", '')} placeholder="Enter date" /> */}
+                                        </OverlayTrigger>
+                                    </td>
+                                ))
+                            }
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        {/* <tr>
+                            <td style={{position: '-webkit-sticky', position: 'sticky', backgroundColor: '#f5f7f7', left: '0px'}}></td>
+                            <td style={{position: '-webkit-sticky', position: 'sticky', backgroundColor: '#f5f7f7', left: '159px', width: '100px' }}></td>
+                            {
+                                this.state.dueDatesColspan>=1 && 
+                                <th colSpan={this.state.dueDatesColspan}>Promise Dates</th>
+                            }
+                            <td></td>
+                            <td></td>
+                        </tr> */}
+                        <tr>
+                            <th style={{position: 'sticky', backgroundColor: '#f5f7f7', left: '0px'}}>Item</th>
+                            <th style={{position: 'sticky', backgroundColor: '#f5f7f7', left: '159px', width: '100px' }}>Reference Tag</th>
+                            {
+                                this.state.listOfPromiseDates.map(({promiseDate, promiseDateIndex, dueDate}) => (
+                                    // console.log("key: ", element['key'])
+                                    <td key={promiseDateIndex}>
+                                        {/* <Form.Control onChange={event => this.setDueDate(event)} disabled={this.context.isSubmitButtonLoading || this.context.isConfirmed} type="date" value={key.replace("T00:00:00.000Z", '')} placeholder="Enter date" /> */}
+                                        {/* <Form.Control
+                                            value={promiseDate.replace("T00:00:00.000Z", '')}
+                                            type="date"
+                                            onChange={(e) => this.onChangePromiseDateInput(e, promiseDateIndex, dueDate)}
+                                            className="text-center"
+                                            disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading}
+                                            size='sm'
+                                            style={{ width: '115px', margin: 'auto'}}
+                                        /> */}
+
+                                        <OverlayTrigger
+                                            placement='top'
+                                            overlay={
+                                                <Tooltip>
+                                                    Promise Dates
+                                                </Tooltip>
+                                            }
+                                        >
                                             <Form.Control
                                                 value={promiseDate.replace("T00:00:00.000Z", '')}
                                                 type="date"
@@ -954,147 +979,186 @@ class BootstrapTable2 extends React.Component {
                                                 size='sm'
                                                 style={{ width: '115px', margin: 'auto'}}
                                             />
+                                        </OverlayTrigger>
+                                    </td>
+                                ))
+                            }
+                            <th style={{ width: '130px' }}>Order Quantity</th>
+                            <th>Remove</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {this.state.items.map(({key, value, id, reference_tag, is_item_editable}) => (
+                            //style={{ height: '20px', borderColor: 'black' }}
+                            <tr key={id} style={{ height: '20px' }}>
+                                <td style={{ position: 'sticky', left: '0px', width: '150px', paddingTop: '6px'}}>
+                                    <Form.Control
+                                        name="item"
+                                        value={key}
+                                        type="text"
+                                        //onChange={(e) => this.onChangeItemInput(e, id, key)}
+                                        // onChange={(e) => processChanges(e, id, key)}
+                                        //const processChanges = debounce((e, id, key) => this.saveInput(e, id, key));
+                                        // onChange={debounce((e) => this.onChangeItemInput(e, id, key))}
+                                        // onChange={(e) => this.onChangeItemInput(e, id, key)}
+                                        onChange={(e) => this.onChangeItemInput(e, id, key)}
+                                        onBlur={(e) => this.onBlurItemInput(e, id, key)}
+                                        placeholder="Type Item Name"
+                                        className="text-center"
+                                        disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading || !is_item_editable}
+                                        //height: '20px',
+                                        // size='sm'
+                                        style={{ width: '150px', height: '20px', margin: 'auto'}}
+                                    />
+                                </td>
+                                <td style={{ position: 'sticky', backgroundColor: 'white', left: '159px', width: '100px', paddingTop: '6px' }}>
+                                    <Form.Control 
+                                        name="reference_tag" 
+                                        value={reference_tag} 
+                                        type="text" 
+                                        // onChange={(e) => this.onChangeItemInput(e, id, key)}
+                                        className="text-center"
+                                        disabled={true}
+                                        //size='sm'
+                                        // style={{ width: '400px', height: '130px' }}
+                                        style={{ width: '120px', height: '20px', margin: 'auto'}}
+                                    />
+                                </td>
+                                {
+                                    value.map(({order_qty, due_date}) => (
+                                        <td key={due_date} style={{ width: '100px', paddingTop: '6px' }}>
+                                            <Form.Control
+                                                name="order_qty"
+                                                value={order_qty}
+                                                type="number"
+                                                min={0}
+                                                onChange={(e) => this.onChangeOrderQuantityInput(e, id, key, due_date)}
+                                                placeholder="Type Order Quantity"
+                                                className="text-center"
+                                                disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading}
+                                                //size='sm' height: '20px',
+                                                style={{ width: '80px', height: '20px', margin: 'auto', textAlign:'center'}}
+                                            />
                                         </td>
                                     ))
                                 }
-                                <th style={{ width: '130px' }}>Order Quantity</th>
-                                <th>Remove</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {this.state.items.map(({key, value, id, reference_tag, is_item_editable}) => (
-                                <tr key={id} style={{ height: '30px' }}>
-                                    <td style={{ width: '150px'}}>
-                                        <Form.Control
-                                            name="item"
-                                            value={key}
-                                            type="text"
-                                            //onChange={(e) => this.onChangeItemInput(e, id, key)}
-                                            // onChange={(e) => processChanges(e, id, key)}
-                                            //const processChanges = debounce((e, id, key) => this.saveInput(e, id, key));
-                                            // onChange={debounce((e) => this.onChangeItemInput(e, id, key))}
-                                            // onChange={(e) => this.onChangeItemInput(e, id, key)}
-                                            onChange={(e) => this.onChangeItemInput(e, id, key)}
-                                            onBlur={(e) => this.onBlurItemInput(e, id, key)}
-                                            placeholder="Type Item Name"
-                                            className="text-center"
-                                            disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading || !is_item_editable}
-                                            style={{ width: '150px', height: '20px', margin: 'auto'}}
-                                        />
-                                    </td>
-                                    <td style={{ width: '100px' }}>
-                                        <Form.Control 
-                                            name="reference_tag" 
-                                            value={reference_tag} 
-                                            type="text" 
-                                            // onChange={(e) => this.onChangeItemInput(e, id, key)}
-                                            className="text-center"
-                                            disabled={true}
-                                            //size='sm'
-                                            // style={{ width: '400px', height: '130px' }}
-                                            style={{ width: '120px', height: '20px', margin: 'auto'}}
-                                        />
-                                    </td>
-                                    {
-                                        value.map(({order_qty, due_date}) => (
-                                            <td key={due_date} style={{ width: '100px' }}>
-                                                <Form.Control
-                                                    name="order_qty"
-                                                    value={order_qty}
-                                                    type="number"
-                                                    min={0}
-                                                    onChange={(e) => this.onChangeOrderQuantityInput(e, id, key, due_date)}
-                                                    placeholder="Type Order Quantity"
-                                                    className="text-center"
-                                                    disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading}
-                                                    //size='sm'
-                                                    style={{ width: '80px', height: '20px', margin: 'auto'}}
-                                                />
-                                            </td>
-                                        ))
-                                    }
-                                    <td style={{ width: '100px' }}>
-                                        <Form.Text style={{ width: '100px' }}>
-                                            {
-                                                this.state.sumOfIgusRowWise.find(({ itemKey, rowId }) => itemKey === key && rowId === id) &&
-                                                this.state.sumOfIgusRowWise.find(({ itemKey, rowId }) => itemKey === key && rowId === id)['total']
-                                            }
-                                        </Form.Text>
-                                    </td>
-                                    <td style={{ width: '200px' }}>
-                                        {/* <Button style={{ height: '35px' }} disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading} variant="danger" onClick={(e) => this.handleDeleteByItem(e, id, key)}>
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-trash" viewBox="0 0 16 16">
-                                                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
-                                                <path fillRule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
-                                            </svg>
-                                        </Button> */}
+                                <td style={{ width: '100px' }}>
+                                    <Form.Text style={{ width: '100px' }}>
+                                        {
+                                            this.state.sumOfIgusRowWise.find(({ itemKey, rowId }) => itemKey === key && rowId === id) &&
+                                            this.state.sumOfIgusRowWise.find(({ itemKey, rowId }) => itemKey === key && rowId === id)['total']
+                                        }
+                                    </Form.Text>
+                                </td>
+                                <td style={{ width: '200px' }}>
+                                    {/* <Button style={{ height: '35px' }} disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading} variant="danger" onClick={(e) => this.handleDeleteByItem(e, id, key)}>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-trash" viewBox="0 0 16 16">
+                                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                                            <path fillRule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+                                        </svg>
+                                    </Button> */}
+                                    {/* <Button 
+                                        style={{ width: '35px', height: '20px', fontSize: '10px', padding: '2px 2px' }}
+                                        disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading} 
+                                        variant="danger" 
+                                        onClick={(e) => this.handleDeleteByItem(e, id, key)}>
+                                        x
+                                    </Button> */}
+
+                                    <OverlayTrigger
+                                        placement='top'
+                                        overlay={
+                                            <Tooltip>
+                                                Remove
+                                            </Tooltip>
+                                        }
+                                    >
                                         <Button 
-                                            style={{ width: '35px', height: '20px', fontSize: '10px', padding: '2px 2px' }}
+                                            style={{ width: '25px', height: '20px', fontSize: '10px', padding: '2px 2px' }}
                                             disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading} 
                                             variant="danger" 
                                             onClick={(e) => this.handleDeleteByItem(e, id, key)}>
                                             x
                                         </Button>
-                                    </td>
-                                </tr>
-                            ))}
-                            {
-                                this.state.dueDatesColspan>=1 && 
-                                <tr>
-                                    <td></td>
-                                    <td></td>
-                                    {
-                                        this.state.listOfUniqueDueDates.map(({dueDate}) => (
-                                            <td key={dueDate}>
-                                                {
-                                                    this.state.sumOfIgusColumnWise.find(({ dateKey }) => dateKey === dueDate) &&
-                                                    this.state.sumOfIgusColumnWise.find(({ dateKey }) => dateKey === dueDate)['total']
-                                                }
-                                            </td>
-                                    ))}
-                                </tr>
-                            }
-                            
-                            {
-                                this.state.dueDatesColspan>=1 && 
-                                <tr>
-                                    <td></td>
-                                    <td></td>
-                                    {
-                                        this.state.listOfUniqueDueDates.map(({dueDate, promiseDate}) => (
-                                            <td key={dueDate}>
-                                                {/* <Button disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading} variant="danger" onClick={(e) => this.handleDeleteByDueDate(e, dueDate, promiseDate)}>
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-trash" viewBox="0 0 16 16">
-                                                        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
-                                                        <path fillRule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
-                                                    </svg>
-                                                </Button> */}
+                                    </OverlayTrigger>
+                                </td>
+                            </tr>
+                        ))}
+                        {
+                            this.state.dueDatesColspan>=1 && 
+                            <tr>
+                                <td style={{ position: 'sticky', backgroundColor: 'white', left: '0px' }}></td>
+                                <td style={{ position: 'sticky', backgroundColor: 'white', left: '159px' }}></td>
+                                {
+                                    this.state.listOfUniqueDueDates.map(({dueDate}) => (
+                                        <td key={dueDate}>
+                                            {
+                                                this.state.sumOfIgusColumnWise.find(({ dateKey }) => dateKey === dueDate) &&
+                                                this.state.sumOfIgusColumnWise.find(({ dateKey }) => dateKey === dueDate)['total']
+                                            }
+                                        </td>
+                                ))}
+                                <td></td>
+                                <td></td>
+                            </tr>
+                        }
+                        
+                        {
+                            this.state.dueDatesColspan>=1 && 
+                            <tr>
+                                <td style={{ position: 'sticky', backgroundColor: 'white', left: '0px' }}></td>
+                                <td style={{ position: 'sticky', backgroundColor: 'white', left: '159px' }}></td>
+                                {
+                                    this.state.listOfUniqueDueDates.map(({dueDate, promiseDate}) => (
+                                        <td key={dueDate}>
+                                            {/* <Button disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading} variant="danger" onClick={(e) => this.handleDeleteByDueDate(e, dueDate, promiseDate)}>
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-trash" viewBox="0 0 16 16">
+                                                    <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                                                    <path fillRule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+                                                </svg>
+                                            </Button> */}
 
+                                            {/* <Button 
+                                                style={{ width: '35px', height: '20px', fontSize: '10px', padding: '2px 2px' }}
+                                                disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading} 
+                                                variant="danger" 
+                                                onClick={(e) => this.handleDeleteByDueDate(e, dueDate, promiseDate)}>
+                                                x
+                                            </Button> */}
+
+                                            <OverlayTrigger
+                                                placement='top'
+                                                overlay={
+                                                    <Tooltip>
+                                                        Remove
+                                                    </Tooltip>
+                                                }
+                                            >
                                                 <Button 
-                                                    style={{ width: '35px', height: '20px', fontSize: '10px', padding: '2px 2px' }}
+                                                    style={{ width: '25px', height: '20px', fontSize: '10px', padding: '2px 2px' }}
                                                     disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading} 
                                                     variant="danger" 
                                                     onClick={(e) => this.handleDeleteByDueDate(e, dueDate, promiseDate)}>
                                                     x
                                                 </Button>
-                                            </td>
-                                    ))}
-                                </tr>
-                            }
-                            
-                        </tbody>
-                    </Table>
-                    <Col className='d-flex flex-row'>
-                        {
-                            !this.context.isConfirmed && 
-                            <Button className='mx-1' disabled={this.context.isSubmitButtonLoading} onClick={this.addNewItem}>
-                                Add Item
-                            </Button>
+                                            </OverlayTrigger>
+                                        </td>
+                                ))}
+                                <td></td>
+                                <td></td>
+                            </tr>
                         }
-                    </Col>
-                {/* </Card.Body>
-            </Card> */}
-           {/* </Container> */}
+                        
+                    </tbody>
+                </Table>
+                <Col className='d-flex flex-row'>
+                    {
+                        !this.context.isConfirmed && 
+                        <Button className='mx-1' disabled={this.context.isSubmitButtonLoading} onClick={this.addNewItem}>
+                            Add Item
+                        </Button>
+                    }
+                </Col>
            </Container>
         );
     }
