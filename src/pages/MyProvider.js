@@ -990,6 +990,27 @@ class MyProvider extends React.Component {
         })
     }
 
+    updateValidLisecItems() {
+        let iguItemSet = new Set()
+        this.state.itemsByDueDate.forEach(element => {
+            var items = element['value']
+            for (let index = 0; index < items.length; index++) {
+                const itemElement = items[index];
+                if (itemElement['item'].includes('-')) {
+                    iguItemSet.add(itemElement['item'])
+                }
+            }
+        })
+
+        let updatedValidLisecItems = Array.from(iguItemSet)
+        this.setState({
+            validLisecItems: updatedValidLisecItems
+        }, () => 
+        {
+            console.log("calling from updateValidLisecItems, this.state.validLisecItems: ", this.state.validLisecItems)
+        })
+    }
+
     render() {
         return (
             <MyContext.Provider
@@ -1228,6 +1249,10 @@ class MyProvider extends React.Component {
                         this.setState({itemsByDueDate: modifiedItemsByDueDate}, () => {
                             console.log("calling from MyProvider, addNewItem, this.state.itemsByDueDate: ", this.state.itemsByDueDate)
                         })
+
+                        // let validLisecItems = JSON.parse(JSON.stringify(this.state.validLisecItems))
+                        // validLisecItems.push("tasty")
+                        // console.log("validLisecItems: ", validLisecItems, ", this.state.validLisecItems: ", this.state.validLisecItems)
                     },
 
                     onChangeItemInput: (modifiedItemsByDueDate) => {
@@ -1484,12 +1509,36 @@ class MyProvider extends React.Component {
 
                         //console.log("calling from submitOrderDetailsToQAD in MyProvider after preventDefault, itemsByDueDate: ", this.state.itemsByDueDate);
 
+                        // this.updateValidLisecItems();
+
+                        //updating valid lisec items start
+                        // let iguItemSet = new Set()
+                        // this.state.itemsByDueDate.forEach(element => {
+                        //     var items = element['value']
+                        //     for (let index = 0; index < items.length; index++) {
+                        //         const itemElement = items[index];
+                        //         if (itemElement['item'].includes('-')) {
+                        //             iguItemSet.add(itemElement['item'])
+                        //         }
+                        //     }
+                        // })
+
+                        // let updatedValidLisecItems = Array.from(iguItemSet)
+                        // this.setState({
+                        //     validLisecItems: updatedValidLisecItems
+                        // }, () => 
+                        // {
+                        //     console.log("calling from updateValidLisecItems, this.state.validLisecItems: ", this.state.validLisecItems)
+                        // })
+                        //updating valid lisec items end
+
                         //return;
 
                         this.setState({
                             isSubmitButtonLoading: true
                         }, () => {})
                         
+                        console.log("staring fetch after updateValidLisecItems, this.state.validLisecItems: ", this.state.validLisecItems)
                         // baseAPIURLTest, baseAPIURL
                         fetch('http://127.0.0.1:5000/api/send_req_items_for_cs', {
                         //fetch(baseAPIURL + 'send_req_items_for_cs', {
@@ -1560,6 +1609,8 @@ class MyProvider extends React.Component {
                             alert("Data was not submitted successfully!Please contact administrator!")
                         });
                     },
+
+
 
                     addNewTableByDueDate: () => {
                         try {
