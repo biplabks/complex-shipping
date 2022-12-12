@@ -32,7 +32,7 @@ class MyProvider extends React.Component {
     //======================================================================================================================
     async dataFetch() {
         // return await fetch("https://vanna.zh.if.atcsg.net:453/api/v1/get-qad-sales-order-info/"+this.state.orderNumber)
-        return await fetch(baseAPIURL + "get-qad-sales-order-info/"+this.state.orderNumber)
+        return await fetch(baseAPIURL + "get-qad-sales-order-info-for-cs/"+this.state.orderNumber)
     }
 
     async getValidLisecOrderItems() {
@@ -1011,6 +1011,84 @@ class MyProvider extends React.Component {
         })
     }
 
+    submitOrderDetailsToQADAPI() {
+        this.setState({
+            isSubmitButtonLoading: true
+        }, () => {})
+        
+        console.log("starting fetch after updateValidLisecItems, this.state.validLisecItems: ", this.state.validLisecItems)
+
+        // baseAPIURLTest, baseAPIURL
+        //fetch('http://127.0.0.1:5000/api/send_req_items_for_cs', {
+        fetch(baseAPIURL + 'send_req_items_for_cs', {
+            method: 'POST',
+            body: JSON.stringify({
+                orderNumber: this.state.orderNumber,
+                itemsByDueDate: this.state.itemsByDueDate,
+                isValidLisecItemsAvailable: this.state.validLisecItems.length,
+                validLisecItems: this.state.validLisecItems,
+                channel: this.state.channel
+            }),
+            headers: {
+                'Content-type': 'application/json; charset=UTF-8',
+            }
+        })
+        .then((res) => res.json())
+        .then((response) => {
+            // console.log("=======Am I here=========");
+            console.log("response: ", response.data);
+            var unverified_items = ""
+            if (response.data.list_of_unverified_items.length > 0) {
+                for (let index = 0; index < response.data.list_of_unverified_items.length; index++) {
+                    const item = response.data.list_of_unverified_items[index];
+                    // console.log("item: ", item)
+                    unverified_items += item;
+                    unverified_items += ","
+                }
+                unverified_items = unverified_items.replace(/.$/, '');
+                alert("Item " + unverified_items + " does not exist in QAD, so you'll need to correct this before this can be saved.")
+                this.setState({
+                    isSubmitButtonLoading: false
+                }, () => {})
+            }
+            else
+            {
+                if (response.data.is_confirmed) {
+                    this.setState({
+                        isSubmitButtonLoading: false
+                    }, () => {})
+                    
+                    alert("Sales order is already confirmed! Data can not be submitted to QAD!")
+                }
+                else if (response.data.status == 'success') {
+                    this.setState({
+                        isSubmitButtonLoading: false
+                    }, () => {})
+                    
+                    alert("Data was submitted successfully!")
+
+                    this.setState({
+                        itemsByDueDate: [],
+                        isLoaded: false,
+                        error: '',
+                        formattedItemsByDueDate: [],
+                        listOfPromiseDates:[],
+                        listOfUniqueDates:[]
+                    }, () => {
+                        this.fetchAllData();
+                    })
+                }
+            }
+        })
+        .catch((err) => {
+            console.log("err: ", err);
+            this.setState({
+                isSubmitButtonLoading: false
+            }, () => {})
+            alert("Data was not submitted successfully!Please contact administrator!")
+        });
+    }
+
     render() {
         return (
             <MyContext.Provider
@@ -1285,155 +1363,6 @@ class MyProvider extends React.Component {
                         })
                     },
                     
-                    //version 1
-                    // submitOrderDetailsToQAD: (event) => {
-                    //     event.preventDefault();
-
-                    //     console.log("calling from submitOrderDetailsToQAD in MyProvider after preventDefault, itemsByDueDate: ", this.state.itemsByDueDate);
-                    //     // console.log("calling from submitOrderDetailsToQAD in MyProvider after preventDefault, itemsByDueDateMap: ", this.state.itemsByDueDateMap);
-
-                    //     //return;
-
-                    //     if (!this.state.itemsByDueDate.length) {
-                    //         alert("Not enough data to submit to QAD!")
-                    //         return
-                    //     }
-                        
-                    //     var isItemListBlank = false
-                    //     var isItemDescriptionBlank = false
-                    //     var isItemQuantityBlank = false
-                    //     var isDuplicateItemExist = false
-                    //     var dateOfBlankItemList = ""
-                    //     var dupliateItemDate = ""
-                    //     var duplicateItem = ""
-                    //     this.state.itemsByDueDate.forEach(element => {
-                    //         // console.log("element: ", element)
-                    //         const itemSet = new Set()
-                    //         let items = element['value']
-                    //         if (items.length == 0) {
-                    //             isItemListBlank = true
-                    //             dateOfBlankItemList = element['key'].replace("T00:00:00.000Z", '')
-                    //         }
-                    //         else
-                    //         {
-                    //             for (let index = 0; index < items.length; index++) {
-                    //                 const item = items[index];
-                    //                 if (!item['item']) {
-                    //                     isItemDescriptionBlank = true
-                    //                     // alert("Item description can not be blank!")
-                    //                     break;
-                    //                 }
-    
-                    //                 if (item['order_qty'] == 0) {
-                    //                     isItemQuantityBlank = true
-                    //                     // alert("Order quantity can not be zero!")
-                    //                     break;
-                    //                 }
-    
-                    //                 if (!itemSet.has(item['item'])) {
-                    //                     itemSet.add(item['item'])
-                    //                 }
-                    //                 else
-                    //                 {
-                    //                     isDuplicateItemExist = true
-                    //                     dupliateItemDate = element['key'].replace("T00:00:00.000Z", '')
-                    //                     duplicateItem = item['item']
-                    //                     break;
-                    //                 }
-                    //             }
-                    //         }
-                    //     })
-
-                    //     if (isItemListBlank) {
-                    //         alert("Item List is Blank for date: " + dateOfBlankItemList + ". Can't submit to QAD!")
-                    //         return;
-                    //     }
-                    //     if (isItemDescriptionBlank) {
-                    //         alert("Item description can not be blank!")
-                    //         return;
-                    //     }
-                    //     if (isItemQuantityBlank) {
-                    //         alert("Item quantity can not be zero!")
-                    //         return;
-                    //     }
-                    //     if (isDuplicateItemExist) {
-                    //         // alert("Duplicate item is not allowed! Duplicate Item: " + duplicateItem + " exist in due date: " + dupliateItemDate)
-                    //         alert("Duplicate item is not allowed! Duplicate Item: " + duplicateItem + " exist!")
-                    //         return;
-                    //     }
-
-                    //     this.setState({
-                    //         isSubmitButtonLoading: true
-                    //     }, () => {})
-                        
-                    //     // baseAPIURLTest, baseAPIURL
-                    //     // fetch('http://127.0.0.1:5000/api/send_req_items_for_cs', {
-                    //     fetch(baseAPIURL + 'send_req_items_for_cs', {
-                    //         method: 'POST',
-                    //         body: JSON.stringify({
-                    //             orderNumber: this.state.orderNumber,
-                    //             itemsByDueDate: this.state.itemsByDueDate,
-                    //             isValidLisecItemsAvailable: this.state.validLisecItems.length,
-                    //             validLisecItems: this.state.validLisecItems,
-                    //             channel: this.state.channel
-                    //         }),
-                    //         headers: {
-                    //             'Content-type': 'application/json; charset=UTF-8',
-                    //         },
-                    //     })
-                    //     .then((res) => res.json())
-                    //     .then((response) => {
-                    //         // console.log("=======Am I here=========");
-                    //         // console.log("response: ", response.data);
-                    //         var unverified_items = ""
-                    //         if (response.data.list_of_unverified_items.length > 0) {
-                    //             for (let index = 0; index < response.data.list_of_unverified_items.length; index++) {
-                    //                 const item = response.data.list_of_unverified_items[index];
-                    //                 // console.log("item: ", item)
-                    //                 unverified_items += item;
-                    //                 unverified_items += ","
-                    //             }
-                    //             unverified_items = unverified_items.replace(/.$/, '');
-                    //             alert("Item " + unverified_items + " does not exist in QAD, so you'll need to correct this before this can be saved.")
-                    //             this.setState({
-                    //                 isSubmitButtonLoading: false
-                    //             }, () => {})
-                    //         }
-                    //         else
-                    //         {
-                    //             if (response.data.is_confirmed) {
-                    //                 this.setState({
-                    //                     isSubmitButtonLoading: false
-                    //                 }, () => {})
-                                    
-                    //                 alert("Sales order is already confirmed! Data can not be submitted to QAD!")
-                    //             }
-                    //             else if (response.data.status == 'success') {
-                    //                 this.setState({
-                    //                     isSubmitButtonLoading: false
-                    //                 }, () => {})
-                                    
-                    //                 alert("Data was submitted successfully!")
-    
-                    //                 this.setState({
-                    //                     itemsByDueDate: [],
-                    //                     isLoaded: false,
-                    //                     error: ''
-                    //                 })
-                    //                 this.fetchAllData();
-                    //             }
-                    //         }
-                    //     })
-                    //     .catch((err) => {
-                    //         // console.log(err);
-                    //         this.setState({
-                    //             isSubmitButtonLoading: false
-                    //         }, () => {})
-                    //         alert("Data was not submitted successfully!Please contact administrator!")
-                    //     });
-                    // },
-
-                    //version 2
                     submitOrderDetailsToQAD: (event) => {
                         event.preventDefault();
 
@@ -1512,105 +1441,27 @@ class MyProvider extends React.Component {
                         // this.updateValidLisecItems();
 
                         //updating valid lisec items start
-                        // let iguItemSet = new Set()
-                        // this.state.itemsByDueDate.forEach(element => {
-                        //     var items = element['value']
-                        //     for (let index = 0; index < items.length; index++) {
-                        //         const itemElement = items[index];
-                        //         if (itemElement['item'].includes('-')) {
-                        //             iguItemSet.add(itemElement['item'])
-                        //         }
-                        //     }
-                        // })
+                        let iguItemSet = new Set()
+                        this.state.itemsByDueDate.forEach(element => {
+                            var items = element['value']
+                            for (let index = 0; index < items.length; index++) {
+                                const itemElement = items[index];
+                                if (itemElement['item'].includes('-')) {
+                                    iguItemSet.add(itemElement['item'])
+                                }
+                            }
+                        })
 
-                        // let updatedValidLisecItems = Array.from(iguItemSet)
-                        // this.setState({
-                        //     validLisecItems: updatedValidLisecItems
-                        // }, () => 
-                        // {
-                        //     console.log("calling from updateValidLisecItems, this.state.validLisecItems: ", this.state.validLisecItems)
-                        // })
-                        //updating valid lisec items end
-
-                        //return;
-
+                        let updatedValidLisecItems = Array.from(iguItemSet)
                         this.setState({
-                            isSubmitButtonLoading: true
-                        }, () => {})
-                        
-                        console.log("staring fetch after updateValidLisecItems, this.state.validLisecItems: ", this.state.validLisecItems)
-                        // baseAPIURLTest, baseAPIURL
-                        fetch('http://127.0.0.1:5000/api/send_req_items_for_cs', {
-                        //fetch(baseAPIURL + 'send_req_items_for_cs', {
-                            method: 'POST',
-                            body: JSON.stringify({
-                                orderNumber: this.state.orderNumber,
-                                itemsByDueDate: this.state.itemsByDueDate,
-                                isValidLisecItemsAvailable: this.state.validLisecItems.length,
-                                validLisecItems: this.state.validLisecItems,
-                                channel: this.state.channel
-                            }),
-                            headers: {
-                                'Content-type': 'application/json; charset=UTF-8',
-                            }
+                            validLisecItems: updatedValidLisecItems
+                        }, () => 
+                        {
+                            console.log("calling from updateValidLisecItems, this.state.validLisecItems: ", this.state.validLisecItems)
+                            //submitOrderDetailsToQADAPI()
+                            this.submitOrderDetailsToQADAPI();
                         })
-                        .then((res) => res.json())
-                        .then((response) => {
-                            // console.log("=======Am I here=========");
-                            console.log("response: ", response.data);
-                            var unverified_items = ""
-                            if (response.data.list_of_unverified_items.length > 0) {
-                                for (let index = 0; index < response.data.list_of_unverified_items.length; index++) {
-                                    const item = response.data.list_of_unverified_items[index];
-                                    // console.log("item: ", item)
-                                    unverified_items += item;
-                                    unverified_items += ","
-                                }
-                                unverified_items = unverified_items.replace(/.$/, '');
-                                alert("Item " + unverified_items + " does not exist in QAD, so you'll need to correct this before this can be saved.")
-                                this.setState({
-                                    isSubmitButtonLoading: false
-                                }, () => {})
-                            }
-                            else
-                            {
-                                if (response.data.is_confirmed) {
-                                    this.setState({
-                                        isSubmitButtonLoading: false
-                                    }, () => {})
-                                    
-                                    alert("Sales order is already confirmed! Data can not be submitted to QAD!")
-                                }
-                                else if (response.data.status == 'success') {
-                                    this.setState({
-                                        isSubmitButtonLoading: false
-                                    }, () => {})
-                                    
-                                    alert("Data was submitted successfully!")
-    
-                                    this.setState({
-                                        itemsByDueDate: [],
-                                        isLoaded: false,
-                                        error: '',
-                                        formattedItemsByDueDate: [],
-                                        listOfPromiseDates:[],
-                                        listOfUniqueDates:[]
-                                    }, () => {
-                                        this.fetchAllData();
-                                    })
-                                }
-                            }
-                        })
-                        .catch((err) => {
-                            console.log("err: ", err);
-                            this.setState({
-                                isSubmitButtonLoading: false
-                            }, () => {})
-                            alert("Data was not submitted successfully!Please contact administrator!")
-                        });
                     },
-
-
 
                     addNewTableByDueDate: () => {
                         try {

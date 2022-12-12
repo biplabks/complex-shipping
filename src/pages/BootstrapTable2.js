@@ -18,7 +18,8 @@ class BootstrapTable2 extends React.Component {
           listOfPromiseDates: [],
           sumOfIgusRowWise: [],
           sumOfIgusColumnWise: [],
-          listOfUniqueDueDates: []
+          listOfUniqueDueDates: [],
+          orderQuantityTotal: 0
         };
         // this.onChangeItemInput = debounce(this.onChangeItemInput.bind(this), 500);
         this.onBlurItemInput = debounce(this.onBlurItemInput.bind(this), 500);
@@ -456,6 +457,8 @@ class BootstrapTable2 extends React.Component {
 
     updateSumOfIguByRow() {
         let sumOfIgusByRow = []
+        //orderQuantityTotal
+        let sumOfOrderQuantity = 0
         this.state.items.forEach(item => {
             let items = item['value']
             let sum = 0;
@@ -467,6 +470,7 @@ class BootstrapTable2 extends React.Component {
                     sum += parseInt(itemElement['order_qty'])
                 })
             }
+            sumOfOrderQuantity += sum
             sumOfIgusByRow.push({
                 "rowId": id,
                 "itemKey": item['key'],
@@ -475,9 +479,10 @@ class BootstrapTable2 extends React.Component {
         })
 
         this.setState({
-            sumOfIgusRowWise: sumOfIgusByRow
+            sumOfIgusRowWise: sumOfIgusByRow,
+            orderQuantityTotal: sumOfOrderQuantity
         }, () => {
-            //console.log("calling from updateSumOfIguByRow, this.state.sumOfIgusRowWise: ", this.state.sumOfIgusRowWise)
+            console.log("calling from updateSumOfIguByRow, this.state.sumOfIgusRowWise: ", this.state.sumOfIgusRowWise, ", orderQuantityTotal: ", this.state.orderQuantityTotal)
         })
     }
 
@@ -870,7 +875,7 @@ class BootstrapTable2 extends React.Component {
                         </Button>
                     }
                 </Col> */}
-                <Table striped bordered hover size="sm" style={{ position: 'relative', borderColor: '#BDC3C7', width: '50%' }}>
+                <Table striped bordered hover size="sm" style={{ position: 'relative', borderColor: '#BDC3C7', width: '10%' }}>
                     <thead style={{ position: 'sticky', top: 0, backgroundColor: '#f5f7f7', zIndex: 1 }}>
                         {/* <tr>
                             <th style={{position: '-webkit-sticky', position: 'sticky', backgroundColor: '#f5f7f7', left: '0px', width: '100px' }}></th>
@@ -983,7 +988,7 @@ class BootstrapTable2 extends React.Component {
                                     </td>
                                 ))
                             }
-                            <th style={{ width: '130px' }}>Order Quantity</th>
+                            <th><p style={{ width: '114px', marginTop: '0em', marginBottom: '0em' }}>Order Quantity</p></th>
                             <th>Remove</th>
                         </tr>
                     </thead>
@@ -1014,8 +1019,8 @@ class BootstrapTable2 extends React.Component {
                                 <td style={{ position: 'sticky', backgroundColor: 'white', left: '159px', width: '100px', paddingTop: '6px' }}>
                                     <Form.Control 
                                         name="reference_tag" 
-                                        value={reference_tag} 
-                                        type="text" 
+                                        value={reference_tag}
+                                        type="text"
                                         // onChange={(e) => this.onChangeItemInput(e, id, key)}
                                         className="text-center"
                                         disabled={true}
@@ -1098,7 +1103,13 @@ class BootstrapTable2 extends React.Component {
                                             }
                                         </td>
                                 ))}
-                                <td></td>
+                                <td>
+                                    <Form.Text style={{ width: '100px' }}>
+                                        {
+                                            this.state.orderQuantityTotal
+                                        }
+                                    </Form.Text>
+                                </td>
                                 <td></td>
                             </tr>
                         }
