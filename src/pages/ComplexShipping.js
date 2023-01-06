@@ -2,70 +2,57 @@ import { Container, Button, Spinner } from 'react-bootstrap';
 import React from 'react';
 import SearchForm from './SearchForm';
 import MyContext from './MyContext';
-import AccordionData from './AccordionData';
 import LoadingSpinner from "./LoadingSpinner";
+import BootstrapTable from './BootstrapTable';
 
-  const ComplexShipping = () => (
-    <MyContext.Consumer>
-      {context => (
-        <React.Fragment>
-          <div>
-            <Container className="p-3">
-              <h1 className="header">Welcome To Sales Order Editor</h1>
-            </Container>
-            
+const ComplexShipping = () => (
+  <MyContext.Consumer>
+    {context => (
+      <React.Fragment>
+        {/* <div> */}
+          <Container fluid>
+            <h1 className="text-center">Welcome To Sales Order Editor</h1>
             <SearchForm setOrderNumber={context.setOrderNumber} searchOrderDetails={context.searchOrderDetails}/>
-            
-            <Container fluid style={{ textAlign: 'left' }}>
-              {
-                context.orderStatus.length != 0 &&
-                <>
-                  <h2>Order Status</h2>
-                  <h4>{context.orderStatus}</h4>
-                </>
-              }
-            </Container>
-            <br />
-            {/* {
-              context.isLoaded && (context.itemsByDueDate.length != 0 || context.error.length != 0) &&
-              <Container className="d-flex justify-content-between">
-                <h2>Order by Shipping Date</h2>
-              </Container>
-            } */}
             {
-              context.isLoaded && context.itemsByDueDate.length != 0 &&
-              <Container fluid className="d-flex justify-content-between">
-                <h2>Order by Due Date</h2>
-              </Container>
+              context.orderStatus.length !== 0 &&
+              <>
+                <h2>Order Status</h2>
+                <h4>{context.orderStatus}</h4>
+              </>
             }
+
+            <br />
+            {
+              context.isLoaded && context.itemsByDueDate.length !== 0 &&
+              <h2>Order by Due Date</h2>
+            }
+
             <>
-              {
-                !context.isLoaded &&
-                <LoadingSpinner />
-              }
-              {
-                context.isLoaded && context.error.length != 0 &&
-                <p>{context.error}</p>
-              }
-              {
-                context.isLoaded && context.error.length == 0 &&
-                <AccordionData />
-              }
+            {
+              !context.isLoaded &&
+              <LoadingSpinner />
+            }
+            {
+              context.isLoaded && context.error.length !== 0 &&
+              <p>{context.error}</p>
+            }
+
+            {
+              context.isLoaded && context.error.length === 0 &&
+              context.formattedItemsByDueDate.length > 0 &&
+              <BootstrapTable
+                orderDetails={context.formattedItemsByDueDate}
+                listOfPromiseDates={context.listOfPromiseDates}
+                listOfUniqueDates={context.listOfUniqueDates}
+                listOfUniqueDueDates={context.listOfUniqueDueDates}
+              />
+            }
             </>
-            {/* <AccordionData /> */}
+
             <>
-              {/* {
-                !context.isConfirmed && context.itemsByDueDate.length != 0 &&
-                <Container className="d-flex justify-content-between pb-3">
-                  <Button disabled={context.isSubmitButtonLoading} onClick={context.addNewTableByDueDate} variant="primary">
-                    Add New Due Date
-                  </Button>
-                </Container>
-              } */}
-              <Container className='pb-3'>
+              <div className='text-center mx-2'>
                 {
-                  // !context.isConfirmed && !context.isSubmitButtonLoading && 
-                  !context.isConfirmed && !context.isSubmitButtonLoading && context.isLoaded && context.itemsByDueDate.length != 0 &&
+                  !context.isConfirmed && !context.isSubmitButtonLoading && context.isLoaded && context.itemsByDueDate.length !== 0 &&
                   <Button disabled={context.isConfirmed} onClick={context.submitOrderDetailsToQAD} variant="primary" size="lg">
                     Save to QAD
                   </Button>
@@ -83,12 +70,75 @@ import LoadingSpinner from "./LoadingSpinner";
                     Submitting...
                   </Button>
                 }
-              </Container>
+              </div>
             </>
-          </div>
-        </React.Fragment>
-      )}
-    </MyContext.Consumer>
-  )
+          </Container>
+
+          {/* <Container fluid style={{ textAlign: 'left' }}>
+            {
+              context.orderStatus.length != 0 &&
+              <>
+                <h2>Order Status</h2>
+                <h4>{context.orderStatus}</h4>
+              </>
+            }
+          </Container> */}
+
+          {/* <br />
+          {
+            context.isLoaded && context.itemsByDueDate.length != 0 &&
+            <Container fluid className="d-flex justify-content-between">
+              <h2>Order by Due Date</h2>
+            </Container>
+          } */}
+          {/* <>
+            {
+              !context.isLoaded &&
+              <LoadingSpinner />
+            }
+            {
+              context.isLoaded && context.error.length != 0 &&
+              <p>{context.error}</p>
+            }
+
+            {
+              context.isLoaded && context.error.length == 0 &&
+              context.formattedItemsByDueDate.length > 0 &&
+              <BootstrapTable
+                orderDetails={context.formattedItemsByDueDate}
+                listOfPromiseDates={context.listOfPromiseDates}
+                listOfUniqueDates={context.listOfUniqueDates}
+                listOfUniqueDueDates={context.listOfUniqueDueDates}
+              />
+            }
+          </> */}
+          {/* <>
+            <Container fluid className='pb-3'>
+              {
+                !context.isConfirmed && !context.isSubmitButtonLoading && context.isLoaded && context.itemsByDueDate.length != 0 &&
+                <Button disabled={context.isConfirmed} onClick={context.submitOrderDetailsToQAD} variant="primary" size="lg">
+                  Save to QAD
+                </Button>
+              }
+              {
+                context.isSubmitButtonLoading &&
+                <Button variant="primary" disabled>
+                  <Spinner
+                    as="span"
+                    animation="grow"
+                    size="sm"
+                    role="status"
+                    aria-hidden="true"
+                  />
+                  Submitting...
+                </Button>
+              }
+            </Container>
+          </> */}
+        {/* </div> */}
+      </React.Fragment>
+    )}
+  </MyContext.Consumer>
+)
 
   export default ComplexShipping;

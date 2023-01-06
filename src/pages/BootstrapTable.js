@@ -1,264 +1,956 @@
 // import {React, createRef} from 'react';
 import React from 'react';
-import createRef from 'react';
-import { Container, Button, Form, Row, Col, Table, Card } from 'react-bootstrap';
+// import { Container, Button, Form, Col, Table, Tooltip, OverlayTrigger } from 'react-bootstrap';
+import { Button, Form, Col, Table, Tooltip, OverlayTrigger } from 'react-bootstrap';
 import MyContext from './MyContext';
-import moment from 'moment';
+import debounce from "lodash.debounce";
 
+const baseAPIURL = "https://vanna.zh.if.atcsg.net:453/api/v1/"
 
 class BootstrapTable extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-          due_date: '',
-          due_date_time: '',
           items: [],
-          isDateEditable: false,
-          selected: [] 
+          dueDatesColspan: 1,
+          listOfUniqueDates: [],
+          listOfPromiseDates: [],
+          sumOfIgusRowWise: [],
+          sumOfIgusColumnWise: [],
+          listOfUniqueDueDates: [],
+          orderQuantityTotal: 0
         };
-        this.textInput = React.createRef();
+        this.onBlurItemInput = debounce(this.onBlurItemInput.bind(this), 500);
     }
 
     componentDidMount() {
         this.setState({
             items: this.props.orderDetails,
-            due_date: this.props.due_date.replace("T00:00:00.000Z", ''),
-            due_date_time: this.props.due_date.replace("T00:00:00.000Z", ''),
-            isDateEditable: this.props.isDateEditable
+            dueDatesColspan: this.props.listOfUniqueDates.length,
+            listOfPromiseDates: this.props.listOfPromiseDates,
+            listOfUniqueDates: this.props.listOfUniqueDates,
+            listOfUniqueDueDates: this.props.listOfUniqueDueDates
         }, () => {
-            console.log("calling from Bootstraptable componentDidMount, items: ", this.state.items, ", due_date: ", this.state.due_date)
+            this.updateSumOfIguByRow();
+            this.updateSumOfIguByColumn();
         });
-        this.textInput.current.focus();
     }
 
     componentDidUpdate(prevProps) {
         if(prevProps.orderDetails !== this.props.orderDetails){
-            console.log("calling from componentDidUpdate in BootstrapTable")
             this.setState({
                 items: this.props.orderDetails
             });
         }
     }
 
-    insertItemByDueDate = () => {
-        var modified_due_date = this.state.due_date + "T00:00:00.000Z"
-        this.context.insertItemByDueDate(modified_due_date);
-    }
+    addNewItem = () => {
+        var existingItems = JSON.parse(JSON.stringify(this.state.items));
+        var existingItemsByDueDate = JSON.parse(JSON.stringify(this.context.itemsByDueDate));
 
-    copyItemsByDueDate = () => {
-        var modified_due_date = this.state.due_date + "T00:00:00.000Z"
-        this.context.copyItemsByDueDate(modified_due_date);
-    }
+        var baseItem = JSON.parse(JSON.stringify(existingItems[0]));
 
-    setDueDate = (event) => {
-        var modified_due_date = this.state.due_date + "T00:00:00.000Z"
-        this.context.setDueDate(event, modified_due_date);
-        
-        console.log("calling from setDueDate, event: ", event.target.value)
-        this.setState({
-            due_date: event.target.value
-        }, () => {
-            console.log("this.state.due_date: ", this.state.due_date)
+        baseItem['key'] = ''
+        baseItem['reference_tag'] = ''
+        baseItem['value'].forEach(item => {
+            item['order_qty'] = 0
+        })
+        baseItem['is_item_editable'] = true
+
+        existingItems.push(baseItem);
+
+        var index = 0
+        existingItems.forEach(item => {
+            item['id'] = index
+            index += 1
         })
 
-        console.log("Focusing current text input")
-        this.textInput.current.focus();
+        existingItemsByDueDate.forEach(element => {
+            let items = element['value']
+            items.push({
+                "item": '',
+                "order_qty": 0,
+                "shipping_date": element['key'],
+                "promise_date": element['promiseDate'],
+                'is_item_editable': true
+            })
+        })
+
+        existingItemsByDueDate.forEach(element => {
+            let items = element['value']
+            var index = 0
+            items.forEach(itemElement => {
+                itemElement['id'] = index
+                index += 1
+            })
+        })
+
+        this.setState({items: existingItems}, () => {
+            this.updateSumOfIguByRow();
+            this.updateSumOfIguByColumn();
+            this.context.addNewItem(existingItemsByDueDate);
+        })
     }
 
-    handleDelete = (e, id) => {
-        console.log("calling from Bootstraptable onChangeInput, e: ", e.target, ", id: ", id, ", this.state.due_date: ", this.state.due_date)
+    getNextAvailableDate() {
+        let dateArray = []
+		const existingUniqueDates = JSON.parse(JSON.stringify(this.state.listOfUniqueDates));
+		for (let index = 0; index < existingUniqueDates.length; index++) {
+            var element = existingUniqueDates[index]
+			const dateElement = new Date(element['key']);
+			dateArray.push(dateElement);
+		}
 
-        var existingItem = this.state.items;
+		const maxDate = new Date(Math.max.apply(null, dateArray));
+		var nextAvailableDate = new Date(maxDate);
+		nextAvailableDate.setDate(maxDate.getDate()+1);
+
+		nextAvailableDate = nextAvailableDate.toISOString();
+
+        return nextAvailableDate
+    }
+
+    getNextAvailablePromiseDate() {
+        let dateArray = []
+		const existingPromiseDates = JSON.parse(JSON.stringify(this.state.listOfPromiseDates));
+		for (let index = 0; index < existingPromiseDates.length; index++) {
+            var element = existingPromiseDates[index]
+            if (element['promiseDate']) {
+                const dateElement = new Date(element['promiseDate']);
+                dateArray.push(dateElement)
+            }
+		}
+        var nextAvailableDate = new Date()
+        if (dateArray.length>=1) {
+            const maxDate = new Date(Math.max.apply(null, dateArray));
+            nextAvailableDate = new Date(maxDate);
+            nextAvailableDate.setDate(maxDate.getDate()+1);
+
+            nextAvailableDate = nextAvailableDate.toISOString();
+        }
+        else
+        {
+            dateArray.push(new Date())
+            nextAvailableDate = new Date(Math.max.apply(null, dateArray));
+        }
+        return nextAvailableDate
+    }
+
+    addNewDueDate = () => {
+        var nextAvailableDate = this.getNextAvailableDate();
+        var nextAvailablePromiseDate = this.getNextAvailablePromiseDate();
+
+        var existingItemsByDueDate = JSON.parse(JSON.stringify(this.context.itemsByDueDate));
+
+        var existingItems = JSON.parse(JSON.stringify(this.state.items));
+        var existingUniqueDates = JSON.parse(JSON.stringify(this.state.listOfUniqueDates));
+        var existingUniqueDueDates = JSON.parse(JSON.stringify(this.state.listOfUniqueDueDates));
+        var existingPromiseDates = JSON.parse(JSON.stringify(this.state.listOfPromiseDates));
+
+        existingItems.forEach(element => {
+            var items = element['value']
+            items.push({
+                "order_qty": 0,
+                "due_date": nextAvailableDate,
+                "initial_date": nextAvailableDate
+            })
+        })
+
+        var listOfItems = []
+
+        existingItems.forEach(element => {
+            listOfItems.push({
+                "item": element['key'],
+                "order_qty": 0,
+                "shipping_date": nextAvailableDate,
+                "promise_date": nextAvailablePromiseDate
+            })
+        })
+
+        var itemByDueDate = {
+            "key": nextAvailableDate,
+            "isDateEditable": true,
+            "promiseDate": nextAvailablePromiseDate,
+            "value": listOfItems
+        }
+        existingItemsByDueDate.push(itemByDueDate)
+
+        var listOfRanks = []
+        for (let date of existingUniqueDates) {
+            listOfRanks.push(date['value'])
+        }
+        var nextRank = Math.max.apply(null, listOfRanks)
+        existingUniqueDates.push({
+            "key": nextAvailableDate,
+            "value": nextRank+1
+        })
+
+
+        //existing due dates modification
+        listOfRanks = []
+        for (let element of existingUniqueDueDates) {
+            listOfRanks.push(element['id'])
+        }
+        
+        nextRank = Math.max.apply(null, listOfRanks)
+        existingUniqueDueDates.push({
+            "dueDate": nextAvailableDate,
+            "id": nextRank+1,
+            "promiseDate": nextAvailablePromiseDate
+        })
+
+        existingPromiseDates.push({
+            "promiseDate": nextAvailablePromiseDate,
+            "promiseDateIndex": existingPromiseDates.length,
+            "dueDate": nextAvailableDate
+        })
+        
+        this.context.addNewDueDate(existingItemsByDueDate);
+
+        this.setState({items: existingItems, listOfUniqueDates: existingUniqueDates, 
+            dueDatesColspan: existingUniqueDates.length, listOfPromiseDates: existingPromiseDates,
+            listOfUniqueDueDates: existingUniqueDueDates
+        }, () => {
+            this.updateSumOfIguByRow();
+            this.updateSumOfIguByColumn();
+        })
+    }
+
+    handleDeleteByItem = (e, id, key) => {
+        var existingItem = JSON.parse(JSON.stringify(this.state.items));
+        var existingItemsByDueDate = JSON.parse(JSON.stringify(this.context.itemsByDueDate));
+
+        if (existingItem.length <= 1) {
+            alert("Only one item is left. Can't delete the last item!")
+            return;
+        }
+
         var modifiedData = [];
+
         existingItem.forEach(element => {
-            if (element.id != id) {
+            if (element.id !== id) {
                 modifiedData.push(element);
             }
         })
+        
+        var index = 0
+        modifiedData.forEach(item => {
+            item['id'] = index
+            index += 1
+        })
 
-        for (let index = 0; index < modifiedData.length; index++) {
-            modifiedData[index]['id'] = index
-        }
+        existingItemsByDueDate.forEach(element => {
+            let items = element['value']
+            const indexOfItem = items.findIndex(itemElement => {
+                return itemElement['item'] === key;
+            })
 
-        var existingItemByDueDate = this.context['itemsByDueDate']
-        console.log("calling from Bristol, existingItemByDueDate: ", existingItemByDueDate)
-        var modified_due_date = this.state.due_date + "T00:00:00.000Z"
-        for (let index = 0; index < existingItemByDueDate.length; index++) {
-            if(existingItemByDueDate[index]['key'] == modified_due_date) {
-                existingItemByDueDate[index]['value'] = Object.assign([], modifiedData);
-                break
-            }
-        }
+            items.splice(indexOfItem, 1)
+        })
 
-        this.context['itemsByDueDateMap'].set(modified_due_date, modifiedData)
+        existingItemsByDueDate.forEach(element => {
+            let items = element['value']
+            let index = 0
+            items.forEach(itemElement => {
+                itemElement['id']= index
+                index += 1
+            })
+        })
 
         this.setState({items: modifiedData}, () => {
-            console.log("modified items: ", this.state.items);
+            this.updateSumOfIguByRow();
+            this.updateSumOfIguByColumn();
+            this.context.handleDeleteByItem(existingItemsByDueDate);
         })
     }
 
-    onChangeInput = (e, id) => {
-        console.log("calling from Bootstraptable onChangeInput, e: ", e.target)
-        const { name, value } = e.target
-        console.log("id: ", id, ", name: ", name, ", value: ", value)
+    handleDeleteByDueDate = (e, dueDateKey, promiseDateKey) => {
+        var existingItem =  JSON.parse(JSON.stringify(this.state.items));
+        var existingItemsByDueDate = JSON.parse(JSON.stringify(this.context.itemsByDueDate));
 
-        if (name == 'order_qty') {
-            if (value && value < 0) {
-                alert("Negative value is not allowed");
-                return
-            }
-            if(!value)
+        if (existingItemsByDueDate.length <= 1) {
+            alert("Only one due date is left. Can't delete the due date!");
+            return;
+        }
+        
+        existingItem.forEach(element => {
+            let items = element['value']
+            const indexOfItem = items.findIndex(item => {
+                return item.due_date === dueDateKey;
+            })
+            items.splice(indexOfItem, 1)
+        })
+
+        const indexOfItemByDueDate = existingItemsByDueDate.findIndex(element => {
+            return element.key === dueDateKey;
+        })
+
+        existingItemsByDueDate.splice(indexOfItemByDueDate, 1);
+
+        var existingUniqueDates = JSON.parse(JSON.stringify(this.state.listOfUniqueDates));
+        const indexOfDate = existingUniqueDates.findIndex(element => {
+            return element.key === dueDateKey;
+        })
+        existingUniqueDates.splice(indexOfDate,1);
+
+        var index = 0
+        existingUniqueDates.forEach(element => {
+            element['value'] = index
+            index += 1
+        });
+
+        var existingUniqueDueDates = JSON.parse(JSON.stringify(this.state.listOfUniqueDueDates));
+        const indexOfDueDate = existingUniqueDueDates.findIndex(element => {
+            return element['dueDate'] === dueDateKey;
+        })
+        existingUniqueDueDates.splice(indexOfDueDate,1);
+
+        index = 0
+        existingUniqueDueDates.forEach(element => {
+            element['id'] = index
+            index += 1
+        });
+
+        var existingPromiseDates = JSON.parse(JSON.stringify(this.state.listOfPromiseDates));
+        const indexOfPromiseDate = existingPromiseDates.findIndex(element => {
+            return element['dueDate'] === dueDateKey && element['promiseDate'] === promiseDateKey;
+        })
+        existingPromiseDates.splice(indexOfPromiseDate,1);
+
+        index = 0
+        existingPromiseDates.forEach(element => {
+            element['promiseDateIndex'] = index
+            index += 1
+        });
+
+        this.setState({items: existingItem, listOfUniqueDates: existingUniqueDates, dueDatesColspan: existingUniqueDates.length,
+        listOfUniqueDueDates: existingUniqueDueDates, listOfPromiseDates: existingPromiseDates}, () => {
+            this.updateSumOfIguByRow();
+            this.updateSumOfIguByColumn();
+            this.context.handleDeleteByDueDate(existingItemsByDueDate);
+        })
+    }
+
+    updateSumOfIguByRow() {
+        let sumOfIgusByRow = []
+        let sumOfOrderQuantity = 0
+        this.state.items.forEach(item => {
+            let items = item['value']
+            let sum = 0;
+            let id = item['id']
+
+            if(item['key'].includes("-"))
             {
-                alert("Order quantity can not be anything other than number!");
-                return
+                items.forEach(itemElement => {
+                    sum += parseInt(itemElement['order_qty'])
+                })
             }
-        }
-
-        const editedData = this.state.items.map((item) =>
-            item.id === id && name ? { ...item, [name]: value } : item
-        )
-
-        console.log("edit data: ", editedData)
-
-        this.setState({
-            items: editedData
-        }, () => {
-            console.log("calling form onChangeInput, this.state.items: ", this.state.items)
+            sumOfOrderQuantity += sum
+            sumOfIgusByRow.push({
+                "rowId": id,
+                "itemKey": item['key'],
+                "total": sum
+            })
         })
 
-        //update data to main data structure
-        let contextValue = this.context;
-
-        var existingItemByDueDate = contextValue['itemsByDueDate']
-        var modified_due_date = this.state.due_date + "T00:00:00.000Z"
-        for (let index = 0; index < existingItemByDueDate.length; index++) {
-            if(existingItemByDueDate[index]['key'] == modified_due_date) {
-                existingItemByDueDate[index]['value'] = Object.assign([], editedData);
-                break
-            }
-        }
-        contextValue['itemsByDueDateMap'].set(modified_due_date, editedData)
+        this.setState({
+            sumOfIgusRowWise: sumOfIgusByRow,
+            orderQuantityTotal: sumOfOrderQuantity
+        }, () => {
+        })
     }
 
-    setTestDueDate = (event) => {
-        console.log("calling from setTestDueDate, event: ", event.target.value)
-        this.setState({
-            due_date_time: event.target.value
-        }, () => {
-            console.log("this.state.due_date_time: ", this.state.due_date_time)
+    updateSumOfIguByColumn() {
+        let sumOfIgusByColumn = []
+        this.state.listOfUniqueDates.forEach(element => {
+            let sum = 0;
+            this.state.items.forEach(item => {
+                let items = item['value']
+                items.forEach(itemElement => {
+                    if (itemElement['due_date'] === element['key']) {
+                        if(item['key'].includes("-"))
+                        {
+                            sum += parseInt(itemElement['order_qty'])
+                        }
+                    }
+                })
+            })
+
+            sumOfIgusByColumn.push({
+                "dateKey": element['key'],
+                "total": sum
+            })
         })
+
+        this.setState({
+            sumOfIgusColumnWise: sumOfIgusByColumn
+        }, () => {
+        })
+    }
+
+    checkForDuplicateDate(key) {
+        var existingItem = this.state.items;
+
+        for (let index = 0; index < existingItem.length; index++) {
+            const element = existingItem[index];
+            const items = element['value']
+            for (let index1 = 0; index1 < items.length; index1++) {
+                const item = items[index1];
+                if (item['due_date'] === key) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    onChangeDateInput = (e, dueDateKey, promiseDateKey) => {
+        var newDateKey = e.target.value + 'T00:00:00.000Z'
+        var isDuplicateDateFound = this.checkForDuplicateDate(newDateKey);
+
+        if (isDuplicateDateFound) {
+            alert("Same date exist in the table!")
+            return;
+        }
+
+        var existingItem = JSON.parse(JSON.stringify(this.state.items));
+        var existingItemsByDueDate = JSON.parse(JSON.stringify(this.context.itemsByDueDate));
+
+        existingItem.forEach(element => {
+            element['value'].forEach(item => {
+                if (item['due_date'] === dueDateKey) {
+                    item['due_date'] = newDateKey
+                }
+            })
+        })
+
+        existingItemsByDueDate.forEach(element => {
+            if (element['key'] === dueDateKey) {
+                element['key'] = newDateKey
+                let items = element['value']
+                items.forEach(itemElement => {
+                    itemElement['shipping_date'] = newDateKey
+                })
+            }
+        })
+
+        var existingUniqueDates = JSON.parse(JSON.stringify(this.state.listOfUniqueDates));
+        existingUniqueDates.forEach(element => {
+            if (element['key'] === dueDateKey) {
+                element['key'] = newDateKey
+            }
+        })
+
+        var existingUniqueDueDates = JSON.parse(JSON.stringify(this.state.listOfUniqueDueDates));
+        existingUniqueDueDates.forEach(element => {
+            if (element['dueDate'] === dueDateKey) {
+                element['dueDate'] = newDateKey
+            }
+        })
+
+        var existingPromiseDates = JSON.parse(JSON.stringify(this.state.listOfPromiseDates));
+        existingPromiseDates.forEach(element => {
+            if (element['dueDate'] === dueDateKey && element['promiseDate'] === promiseDateKey) {
+                element['dueDate'] = newDateKey
+            }
+        })
+
+        this.setState({items: existingItem, listOfUniqueDates: existingUniqueDates, listOfUniqueDueDates: existingUniqueDueDates,
+            listOfPromiseDates: existingPromiseDates}, () => {
+            this.context.onChangeDateInput(existingItemsByDueDate)
+            this.updateSumOfIguByColumn();
+        })
+    }
+
+    onChangePromiseDateInput = (e, keyIndex, dueDateKey) => {
+        var newPromiseDateKey = e.target.value + 'T00:00:00.000Z'
+
+        var existingItem = JSON.parse(JSON.stringify(this.state.items));
+        var existingItemsByDueDate = JSON.parse(JSON.stringify(this.context.itemsByDueDate));
+
+        existingItem.forEach(element => {
+            var index = 0
+            element['value'].forEach(item => {
+                if (index === keyIndex) {
+                    item['promise_date'] = newPromiseDateKey
+                }
+                index += 1
+            })
+        })
+
+        var index = 0
+        existingItemsByDueDate.forEach(element => {
+            if (index === keyIndex) {
+                element['promiseDate'] = newPromiseDateKey
+
+                let items = element['value']
+                items.forEach(itemElement => {
+                    itemElement['promise_date'] = newPromiseDateKey
+                })
+            }
+            index += 1
+        })
+
+        var existingPromiseDates = JSON.parse(JSON.stringify(this.state.listOfPromiseDates));
+
+        var existingUniqueDueDates = JSON.parse(JSON.stringify(this.state.listOfUniqueDueDates));
+
+        existingPromiseDates.forEach(element => {
+            if (element['promiseDateIndex'] === keyIndex) {
+                element['promiseDate'] = newPromiseDateKey
+            }
+        })
+
+        existingUniqueDueDates.forEach(element => {
+            if (element['dueDate'] === dueDateKey) {
+                element['promiseDate'] = newPromiseDateKey
+            }
+        })
+
+        this.setState({items: existingItem, listOfPromiseDates: existingPromiseDates}, () => {
+            this.context.onChangePromiseDateInput(existingItemsByDueDate)
+        })
+    }
+
+    onChangeItemInput = (e, id, key) => {
+        var existingItems = JSON.parse(JSON.stringify(this.state.items));
+        var existingItemsByDueDate = JSON.parse(JSON.stringify(this.context.itemsByDueDate));
+
+        existingItems.forEach(element => {
+            if (element['id'] === id) {
+                element['key'] = e.target.value
+            }
+        })
+
+        existingItemsByDueDate.forEach(element => {
+            let items = element['value']
+            items.forEach(itemElement => {
+                if (itemElement['id'] === id) {
+                    itemElement['item'] = e.target.value
+                }
+            })
+        })
+
+        this.setState({
+            items: existingItems
+        }, () => {
+            this.updateSumOfIguByRow()
+            this.updateSumOfIguByColumn()
+            this.context.onChangeItemInput(existingItemsByDueDate);
+        })
+    }
+
+    onChangeOrderQuantityInput = (e, id, key, due_date) => {
+        var existingItem = JSON.parse(JSON.stringify(this.state.items));
+        var existingItemsByDueDate = JSON.parse(JSON.stringify(this.context.itemsByDueDate));
+
+        existingItem.forEach(element => {
+            if (element['key'] === key && element['id'] === id) {
+                element['value'].forEach(item => {
+                    if (item['due_date'] === due_date) {
+                        item['order_qty'] = e.target.value
+                    }
+                })
+            }
+        })
+
+        existingItemsByDueDate.forEach(element => {
+            if (element['key'] === due_date) {
+                var items = element['value']
+                items.forEach(itemElement => {
+                    if (itemElement['item'] === key) {
+                        itemElement['order_qty'] = e.target.value
+                    }
+                })
+            }
+        })
+
+        this.context.updateOrderQuantity(existingItemsByDueDate)
+
+        this.setState({items: existingItem}, () => {
+            this.updateSumOfIguByRow();
+            this.updateSumOfIguByColumn();
+        })
+    }
+
+    onBlurItemInput = (e, id, key) => {
+        var existingItems = JSON.parse(JSON.stringify(this.state.items));
+
+        const itemSet = new Set()
+        var isDuplicateItemExist = false
+        var duplicateItem = ""
+
+        existingItems.forEach(element => {
+            if (!itemSet.has(element['key'])) {
+                itemSet.add(element['key'])
+            }
+            else
+            {
+                isDuplicateItemExist = true
+                duplicateItem = element['key']
+            }
+        })
+
+        if (isDuplicateItemExist) {
+            alert("Duplicate item is not allowed! Duplicate Item: " + duplicateItem + " exist!")
+            return
+        }
+
+        if (key.includes('-')) {
+            this.getReferenceTagsByOrderItem(key)    
+        }
+    }
+
+    getReferenceTagsByOrderItem(orderItem) {
+        return fetch(baseAPIURL + 'get-ref-tag-by-order-item', {
+            method: 'POST',
+            body: JSON.stringify({
+                items: [orderItem],
+            }),
+            headers: {
+                'Content-type': 'application/json; charset=UTF-8',
+            },
+        })
+        .then((res) => res.json())
+        .then((response) => {
+            var existingItems = JSON.parse(JSON.stringify(this.state.items));
+            var existingItemsByDueDate = JSON.parse(JSON.stringify(this.context.itemsByDueDate));
+
+            var refTagByOrderItem = response['results']
+            var referenceTag = ''
+            if (refTagByOrderItem.length>0) {
+                referenceTag = refTagByOrderItem[0]['reference_tag']
+            }
+
+            existingItems.forEach(element => {
+                if (element['key'] === orderItem) {
+                    element['reference_tag'] = referenceTag
+                }
+            })
+
+            existingItemsByDueDate.forEach(element => {
+                var items = element['value']
+                items.forEach(itemElement => {
+                    if (itemElement['item'] === orderItem) {
+                        itemElement['reference_tag'] = referenceTag
+                    }
+                })
+            })
+
+            this.setState({
+                items: existingItems
+            }, () => {
+                this.updateSumOfIguByRow()
+                this.updateSumOfIguByColumn()
+                this.context.onChangeItemInput(existingItemsByDueDate);
+            })
+        })
+        .catch((err) => {
+        });
     }
 
     render() {
         return (
-        //   <Container className="p-3">
-            // <Card style={{ width: '35rem' }}>
-            <Card>
-                <Card.Header>
-                {
-                    <div>
-                        <Form>
-                            <Form.Group as={Row} className="mb-3" controlId="formGroupDueDate">
-                                <Form.Label style={{display: 'flex', justifyContent:'left'}} column sm="2">
-                                Due Date
-                                </Form.Label>
-                                <Col sm="4" className='m-6'>
-                                    {/* <Form.Control onChange={event => this.setDueDate(event)} disabled={!this.state.isDateEditable || this.context.isSubmitButtonLoading || this.context.isConfirmed} type="date" value={moment(this.state.due_date).utc().format('YYYY-MM-DD')} placeholder="Enter date" /> */}
-
-                                    <Form.Control onChange={event => this.setDueDate(event)} ref={this.textInput} disabled={!this.state.isDateEditable || this.context.isSubmitButtonLoading || this.context.isConfirmed} type="date" value={this.state.due_date} placeholder="Enter date" />
-
-                                    {/* <Form.Control onChange={event => this.setTestDueDate(event)} value={this.state.due_date_time} type="date" placeholder="Enter date" /> */}
-
-                                    {/* // due_date: this.props.due_date.replace("T00:00:00.000Z", ''), */}
-                                    {/* <Form.Control onChange={event => this.setDueDate(event)} disabled={!this.state.isDateEditable || this.context.isSubmitButtonLoading || this.context.isConfirmed} type="date" value={this.state.due_date} placeholder="Enter date" /> */}
-                                </Col>
-                                {!this.context.isConfirmed && 
-                                <>
-                                    <Col className='d-flex flex-row mb-3'>
-                                        <Button className='mx-1' disabled={this.context.isSubmitButtonLoading} onClick={this.copyItemsByDueDate}>
-                                        Duplicate this Due Date
-                                        </Button>
-                                    </Col>
-                                </>
+            // <Container fluid>
+            <>
+                <Table className='text-center' striped bordered hover size="sm" style={{ position: 'relative', borderColor: '#BDC3C7', width: '10%', borderCollapse: 'separate', padding: '0px'}}>
+                    {/* change top to 0 when deploying locally and 50px when deploying to vanna */}
+                    <thead style={{ position: 'sticky', top: '50px', backgroundColor: '#f5f7f7', zIndex: 1, padding: '0px' }}>
+                    {/* <thead style={{ position: 'sticky', top: 0, backgroundColor: '#f5f7f7', zIndex: 1 }}> */}
+                        {/* <tr style={{ backgroundColor: '#f5f7f7' }}> */}
+                        <tr>
+                            <td style={{position: 'sticky', left: '0px', padding: '0px', backgroundColor: '#f5f7f7'}}>
+                                {
+                                    !this.context.isConfirmed && 
+                                    <Button className='mx-1' disabled={this.context.isSubmitButtonLoading} onClick={this.addNewDueDate}>
+                                        Add Due Date
+                                    </Button>
                                 }
-                            </Form.Group>
-                        </Form>
-                    </div>
-                }
-                </Card.Header>
-                <Card.Body>
-                    <Table responsive striped bordered hover>
-                        <thead>
-                            <tr>
-                                <th>Item</th>
-                                <th>Order Quantity</th>
-                                <th>Remove</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {this.state.items.map(({id, item, order_qty}) => (
-                                <tr key={id}>
-                                    <td>
-                                        <Form.Control 
-                                            name="item" 
-                                            value={item} 
-                                            type="text" 
-                                            onChange={(e) => this.onChangeInput(e, id)}
-                                            // onBlur={(e) => this.onBlurInput(e, id)}
-                                            placeholder="Type Item Name"
-                                            className="text-center"
-                                            disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading}
-                                        />
-                                    </td>
-                                    <td>
-                                        {/* <input
-                                            name="order_qty"
-                                            value={order_qty}
-                                            type="number"
-                                            min={1}
-                                            onChange={(e) => this.onChangeInput(e, id)}
-                                            placeholder="Type Order Quantity"
-                                            className="text-center"
-                                            disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading}
-                                        /> */}
+                            </td>
+                            <th style={{position: 'sticky', left: '152px', textAlign: 'right', width: '100px', padding: '0px', backgroundColor: '#f5f7f7' }}>
+                                Due Dates
+                            </th>
+                            {
+                                this.state.listOfUniqueDueDates.map(({dueDate, promiseDate}) => (
+                                    // <td key={dueDate}>
+                                    //     <OverlayTrigger
+                                    //         placement='top'
+                                    //         overlay={
+                                    //             <Tooltip>
+                                    //                 Due Dates
+                                    //             </Tooltip>
+                                    //         }
+                                    //     >
+                                    //         <Form.Control
+                                    //             value={dueDate.replace("T00:00:00.000Z", '')}
+                                    //             type="date"
+                                    //             onChange={(e) => this.onChangeDateInput(e, dueDate, promiseDate)}
+                                    //             className="text-center"
+                                    //             disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading}
+                                    //             size='sm'
+                                    //             //style={{ width: '115px', margin: 'auto'}}
+                                    //             style={{ width: '120px', margin: 'auto'}}
+                                    //         />
+                                    //     </OverlayTrigger>
+                                    // </td>
+
+                                    <td key={dueDate} style={{ padding: '0px' }}>
                                         <Form.Control
-                                            name="order_qty"
-                                            value={order_qty}
-                                            type="number"
-                                            min={1}
-                                            onChange={(e) => this.onChangeInput(e, id)}
-                                            placeholder="Type Order Quantity"
+                                            value={dueDate.replace("T00:00:00.000Z", '')}
+                                            type="date"
+                                            onChange={(e) => this.onChangeDateInput(e, dueDate, promiseDate)}
                                             className="text-center"
                                             disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading}
+                                            size='sm'
+                                            //style={{ width: '115px', margin: 'auto'}}
+                                            style={{ width: '120px', margin: 'auto'}}
+                                            data-toggle='tooltip'
+                                            data-placement='top'
+                                            title='Due Date'
                                         />
                                     </td>
-                                    <td>
-                                        <Button disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading} variant="danger" onClick={(e) => this.handleDelete(e, id)}>
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-trash" viewBox="0 0 16 16">
-                                                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
-                                                <path fillRule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
-                                            </svg>
-                                        </Button>
+                                ))
+                            }
+                            <td style={{ backgroundColor: '#f5f7f7' }}></td>
+                            <td style={{ backgroundColor: '#f5f7f7' }}></td>
+                        </tr>
+                        <tr style={{ backgroundColor: '#f5f7f7', padding: '0px' }}>
+                            <th style={{position: 'sticky', left: '0px', textAlign: 'center', padding: '0px', backgroundColor: '#f5f7f7'}}>Item</th>
+                            <th style={{position: 'sticky', left: '152px', width: '100px', textAlign: 'center', padding: '0px', backgroundColor: '#f5f7f7' }}>Reference Tag</th>
+                            {
+                                this.state.listOfPromiseDates.map(({promiseDate, promiseDateIndex, dueDate}) => (
+                                    // <td key={promiseDateIndex}>
+                                    //     <OverlayTrigger
+                                    //         placement='top'
+                                    //         overlay={
+                                    //             <Tooltip>
+                                    //                 Promise Dates
+                                    //             </Tooltip>
+                                    //         }
+                                    //     >
+                                    //         <Form.Control
+                                    //             value={promiseDate.replace("T00:00:00.000Z", '')}
+                                    //             type="date"
+                                    //             onChange={(e) => this.onChangePromiseDateInput(e, promiseDateIndex, dueDate)}
+                                    //             className="text-center"
+                                    //             disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading}
+                                    //             size='sm'
+                                    //             // style={{ width: '115px', margin: 'auto'}}
+                                    //             style={{ width: '120px', margin: 'auto'}}
+                                    //         />
+                                    //     </OverlayTrigger>
+                                    // </td>
+
+                                    <td key={promiseDateIndex} style={{ padding: '0px' }}>
+                                        <Form.Control
+                                            value={promiseDate.replace("T00:00:00.000Z", '')}
+                                            type="date"
+                                            onChange={(e) => this.onChangePromiseDateInput(e, promiseDateIndex, dueDate)}
+                                            className="text-center"
+                                            disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading}
+                                            size='sm'
+                                            // style={{ width: '115px', margin: 'auto'}}
+                                            style={{ width: '120px', margin: 'auto'}}
+                                            data-toggle='tooltip'
+                                            data-placement='top'
+                                            title='Promise Date'
+                                        />
                                     </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </Table>
-                    <Col className='d-flex flex-row'>
+                                ))
+                            }
+                            <th style={{padding: '0px'}}><p style={{ width: '114px', marginTop: '0em', marginBottom: '0em', textAlign: 'center' }}>Order Quantity</p></th>
+                            <th style={{ textAlign: 'center', padding: '0px' }}>Remove</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {this.state.items.map(({key, value, id, reference_tag, is_item_editable}) => (
+                            <tr key={id} style={{ height: '20px' }}>
+                                {/* <td style={{ position: 'sticky', left: '0px', width: '150px', paddingTop: '9px' }}> */}
+                                <td style={{ position: 'sticky', left: '0px', width: '150px', padding: '0px' }}>
+                                    <Form.Control
+                                        name="item"
+                                        value={key}
+                                        type="text"
+                                        onChange={(e) => this.onChangeItemInput(e, id, key)}
+                                        onBlur={(e) => this.onBlurItemInput(e, id, key)}
+                                        placeholder="Type Item Name"
+                                        className="text-center"
+                                        disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading || !is_item_editable}
+                                        style={{ width: '150px', height: '20px', margin: 'auto'}}
+                                    />
+                                </td>
+                                {/* <td style={{ position: 'sticky', backgroundColor: 'white', left: '159px', width: '100px', paddingTop: '9px' }}> */}
+                                <td style={{ position: 'sticky', backgroundColor: 'white', left: '152px', width: '100px', padding: '0px' }}>
+                                    <Form.Control 
+                                        name="reference_tag" 
+                                        value={reference_tag}
+                                        type="text"
+                                        className="text-center"
+                                        disabled={true}
+                                        style={{ width: '120px', height: '20px', margin: 'auto'}}
+                                    />
+                                </td>
+                                {
+                                    value.map(({order_qty, due_date}) => (
+                                        // <td key={due_date} style={{ width: '100px', paddingTop: '9px' }}>
+                                        <td key={due_date} style={{ width: '100px', padding: '0px' }}>
+                                            {/* <Form.Control
+                                                name="order_qty"
+                                                value={order_qty}
+                                                type="number"
+                                                min={0}
+                                                onChange={(e) => this.onChangeOrderQuantityInput(e, id, key, due_date)}
+                                                placeholder="Type Order Quantity"
+                                                className="text-center"
+                                                disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading}
+                                                max="300"
+                                                style={{ width: '80px', height: '20px', margin: 'auto', textAlign:'center' }}
+                                            /> */}
+
+                                            <Form.Control
+                                                name="order_qty"
+                                                value={order_qty}
+                                                type="number"
+                                                min={0}
+                                                onChange={(e) => this.onChangeOrderQuantityInput(e, id, key, due_date)}
+                                                onInput = {(e) =>{
+                                                    e.target.value = Math.max(0, parseInt(e.target.value)).toString().slice(0,4)
+                                                }}
+                                                placeholder="Type Order Quantity"
+                                                className="text-center"
+                                                disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading}
+                                                max="100"
+                                                style={{ width: '80px', height: '20px', margin: 'auto', textAlign:'center' }}
+                                            />
+                                        </td>
+                                    ))
+                                }
+                                <td style={{ width: '100px', padding: '0px' }}>
+                                    <Form.Text style={{ width: '100px', fontWeight: 'bold', fontSize: '14px' }}>
+                                        {
+                                            this.state.sumOfIgusRowWise.find(({ itemKey, rowId }) => itemKey === key && rowId === id) &&
+                                            this.state.sumOfIgusRowWise.find(({ itemKey, rowId }) => itemKey === key && rowId === id)['total']
+                                        }
+                                    </Form.Text>
+                                </td>
+                                <td style={{ width: '200px', padding: '0px' }}>
+                                    {/* <OverlayTrigger
+                                        placement='top'
+                                        overlay={
+                                            <Tooltip>
+                                                Remove
+                                            </Tooltip>
+                                        }
+                                    >
+                                        <Button 
+                                            style={{ width: '25px', height: '20px', fontSize: '10px', padding: '2px 2px' }}
+                                            disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading} 
+                                            variant="danger" 
+                                            onClick={(e) => this.handleDeleteByItem(e, id, key)}>
+                                            x
+                                        </Button>
+                                    </OverlayTrigger> */}
+
+                                    <Button 
+                                        style={{ width: '25px', height: '20px', fontSize: '10px', padding: '2px 2px' }}
+                                        disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading} 
+                                        variant="danger" 
+                                        onClick={(e) => this.handleDeleteByItem(e, id, key)}
+                                        data-toggle='tooltip'
+                                        data-placement='top'
+                                        title='Remove'>
+                                        x
+                                    </Button>
+                                </td>
+                            </tr>
+                        ))}
                         {
-                            !this.context.isConfirmed && 
-                            <Button className='mx-1' disabled={this.context.isSubmitButtonLoading} onClick={this.insertItemByDueDate}>
-                                Add Item
-                            </Button>
+                            this.state.dueDatesColspan>=1 && 
+                            <tr>
+                                <td style={{ position: 'sticky', backgroundColor: 'white', left: '0px' }}></td>
+                                <td style={{ position: 'sticky', backgroundColor: 'white', left: '152px' }}></td>
+                                {
+                                    this.state.listOfUniqueDueDates.map(({dueDate}) => (
+                                        <td key={dueDate} style={{padding: '0px'}}>
+                                            <Form.Text style={{ width: '100px', fontWeight: 'bold', fontSize: '14px' }}>
+                                                {
+                                                    this.state.sumOfIgusColumnWise.find(({ dateKey }) => dateKey === dueDate) &&
+                                                    this.state.sumOfIgusColumnWise.find(({ dateKey }) => dateKey === dueDate)['total']
+                                                }
+                                            </Form.Text>
+                                        </td>
+                                ))}
+                                <td style={{padding: '0px'}}>
+                                    <Form.Text style={{ width: '100px', fontWeight: 'bold', fontSize: '14px' }}>
+                                        {
+                                            this.state.orderQuantityTotal
+                                        }
+                                    </Form.Text>
+                                </td>
+                                <td></td>
+                            </tr>
                         }
-                    </Col>
-                </Card.Body>
-            </Card>
-        //   </Container>
+                        
+                        {
+                            this.state.dueDatesColspan>=1 && 
+                            <tr>
+                                <td style={{ position: 'sticky', backgroundColor: 'white', left: '0px' }}></td>
+                                <td style={{ position: 'sticky', backgroundColor: 'white', left: '152px' }}></td>
+                                {
+                                    this.state.listOfUniqueDueDates.map(({dueDate, promiseDate}) => (
+                                        <td key={dueDate} style={{padding: '0px'}}>
+                                            {/* <OverlayTrigger
+                                                placement='top'
+                                                overlay={
+                                                    <Tooltip>
+                                                        Remove
+                                                    </Tooltip>
+                                                }
+                                            >
+                                                <Button 
+                                                    style={{ width: '25px', height: '20px', fontSize: '10px', padding: '2px 2px' }}
+                                                    disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading} 
+                                                    variant="danger" 
+                                                    onClick={(e) => this.handleDeleteByDueDate(e, dueDate, promiseDate)}>
+                                                    x
+                                                </Button>
+                                            </OverlayTrigger> */}
+
+                                            <Button 
+                                                style={{ width: '25px', height: '20px', fontSize: '10px', padding: '2px 2px' }}
+                                                disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading} 
+                                                variant="danger" 
+                                                onClick={(e) => this.handleDeleteByDueDate(e, dueDate, promiseDate)}
+                                                data-toggle='tooltip'
+                                                data-placement='top'
+                                                title='Remove'>
+                                                x
+                                            </Button>
+                                        </td>
+                                ))}
+                                <td></td>
+                                <td></td>
+                            </tr>
+                        }
+                        
+                    </tbody>
+                </Table>
+                <Col className='d-flex flex-row'>
+                    {
+                        !this.context.isConfirmed && 
+                        <Button className='mx-1' disabled={this.context.isSubmitButtonLoading} onClick={this.addNewItem}>
+                            Add Item
+                        </Button>
+                    }
+                </Col>
+            </>
         );
     }
 };
 
 BootstrapTable.contextType = MyContext;
+
+<style scoped>
+</style>
 
 export default BootstrapTable;
