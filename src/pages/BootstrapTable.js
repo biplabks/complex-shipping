@@ -160,6 +160,7 @@ class BootstrapTable extends React.Component {
 
         existingItems.forEach(element => {
             listOfItems.push({
+                "id": element['id'],
                 "item": element['key'],
                 "order_qty": 0,
                 "shipping_date": nextAvailableDate,

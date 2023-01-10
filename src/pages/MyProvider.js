@@ -26,13 +26,44 @@ class MyProvider extends React.Component {
         submitButtonText: 'Submit Data',
         isSubmitButtonLoading: false,
         channel: '',
-        orderStatus: ''
+        orderStatus: '',
+
+        isNewDueDateAdded: false,
+        isOrderQuantityUpdated: false,
+        isNewItemAdded: false,
+        isItemNumberModified: false,
+        isDueDateModified: false,
+        isPromiseDateModified: false,
+        isDueDateDeleted: false,
+        isItemDeleted: false
+    };
+
+    componentDidMount() {
+        window.addEventListener("beforeunload", (ev) => 
+        {  
+            console.log("calling from componentDidMount, this.state.orderNumber: ", this.state.orderNumber)
+            if (this.state.orderNumber && this.state.itemsByDueDate.length) {
+                ev.preventDefault();
+                return ev.returnValue = 'Are you sure you want to close?';
+            }
+        });
+    };
+    
+    componentWillUnmount() {
+        window.addEventListener("beforeunload", (ev) => 
+        {
+            console.log("calling from componentWillUnmount, this.state.orderNumber: ", this.state.orderNumber)
+            if (this.state.orderNumber) {
+                ev.preventDefault();
+                return ev.returnValue = 'Are you sure you want to close?';
+            }
+        });
     };
 
     //======================================================================================================================
     async dataFetch() {
         return await fetch(baseAPIURL + "get-qad-sales-order-info-for-cs/"+this.state.orderNumber)
-    }
+    };
 
     async getReferenceTagsByOrderItem() {
         return await fetch(baseAPIURL + 'get-ref-tag-by-order-item', {
@@ -243,6 +274,7 @@ class MyProvider extends React.Component {
         this.setState(
             { itemsByDueDateMap: map }, 
             () => {
+                console.log("calling from destructureItems, this.state.itemsByDueDateMap: ", this.state.itemsByDueDateMap)
             }
         );
     }
