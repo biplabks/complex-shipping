@@ -1,7 +1,7 @@
 // import {React, createRef} from 'react';
 import React from 'react';
 // import { Container, Button, Form, Col, Table, Tooltip, OverlayTrigger } from 'react-bootstrap';
-import { Button, Form, Col, Table, Tooltip, OverlayTrigger } from 'react-bootstrap';
+import { Button, Form, Col, Table } from 'react-bootstrap';
 import MyContext from './MyContext';
 import debounce from "lodash.debounce";
 
@@ -31,6 +31,10 @@ class BootstrapTable extends React.Component {
             listOfUniqueDates: this.props.listOfUniqueDates,
             listOfUniqueDueDates: this.props.listOfUniqueDueDates
         }, () => {
+            console.log("calling from Bootstraptable componentDidMount, this.state.items: ", this.state.items, ", \
+            this.state.dueDatesColspan: ", this.state.dueDatesColspan, ", this.state.listOfPromiseDates: ", 
+            this.state.listOfPromiseDates, ", this.state.listOfUniqueDates: ", this.state.listOfUniqueDates,
+            ", this.state.listOfUniqueDueDates: ", this.state.listOfUniqueDueDates)
             this.updateSumOfIguByRow();
             this.updateSumOfIguByColumn();
         });
@@ -185,7 +189,6 @@ class BootstrapTable extends React.Component {
             "key": nextAvailableDate,
             "value": nextRank+1
         })
-
 
         //existing due dates modification
         listOfRanks = []
@@ -343,7 +346,9 @@ class BootstrapTable extends React.Component {
             if(item['key'].includes("-"))
             {
                 items.forEach(itemElement => {
-                    sum += parseInt(itemElement['order_qty'])
+                    if (itemElement['description'] == 'IGU') {
+                        sum += parseInt(itemElement['order_qty'])
+                    }
                 })
             }
             sumOfOrderQuantity += sum
@@ -371,7 +376,9 @@ class BootstrapTable extends React.Component {
                     if (itemElement['due_date'] === element['key']) {
                         if(item['key'].includes("-"))
                         {
-                            sum += parseInt(itemElement['order_qty'])
+                            if (itemElement['description'] == 'IGU') {
+                                sum += parseInt(itemElement['order_qty'])
+                            }
                         }
                     }
                 })
@@ -598,7 +605,7 @@ class BootstrapTable extends React.Component {
         }
 
         if (key.includes('-')) {
-            this.getReferenceTagsByOrderItem(key)    
+            this.getReferenceTagsByOrderItem(key)
         }
     }
 
@@ -660,42 +667,20 @@ class BootstrapTable extends React.Component {
                     {/* <thead style={{ position: 'sticky', top: 0, backgroundColor: '#f5f7f7', zIndex: 1 }}> */}
                         {/* <tr style={{ backgroundColor: '#f5f7f7' }}> */}
                         <tr>
-                            <td style={{position: 'sticky', left: '0px', padding: '0px', backgroundColor: '#f5f7f7'}}>
+                            <th style={{position: 'sticky', left: '0px', padding: '0px', backgroundColor: '#f5f7f7'}}>
                                 {
                                     !this.context.isConfirmed && 
                                     <Button className='mx-1' disabled={this.context.isSubmitButtonLoading} onClick={this.addNewDueDate}>
                                         Add Due Date
                                     </Button>
                                 }
-                            </td>
+                            </th>
                             <th style={{position: 'sticky', left: '152px', textAlign: 'right', width: '100px', padding: '0px', backgroundColor: '#f5f7f7' }}>
                                 Due Dates
                             </th>
                             {
                                 this.state.listOfUniqueDueDates.map(({dueDate, promiseDate}) => (
-                                    // <td key={dueDate}>
-                                    //     <OverlayTrigger
-                                    //         placement='top'
-                                    //         overlay={
-                                    //             <Tooltip>
-                                    //                 Due Dates
-                                    //             </Tooltip>
-                                    //         }
-                                    //     >
-                                    //         <Form.Control
-                                    //             value={dueDate.replace("T00:00:00.000Z", '')}
-                                    //             type="date"
-                                    //             onChange={(e) => this.onChangeDateInput(e, dueDate, promiseDate)}
-                                    //             className="text-center"
-                                    //             disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading}
-                                    //             size='sm'
-                                    //             //style={{ width: '115px', margin: 'auto'}}
-                                    //             style={{ width: '120px', margin: 'auto'}}
-                                    //         />
-                                    //     </OverlayTrigger>
-                                    // </td>
-
-                                    <td key={dueDate} style={{ padding: '0px' }}>
+                                    <th key={dueDate} style={{ padding: '0px' }}>
                                         <Form.Control
                                             value={dueDate.replace("T00:00:00.000Z", '')}
                                             type="date"
@@ -709,40 +694,18 @@ class BootstrapTable extends React.Component {
                                             data-placement='top'
                                             title='Due Date'
                                         />
-                                    </td>
+                                    </th>
                                 ))
                             }
-                            <td style={{ backgroundColor: '#f5f7f7' }}></td>
-                            <td style={{ backgroundColor: '#f5f7f7' }}></td>
+                            <th style={{ backgroundColor: '#f5f7f7' }}></th>
+                            <th style={{ backgroundColor: '#f5f7f7' }}></th>
                         </tr>
                         <tr style={{ backgroundColor: '#f5f7f7', padding: '0px' }}>
-                            <th style={{position: 'sticky', left: '0px', textAlign: 'center', padding: '0px', backgroundColor: '#f5f7f7'}}>Item</th>
-                            <th style={{position: 'sticky', left: '152px', width: '100px', textAlign: 'center', padding: '0px', backgroundColor: '#f5f7f7' }}>Reference Tag</th>
+                            <th style={{position: 'sticky', left: '0px', textAlign: 'center', padding: '0px', backgroundColor: '#f5f7f7'}}></th>
+                            <th style={{position: 'sticky', left: '152px', width: '100px', textAlign: 'right', padding: '0px', backgroundColor: '#f5f7f7' }}>Promise Dates</th>
                             {
                                 this.state.listOfPromiseDates.map(({promiseDate, promiseDateIndex, dueDate}) => (
-                                    // <td key={promiseDateIndex}>
-                                    //     <OverlayTrigger
-                                    //         placement='top'
-                                    //         overlay={
-                                    //             <Tooltip>
-                                    //                 Promise Dates
-                                    //             </Tooltip>
-                                    //         }
-                                    //     >
-                                    //         <Form.Control
-                                    //             value={promiseDate.replace("T00:00:00.000Z", '')}
-                                    //             type="date"
-                                    //             onChange={(e) => this.onChangePromiseDateInput(e, promiseDateIndex, dueDate)}
-                                    //             className="text-center"
-                                    //             disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading}
-                                    //             size='sm'
-                                    //             // style={{ width: '115px', margin: 'auto'}}
-                                    //             style={{ width: '120px', margin: 'auto'}}
-                                    //         />
-                                    //     </OverlayTrigger>
-                                    // </td>
-
-                                    <td key={promiseDateIndex} style={{ padding: '0px' }}>
+                                    <th key={promiseDateIndex} style={{ padding: '0px' }}>
                                         <Form.Control
                                             value={promiseDate.replace("T00:00:00.000Z", '')}
                                             type="date"
@@ -756,10 +719,21 @@ class BootstrapTable extends React.Component {
                                             data-placement='top'
                                             title='Promise Date'
                                         />
-                                    </td>
+                                    </th>
                                 ))
                             }
-                            <th style={{padding: '0px'}}><p style={{ width: '114px', marginTop: '0em', marginBottom: '0em', textAlign: 'center' }}>Order Quantity</p></th>
+                            <th style={{padding: '0px'}}></th>
+                            <th style={{ textAlign: 'center', padding: '0px' }}></th>
+                        </tr>
+                        <tr style={{ backgroundColor: '#f5f7f7', padding: '0px' }}>
+                            <th style={{position: 'sticky', left: '0px', textAlign: 'center', padding: '0px', backgroundColor: '#f5f7f7'}}>Item</th>
+                            <th style={{position: 'sticky', left: '152px', width: '100px', textAlign: 'center', padding: '0px', backgroundColor: '#f5f7f7' }}>Reference Tag</th>
+                            {
+                                this.state.listOfPromiseDates.map(({promiseDate, promiseDateIndex, dueDate}) => (
+                                    <th key={promiseDateIndex} style={{padding: '0px'}}><p style={{ width: '114px', marginTop: '0em', marginBottom: '0em', textAlign: 'center' }}>Quantity</p></th>
+                                ))
+                            }
+                            <th style={{padding: '0px'}}><p style={{ width: '114px', marginTop: '0em', marginBottom: '0em', textAlign: 'center' }}>Total Quantity</p></th>
                             <th style={{ textAlign: 'center', padding: '0px' }}>Remove</th>
                         </tr>
                     </thead>

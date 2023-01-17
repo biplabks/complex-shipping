@@ -42,10 +42,13 @@ class MyProvider extends React.Component {
         window.addEventListener("beforeunload", (ev) => 
         {  
             console.log("calling from componentDidMount, this.state.orderNumber: ", this.state.orderNumber)
-            if (this.state.orderNumber && this.state.itemsByDueDate.length) {
+            if (this.state.orderNumber && this.getOrderModificationStatus()) {
                 ev.preventDefault();
                 return ev.returnValue = 'Are you sure you want to close?';
             }
+            // this.setState({
+            //     orderNumber: ''
+            // }, () => {})
         });
     };
     
@@ -53,10 +56,13 @@ class MyProvider extends React.Component {
         window.addEventListener("beforeunload", (ev) => 
         {
             console.log("calling from componentWillUnmount, this.state.orderNumber: ", this.state.orderNumber)
-            if (this.state.orderNumber) {
+            if (this.state.orderNumber && this.getOrderModificationStatus()) {
                 ev.preventDefault();
                 return ev.returnValue = 'Are you sure you want to close?';
             }
+            // this.setState({
+            //     orderNumber: ''
+            // }, () => {})
         });
     };
 
@@ -189,7 +195,7 @@ class MyProvider extends React.Component {
         const map = new Map();
         const itemMap = new Map()
         const itemSetMap = new Map()
-
+        console.log("calling from destructureItems, resultData: ", resultData)
         var itemIndex = 0;
         resultData.forEach(element => {
             if (map.has(element['shipping_date'])) {
@@ -220,6 +226,10 @@ class MyProvider extends React.Component {
             }
         })
 
+        console.log("calling from destructureItems, map: ", map)
+        console.log("calling from destructureItems, itemMap: ", itemMap)
+        console.log("calling from destructureItems, itemSetMap: ", itemSetMap)
+
         itemMap.forEach((itemValue, itemKey) => {
             map.forEach((mapElementValue, mapElementKey) => {
                 var newArray = mapElementValue.filter(function (el) {
@@ -232,6 +242,7 @@ class MyProvider extends React.Component {
         })
 
         const mappedResult = Array.from(map).map(([key, value]) => ({key, value}))
+        console.log("calling from destructureItems, mappedResult: ", mappedResult)
 
         const validIguItemsSet = new Set()
 
@@ -245,7 +256,8 @@ class MyProvider extends React.Component {
                 if (itemElement['promise_date'] && promiseDate == "") {
                     promiseDate = itemElement['promise_date']
                 }
-                if (itemElement['item'].includes('-')) {
+
+                if (itemElement['item'].includes('-') && itemElement['description'].toUpperCase() == 'IGU') {
                     validIguItemsSet.add(itemElement['item'])
                 }
             })
@@ -262,12 +274,15 @@ class MyProvider extends React.Component {
             })
         })
 
+        console.log("calling from destructureItems, validIguItemsSet: ", validIguItemsSet)
+
         var validIGUItems = Array.from(validIguItemsSet)
 
         this.setState({
             itemsByDueDate: mappedResult,
             validLisecItems: validIGUItems
         }, () => {
+            console.log("calling from destructureItems, this.state.itemsByDueDate: ", this.state.itemsByDueDate)
             this.getReferenceTagsByOrderItem();
         })
 
@@ -366,17 +381,20 @@ class MyProvider extends React.Component {
         })
 
         var formattedMappedResultFinal = new Map();
+        
+        console.log("calling from getFormatteditemsByDueDate, formattedMappedResult: ", formattedMappedResult)
+
         formattedMappedResult.forEach(element => {
             var items = element['value']
             items.forEach(itemElement => {
                 if (!formattedMappedResultFinal.has(itemElement['item'])) {
-                    formattedMappedResultFinal.set(itemElement['item'], [{'order_qty': itemElement['order_qty'], 'due_date': element['key'], 'initial_date': element['key'], 
+                    formattedMappedResultFinal.set(itemElement['item'], [{'description': itemElement['description'],'order_qty': itemElement['order_qty'], 'due_date': element['key'], 'initial_date': element['key'], 
                     'promise_date': itemElement['promise_date'], 'initial_promise_date': itemElement['promise_date']}])
                 }
                 else
                 {
                     var itemList = formattedMappedResultFinal.get(itemElement['item'])
-                    itemList.push({'order_qty': itemElement['order_qty'], 'due_date': element['key'], 'initial_date': element['key'], 
+                    itemList.push({'description': itemElement['description'],'order_qty': itemElement['order_qty'], 'due_date': element['key'], 'initial_date': element['key'], 
                     'promise_date': itemElement['promise_date'], 'initial_promise_date': itemElement['promise_date']})
                     formattedMappedResultFinal.set(itemElement['item'], itemList)
                 }
@@ -385,6 +403,8 @@ class MyProvider extends React.Component {
 
         const uniqueDates = Array.from(uniqueDatesMap).map(([key, value]) => ({key, value}))
         const formattedItemsByDueDate1 = Array.from(formattedMappedResultFinal).map(([key, value]) => ({key, value}))
+
+        console.log("calling from getFormatteditemsByDueDate, formattedItemsByDueDate1: ", formattedItemsByDueDate1)
 
         var index = 0
         formattedItemsByDueDate1.forEach(item => {
@@ -408,6 +428,8 @@ class MyProvider extends React.Component {
                 }
             })
         })
+        
+        console.log("calling from getFormatteditemsByDueDate, uniqueDueDates: ", uniqueDueDates, ", uniquePromiseDates: ", uniquePromiseDates)
 
         this.setState({
             listOfUniqueItems: itemMap, 
@@ -418,30 +440,31 @@ class MyProvider extends React.Component {
             this.setState(
                 { formattedItemsByDueDate: formattedItemsByDueDate1 },
                 () => {
+                    console.log("calling from getFormatteditemsByDueDate, formattedItemsByDueDate: ", this.state.formattedItemsByDueDate)
                 }
             );
         })
     }
 
-    updateValidLisecItems() {
-        let iguItemSet = new Set()
-        this.state.itemsByDueDate.forEach(element => {
-            var items = element['value']
-            for (let index = 0; index < items.length; index++) {
-                const itemElement = items[index];
-                if (itemElement['item'].includes('-')) {
-                    iguItemSet.add(itemElement['item'])
-                }
-            }
-        })
+    // updateValidLisecItems() {
+    //     let iguItemSet = new Set()
+    //     this.state.itemsByDueDate.forEach(element => {
+    //         var items = element['value']
+    //         for (let index = 0; index < items.length; index++) {
+    //             const itemElement = items[index];
+    //             if (itemElement['item'].includes('-')) {
+    //                 iguItemSet.add(itemElement['item'])
+    //             }
+    //         }
+    //     })
 
-        let updatedValidLisecItems = Array.from(iguItemSet)
-        this.setState({
-            validLisecItems: updatedValidLisecItems
-        }, () => 
-        {
-        })
-    }
+    //     let updatedValidLisecItems = Array.from(iguItemSet)
+    //     this.setState({
+    //         validLisecItems: updatedValidLisecItems
+    //     }, () => 
+    //     {
+    //     })
+    // }
 
     submitOrderDetailsToQADAPI() {
         this.setState({
@@ -449,7 +472,7 @@ class MyProvider extends React.Component {
         }, () => {})
 
         // baseAPIURLTest, baseAPIURL
-        //fetch('http://127.0.0.1:5000/api/send_req_items_for_cs', {
+        // fetch('http://127.0.0.1:5000/api/send_req_items_for_cs', {
         fetch(baseAPIURL + 'send_req_items_for_cs', {
             method: 'POST',
             body: JSON.stringify({
@@ -502,7 +525,16 @@ class MyProvider extends React.Component {
                         error: '',
                         formattedItemsByDueDate: [],
                         listOfPromiseDates:[],
-                        listOfUniqueDates:[]
+                        listOfUniqueDates:[],
+
+                        isNewDueDateAdded: false,
+                        isOrderQuantityUpdated: false,
+                        isNewItemAdded: false,
+                        isItemNumberModified: false,
+                        isDueDateModified: false,
+                        isPromiseDateModified: false,
+                        isDueDateDeleted: false,
+                        isItemDeleted: false
                     }, () => {
                         this.fetchAllData();
                     })
@@ -516,6 +548,11 @@ class MyProvider extends React.Component {
             }, () => {})
             alert("Data was not submitted successfully!Please contact administrator!")
         });
+    }
+
+    getOrderModificationStatus(){
+        return (this.state.isNewDueDateAdded || this.state.isOrderQuantityUpdated || this.state.isNewItemAdded || this.state.isItemNumberModified
+        || this.state.isDueDateModified || this.state.isPromiseDateModified || this.state.isDueDateDeleted || this.state.isItemDeleted)
     }
 
     render() {
@@ -534,6 +571,22 @@ class MyProvider extends React.Component {
                     searchOrderDetails: (event) => {
                         event.preventDefault();
 
+                        if (this.state.orderNumber && this.getOrderModificationStatus()) {
+                            // alert("Changes you made may not be saved!");
+                            // return;
+
+                            let text = "Changes you made may not be saved! Do you still want to proceed?";
+                            if (window.confirm(text) == false) {
+                                return;
+                            }
+
+                            // if (window.confirm(text) == true) {
+                            //     var test = 0;
+                            // } else {
+                            //     return;
+                            // }
+                        }
+
                         this.setState({
                             itemsByDueDate: [],
                             isLoaded: false,
@@ -542,7 +595,16 @@ class MyProvider extends React.Component {
                             formattedItemsByDueDate: [],
                             listOfPromiseDates:[],
                             listOfUniqueDates:[],
-                            listOfUniqueDueDates: []
+                            listOfUniqueDueDates: [],
+
+                            isNewDueDateAdded: false,
+                            isOrderQuantityUpdated: false,
+                            isNewItemAdded: false,
+                            isItemNumberModified: false,
+                            isDueDateModified: false,
+                            isPromiseDateModified: false,
+                            isDueDateDeleted: false,
+                            isItemDeleted: false
                         })
                         
                         if (this.state.orderNumber.length === 7 && (this.state.orderNumber[0] == 'L' || this.state.orderNumber[0] == 'Q')) {
@@ -558,50 +620,50 @@ class MyProvider extends React.Component {
                     },
 
                     addNewDueDate: (modifiedItemsByDueDate) => {
-                        this.setState({itemsByDueDate: modifiedItemsByDueDate}, () => {
-                            console.log("calling from MyProvider, addNewDueDate, this.state.itemsByDueDate: ", this.state.itemsByDueDate)
+                        this.setState({itemsByDueDate: modifiedItemsByDueDate, isNewDueDateAdded: true}, () => {
+                            console.log("calling from MyProvider, addNewDueDate, this.state.itemsByDueDate: ", this.state.itemsByDueDate, ", this.state.isNewDueDateAdded: ", this.state.isNewDueDateAdded)
                         })
                     },
 
                     updateOrderQuantity: (modifiedItemsByDueDate) => {
-                        this.setState({itemsByDueDate: modifiedItemsByDueDate}, () => {
-                            console.log("calling from MyProvider, updateOrderQuantity, this.state.itemsByDueDate: ", this.state.itemsByDueDate)
+                        this.setState({itemsByDueDate: modifiedItemsByDueDate, isOrderQuantityUpdated: true}, () => {
+                            console.log("calling from MyProvider, updateOrderQuantity, this.state.itemsByDueDate: ", this.state.itemsByDueDate, ", this.state.isOrderQuantityUpdated: ", this.state.isOrderQuantityUpdated)
                         })
                     },
 
                     addNewItem: (modifiedItemsByDueDate) => {
-                        this.setState({itemsByDueDate: modifiedItemsByDueDate}, () => {
-                            console.log("calling from MyProvider, addNewItem, this.state.itemsByDueDate: ", this.state.itemsByDueDate)
+                        this.setState({itemsByDueDate: modifiedItemsByDueDate, isNewItemAdded: true}, () => {
+                            console.log("calling from MyProvider, addNewItem, this.state.itemsByDueDate: ", this.state.itemsByDueDate, ", this.state.isNewItemAdded: ", this.state.isNewItemAdded)
                         })
                     },
 
                     onChangeItemInput: (modifiedItemsByDueDate) => {
-                        this.setState({itemsByDueDate: modifiedItemsByDueDate}, () => {
-                            console.log("calling from MyProvider, onChangeItemInput, this.state.itemsByDueDate: ", this.state.itemsByDueDate)
+                        this.setState({itemsByDueDate: modifiedItemsByDueDate, isItemNumberModified: true}, () => {
+                            console.log("calling from MyProvider, onChangeItemInput, this.state.itemsByDueDate: ", this.state.itemsByDueDate, ", this.state.isItemNumberModified: ", this.state.isItemNumberModified)
                         })
                     },
 
                     onChangeDateInput: (modifiedItemsByDueDate) => {
-                        this.setState({itemsByDueDate: modifiedItemsByDueDate}, () => {
-                            console.log("calling from MyProvider, onChangeDateInput, this.state.itemsByDueDate: ", this.state.itemsByDueDate)
+                        this.setState({itemsByDueDate: modifiedItemsByDueDate, isDueDateModified: true}, () => {
+                            console.log("calling from MyProvider, onChangeDateInput, this.state.itemsByDueDate: ", this.state.itemsByDueDate, ", this.state.isDueDateModified: ", this.state.isDueDateModified)
                         })
                     },
 
                     onChangePromiseDateInput: (modifiedItemsByDueDate) => {
-                        this.setState({itemsByDueDate: modifiedItemsByDueDate}, () => {
-                            console.log("calling from MyProvider, onChangePromiseDateInput, this.state.itemsByDueDate: ", this.state.itemsByDueDate)
+                        this.setState({itemsByDueDate: modifiedItemsByDueDate, isPromiseDateModified: true}, () => {
+                            console.log("calling from MyProvider, onChangePromiseDateInput, this.state.itemsByDueDate: ", this.state.itemsByDueDate, ", this.state.isPromiseDateModified: ", this.state.isPromiseDateModified)
                         })
                     },
 
                     handleDeleteByDueDate: (modifiedItemsByDueDate) => {
-                        this.setState({itemsByDueDate: modifiedItemsByDueDate}, () => {
-                            console.log("calling from MyProvider, handleDeleteByDueDate, this.state.itemsByDueDate: ", this.state.itemsByDueDate)
+                        this.setState({itemsByDueDate: modifiedItemsByDueDate, isDueDateDeleted: true}, () => {
+                            console.log("calling from MyProvider, handleDeleteByDueDate, this.state.itemsByDueDate: ", this.state.itemsByDueDate, ", this.state.isDueDateDeleted: ", this.state.isDueDateDeleted)
                         })
                     },
 
                     handleDeleteByItem: (modifiedItemsByDueDate) => {
-                        this.setState({itemsByDueDate: modifiedItemsByDueDate}, () => {
-                            console.log("calling from MyProvider, handleDeleteByItem, this.state.itemsByDueDate: ", this.state.itemsByDueDate)
+                        this.setState({itemsByDueDate: modifiedItemsByDueDate, isItemDeleted: true}, () => {
+                            console.log("calling from MyProvider, handleDeleteByItem, this.state.itemsByDueDate: ", this.state.itemsByDueDate, ", this.state.isItemDeleted: ", this.state.isItemDeleted)
                         })
                     },
                     
@@ -678,7 +740,7 @@ class MyProvider extends React.Component {
                             var items = element['value']
                             for (let index = 0; index < items.length; index++) {
                                 const itemElement = items[index];
-                                if (itemElement['item'].includes('-')) {
+                                if (itemElement['item'].includes('-') && itemElement['description'].toUpperCase() == 'IGU') {
                                     iguItemSet.add(itemElement['item'])
                                 }
                             }

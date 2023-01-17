@@ -58,6 +58,7 @@ const SearchForm = () => (
                         type='input'
                         placeholder="Order Number"
                         onChange={context.setOrderNumber}
+                        value={context.orderNumber}
                     />
                     <Button disabled={context.isSubmitButtonLoading} type="submit">
                         Search
