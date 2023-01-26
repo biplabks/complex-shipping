@@ -1,9 +1,13 @@
 import MyContext from './MyContext';
 import React from 'react';
+import { ThemeProvider } from 'react-bootstrap';
 
 const baseAPIURL = "https://vanna.zh.if.atcsg.net:453/api/v1/"
 
 const baseAPIURLTest = "http://127.0.0.1:5000/api/"
+
+//B3391410
+//window.ssouser = 'B3391410'
 
 class MyProvider extends React.Component {
     state = {
@@ -28,6 +32,8 @@ class MyProvider extends React.Component {
         channel: '',
         orderStatus: '',
 
+        isActiveUserSecurityRoleExist: false,
+
         isNewDueDateAdded: false,
         isOrderQuantityUpdated: false,
         isNewItemAdded: false,
@@ -35,13 +41,15 @@ class MyProvider extends React.Component {
         isDueDateModified: false,
         isPromiseDateModified: false,
         isDueDateDeleted: false,
-        isItemDeleted: false
+        isItemDeleted: false,
+
+        isFormDisabled: false
     };
 
     componentDidMount() {
         window.addEventListener("beforeunload", (ev) => 
         {  
-            console.log("calling from componentDidMount, this.state.orderNumber: ", this.state.orderNumber)
+            // console.log("calling from componentDidMount, this.state.orderNumber: ", this.state.orderNumber)
             if (this.state.orderNumber && this.getOrderModificationStatus()) {
                 ev.preventDefault();
                 return ev.returnValue = 'Are you sure you want to close?';
@@ -55,7 +63,7 @@ class MyProvider extends React.Component {
     componentWillUnmount() {
         window.addEventListener("beforeunload", (ev) => 
         {
-            console.log("calling from componentWillUnmount, this.state.orderNumber: ", this.state.orderNumber)
+            // console.log("calling from componentWillUnmount, this.state.orderNumber: ", this.state.orderNumber)
             if (this.state.orderNumber && this.getOrderModificationStatus()) {
                 ev.preventDefault();
                 return ev.returnValue = 'Are you sure you want to close?';
@@ -67,8 +75,25 @@ class MyProvider extends React.Component {
     };
 
     //======================================================================================================================
+    //version 1
+    // async dataFetch() {
+    //     return await fetch(baseAPIURL + "get-qad-sales-order-info-for-cs/"+this.state.orderNumber)
+    // };
+
+    //version 2
     async dataFetch() {
-        return await fetch(baseAPIURL + "get-qad-sales-order-info-for-cs/"+this.state.orderNumber)
+        return await fetch(baseAPIURL + "get-qad-sales-order-info-for-cs", {
+            method: 'POST',
+            body: JSON.stringify({
+                sales_order_number: this.state.orderNumber,
+                sgid: window.ssouser
+                //sgid: 'B6347379'
+                //sgid: 'B3391410'
+            }),
+            headers: {
+                'Content-type': 'application/json; charset=UTF-8',
+            },
+        })
     };
 
     async getReferenceTagsByOrderItem() {
@@ -122,6 +147,43 @@ class MyProvider extends React.Component {
         });
     }
 
+    //version 1
+    // processDataFetch(response) {
+    //     if(response.result.status == "Error") {
+    //         this.setState({
+    //             isLoaded: true,
+    //             error: response.result.message
+    //         }, () => {
+    //         });
+    //         return
+    //     }
+
+    //     var resultData = response['result'][this.state.orderNumber]['line_details'];
+    //     var is_confirmed = response['result'][this.state.orderNumber]['is_confirmed'];
+    //     var channel = response['result'][this.state.orderNumber]['channel'];
+    //     var orderStatusText = ''
+
+    //     console.log("calling from processDataFetch, response: ", response)
+
+    //     this.destructureItems(resultData);
+
+    //     if (is_confirmed) {
+    //         orderStatusText = 'Order modification is not possible because Order is already confirmed!'
+    //     }
+
+    //     this.setState({
+    //         isLoaded: true,
+    //         items: response['result'][this.state.orderNumber]['line_details'],
+    //         orderNumber: this.state.orderNumber,
+    //         isConfirmed: is_confirmed,
+    //         channel: channel,
+    //         error: '',
+    //         orderStatus: orderStatusText
+    //     }, () => {
+    //     });
+    // }
+
+    //version 2
     processDataFetch(response) {
         if(response.result.status == "Error") {
             this.setState({
@@ -132,15 +194,46 @@ class MyProvider extends React.Component {
             return
         }
 
+        console.log("calling from processDataFetch, response: ", response)
+
         var resultData = response['result'][this.state.orderNumber]['line_details'];
         var is_confirmed = response['result'][this.state.orderNumber]['is_confirmed'];
         var channel = response['result'][this.state.orderNumber]['channel'];
-        var orderStatusText = ''
+        var active_user_sgid = '';
+        var user_status_sgid = '';
+        var orderStatusText = '';
+        var is_active_user_security_role_exist = false;
+        var is_form_disabled = false;
+
+        if (response['result']['active_user_roles_info']) {
+            active_user_sgid = response['result']['active_user_roles_info']['sgid'];
+        }
+
+        if (response['result']['user_status']) {
+            user_status_sgid = response['result']['user_status']['sgid'];
+        }
+        
+        // window.ssouser = 'B3391410'
+        console.log("active_user_sgid: ", active_user_sgid, ", user_status_sgid: ", user_status_sgid, ", window.ssouser: ", window.ssouser)
+        
+        if (window.ssouser && active_user_sgid === window.ssouser && user_status_sgid == window.ssouser) {
+            is_active_user_security_role_exist = true
+        }
+
+        console.log("calling from processDataFetch, response: ", response, ", window.ssouser: ", window.ssouser, ", is_active_user_security_role_exist: ", is_active_user_security_role_exist)
 
         this.destructureItems(resultData);
 
         if (is_confirmed) {
             orderStatusText = 'Order modification is not possible because Order is already confirmed!'
+        }
+
+        if (!is_confirmed && !is_active_user_security_role_exist) {
+            orderStatusText = 'Order modification is not possible because you are not authorized to edit the sales order!'
+        }
+
+        if (is_confirmed || !is_active_user_security_role_exist) {
+            is_form_disabled = true;
         }
 
         this.setState({
@@ -150,7 +243,9 @@ class MyProvider extends React.Component {
             isConfirmed: is_confirmed,
             channel: channel,
             error: '',
-            orderStatus: orderStatusText
+            orderStatus: orderStatusText,
+            isActiveUserSecurityRoleExist: is_active_user_security_role_exist,
+            isFormDisabled: is_form_disabled
         }, () => {
         });
     }
@@ -195,7 +290,7 @@ class MyProvider extends React.Component {
         const map = new Map();
         const itemMap = new Map()
         const itemSetMap = new Map()
-        console.log("calling from destructureItems, resultData: ", resultData)
+        // console.log("calling from destructureItems, resultData: ", resultData)
         var itemIndex = 0;
         resultData.forEach(element => {
             if (map.has(element['shipping_date'])) {
@@ -226,9 +321,9 @@ class MyProvider extends React.Component {
             }
         })
 
-        console.log("calling from destructureItems, map: ", map)
-        console.log("calling from destructureItems, itemMap: ", itemMap)
-        console.log("calling from destructureItems, itemSetMap: ", itemSetMap)
+        // console.log("calling from destructureItems, map: ", map)
+        // console.log("calling from destructureItems, itemMap: ", itemMap)
+        // console.log("calling from destructureItems, itemSetMap: ", itemSetMap)
 
         itemMap.forEach((itemValue, itemKey) => {
             map.forEach((mapElementValue, mapElementKey) => {
@@ -242,7 +337,7 @@ class MyProvider extends React.Component {
         })
 
         const mappedResult = Array.from(map).map(([key, value]) => ({key, value}))
-        console.log("calling from destructureItems, mappedResult: ", mappedResult)
+        // console.log("calling from destructureItems, mappedResult: ", mappedResult)
 
         const validIguItemsSet = new Set()
 
@@ -274,7 +369,7 @@ class MyProvider extends React.Component {
             })
         })
 
-        console.log("calling from destructureItems, validIguItemsSet: ", validIguItemsSet)
+        // console.log("calling from destructureItems, validIguItemsSet: ", validIguItemsSet)
 
         var validIGUItems = Array.from(validIguItemsSet)
 
@@ -282,14 +377,14 @@ class MyProvider extends React.Component {
             itemsByDueDate: mappedResult,
             validLisecItems: validIGUItems
         }, () => {
-            console.log("calling from destructureItems, this.state.itemsByDueDate: ", this.state.itemsByDueDate)
+            // console.log("calling from destructureItems, this.state.itemsByDueDate: ", this.state.itemsByDueDate)
             this.getReferenceTagsByOrderItem();
         })
 
         this.setState(
             { itemsByDueDateMap: map }, 
             () => {
-                console.log("calling from destructureItems, this.state.itemsByDueDateMap: ", this.state.itemsByDueDateMap)
+                // console.log("calling from destructureItems, this.state.itemsByDueDateMap: ", this.state.itemsByDueDateMap)
             }
         );
     }
@@ -382,7 +477,7 @@ class MyProvider extends React.Component {
 
         var formattedMappedResultFinal = new Map();
         
-        console.log("calling from getFormatteditemsByDueDate, formattedMappedResult: ", formattedMappedResult)
+        // console.log("calling from getFormatteditemsByDueDate, formattedMappedResult: ", formattedMappedResult)
 
         formattedMappedResult.forEach(element => {
             var items = element['value']
@@ -404,7 +499,7 @@ class MyProvider extends React.Component {
         const uniqueDates = Array.from(uniqueDatesMap).map(([key, value]) => ({key, value}))
         const formattedItemsByDueDate1 = Array.from(formattedMappedResultFinal).map(([key, value]) => ({key, value}))
 
-        console.log("calling from getFormatteditemsByDueDate, formattedItemsByDueDate1: ", formattedItemsByDueDate1)
+        // console.log("calling from getFormatteditemsByDueDate, formattedItemsByDueDate1: ", formattedItemsByDueDate1)
 
         var index = 0
         formattedItemsByDueDate1.forEach(item => {
@@ -429,7 +524,7 @@ class MyProvider extends React.Component {
             })
         })
         
-        console.log("calling from getFormatteditemsByDueDate, uniqueDueDates: ", uniqueDueDates, ", uniquePromiseDates: ", uniquePromiseDates)
+        // console.log("calling from getFormatteditemsByDueDate, uniqueDueDates: ", uniqueDueDates, ", uniquePromiseDates: ", uniquePromiseDates)
 
         this.setState({
             listOfUniqueItems: itemMap, 
@@ -440,7 +535,7 @@ class MyProvider extends React.Component {
             this.setState(
                 { formattedItemsByDueDate: formattedItemsByDueDate1 },
                 () => {
-                    console.log("calling from getFormatteditemsByDueDate, formattedItemsByDueDate: ", this.state.formattedItemsByDueDate)
+                    // console.log("calling from getFormatteditemsByDueDate, formattedItemsByDueDate: ", this.state.formattedItemsByDueDate)
                 }
             );
         })
@@ -472,7 +567,7 @@ class MyProvider extends React.Component {
         }, () => {})
 
         // baseAPIURLTest, baseAPIURL
-        // fetch('http://127.0.0.1:5000/api/send_req_items_for_cs', {
+        //fetch('http://127.0.0.1:5000/api/send_req_items_for_cs', {
         fetch(baseAPIURL + 'send_req_items_for_cs', {
             method: 'POST',
             body: JSON.stringify({
@@ -488,9 +583,9 @@ class MyProvider extends React.Component {
         })
         .then((res) => res.json())
         .then((response) => {
-            // console.log("response: ", response.data);
+            console.log("response: ", response);
             var unverified_items = ""
-            if (response.data.list_of_unverified_items.length > 0) {
+            if (response.data.list_of_unverified_items && response.data.list_of_unverified_items.length > 0) {
                 for (let index = 0; index < response.data.list_of_unverified_items.length; index++) {
                     const item = response.data.list_of_unverified_items[index];
                     // console.log("item: ", item)
@@ -570,6 +665,14 @@ class MyProvider extends React.Component {
                     
                     searchOrderDetails: (event) => {
                         event.preventDefault();
+                        console.log("calling from searchOrderDetails: ", window.ssouser)
+                        // if (typeof ssouser !== 'undefined') {
+                        //     console.log("I am here, ssouser: ", ssouser)
+
+                        //     if (typeof ssouser) {
+                        //         console.log(ssouser)
+                        //     }
+                        // }
 
                         if (this.state.orderNumber && this.getOrderModificationStatus()) {
                             // alert("Changes you made may not be saved!");
@@ -670,7 +773,7 @@ class MyProvider extends React.Component {
                     submitOrderDetailsToQAD: (event) => {
                         event.preventDefault();
 
-                        console.log("calling from submitOrderDetailsToQAD in MyProvider after preventDefault, itemsByDueDate: ", this.state.itemsByDueDate);
+                        // console.log("calling from submitOrderDetailsToQAD in MyProvider after preventDefault, itemsByDueDate: ", this.state.itemsByDueDate);
 
                         if (!this.state.itemsByDueDate.length) {
                             alert("Not enough data to submit to QAD!")
@@ -740,8 +843,19 @@ class MyProvider extends React.Component {
                             var items = element['value']
                             for (let index = 0; index < items.length; index++) {
                                 const itemElement = items[index];
-                                if (itemElement['item'].includes('-') && itemElement['description'].toUpperCase() == 'IGU') {
-                                    iguItemSet.add(itemElement['item'])
+                                // console.log("itemElement: ", itemElement)
+                                if (itemElement['item'].includes('-')) {
+                                    if (itemElement['description']) {
+                                        if (itemElement['description'].toUpperCase() == 'IGU') {
+                                            iguItemSet.add(itemElement['item'])
+                                        }
+                                    }
+                                    else {
+                                        const splittedArray = itemElement['item'].split("-");
+                                        if (splittedArray.length==2) {
+                                            iguItemSet.add(itemElement['item'])
+                                        }
+                                    }
                                 }
                             }
                         })
@@ -771,7 +885,9 @@ class MyProvider extends React.Component {
                     listOfUniqueItems: this.state.listOfUniqueItems,
                     listOfUniqueDates: this.state.listOfUniqueDates,
                     listOfPromiseDates: this.state.listOfPromiseDates,
-                    listOfUniqueDueDates: this.state.listOfUniqueDueDates
+                    listOfUniqueDueDates: this.state.listOfUniqueDueDates,
+                    isActiveUserSecurityRoleExist: this.state.isActiveUserSecurityRoleExist,
+                    isFormDisabled: this.state.isFormDisabled
                 }}
             >
                 {this.props.children}

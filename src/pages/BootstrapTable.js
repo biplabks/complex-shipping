@@ -2,8 +2,10 @@
 import React from 'react';
 // import { Container, Button, Form, Col, Table, Tooltip, OverlayTrigger } from 'react-bootstrap';
 import { Button, Form, Col, Table } from 'react-bootstrap';
+import { findDOMNode } from 'react-dom';
 import MyContext from './MyContext';
 import debounce from "lodash.debounce";
+import $ from 'jquery';
 
 const baseAPIURL = "https://vanna.zh.if.atcsg.net:453/api/v1/"
 
@@ -31,10 +33,10 @@ class BootstrapTable extends React.Component {
             listOfUniqueDates: this.props.listOfUniqueDates,
             listOfUniqueDueDates: this.props.listOfUniqueDueDates
         }, () => {
-            console.log("calling from Bootstraptable componentDidMount, this.state.items: ", this.state.items, ", \
-            this.state.dueDatesColspan: ", this.state.dueDatesColspan, ", this.state.listOfPromiseDates: ", 
-            this.state.listOfPromiseDates, ", this.state.listOfUniqueDates: ", this.state.listOfUniqueDates,
-            ", this.state.listOfUniqueDueDates: ", this.state.listOfUniqueDueDates)
+            // console.log("calling from Bootstraptable componentDidMount, this.state.items: ", this.state.items, ", \
+            // this.state.dueDatesColspan: ", this.state.dueDatesColspan, ", this.state.listOfPromiseDates: ", 
+            // this.state.listOfPromiseDates, ", this.state.listOfUniqueDates: ", this.state.listOfUniqueDates,
+            // ", this.state.listOfUniqueDueDates: ", this.state.listOfUniqueDueDates)
             this.updateSumOfIguByRow();
             this.updateSumOfIguByColumn();
         });
@@ -47,6 +49,12 @@ class BootstrapTable extends React.Component {
             });
         }
     }
+
+    // handleDatePicker = () => {
+    //     //datepickerinput
+    //     const el = findDOMNode(this.refs.datepickerinput)
+    //     $(el).datepicker();
+    // }
 
     addNewItem = () => {
         var existingItems = JSON.parse(JSON.stringify(this.state.items));
@@ -346,6 +354,7 @@ class BootstrapTable extends React.Component {
             if(item['key'].includes("-"))
             {
                 items.forEach(itemElement => {
+                    // console.log("calling from updateSumOfIguByRow, itemElement: ", itemElement)
                     if (itemElement['description'] == 'IGU') {
                         sum += parseInt(itemElement['order_qty'])
                     }
@@ -411,6 +420,13 @@ class BootstrapTable extends React.Component {
         }
         return false;
     }
+
+    // onChangeInput = () => {
+    //     console.log("I am here onChangeInput")
+    //     $(function() {
+    //         $( "#datepicker" ).datepicker()
+    //     });
+    // }
 
     onChangeDateInput = (e, dueDateKey, promiseDateKey) => {
         var newDateKey = e.target.value + 'T00:00:00.000Z'
@@ -661,6 +677,9 @@ class BootstrapTable extends React.Component {
         return (
             // <Container fluid>
             <>
+                {/* onChange={this.onChangeInput} */}
+                {/* <p>Date: <input type="text" id="datepicker" /></p> */}
+                {/* <p>Date: <input ref="datepickerinput" type="text" id="datepicker" onClick={this.handleDatePicker} /></p> */}
                 <Table className='text-center' striped bordered hover size="sm" style={{ position: 'relative', borderColor: '#BDC3C7', width: '10%', borderCollapse: 'separate', padding: '0px'}}>
                     {/* change top to 0 when deploying locally and 50px when deploying to vanna */}
                     <thead style={{ position: 'sticky', top: '50px', backgroundColor: '#f5f7f7', zIndex: 1, padding: '0px' }}>
@@ -669,7 +688,7 @@ class BootstrapTable extends React.Component {
                         <tr>
                             <th style={{position: 'sticky', left: '0px', padding: '0px', backgroundColor: '#f5f7f7'}}>
                                 {
-                                    !this.context.isConfirmed && 
+                                    !this.context.isFormDisabled && 
                                     <Button className='mx-1' disabled={this.context.isSubmitButtonLoading} onClick={this.addNewDueDate}>
                                         Add Due Date
                                     </Button>
@@ -686,7 +705,7 @@ class BootstrapTable extends React.Component {
                                             type="date"
                                             onChange={(e) => this.onChangeDateInput(e, dueDate, promiseDate)}
                                             className="text-center"
-                                            disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading}
+                                            disabled={this.context.isFormDisabled || this.context.isSubmitButtonLoading}
                                             size='sm'
                                             //style={{ width: '115px', margin: 'auto'}}
                                             style={{ width: '120px', margin: 'auto'}}
@@ -711,7 +730,7 @@ class BootstrapTable extends React.Component {
                                             type="date"
                                             onChange={(e) => this.onChangePromiseDateInput(e, promiseDateIndex, dueDate)}
                                             className="text-center"
-                                            disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading}
+                                            disabled={this.context.isFormDisabled || this.context.isSubmitButtonLoading}
                                             size='sm'
                                             // style={{ width: '115px', margin: 'auto'}}
                                             style={{ width: '120px', margin: 'auto'}}
@@ -750,7 +769,7 @@ class BootstrapTable extends React.Component {
                                         onBlur={(e) => this.onBlurItemInput(e, id, key)}
                                         placeholder="Type Item Name"
                                         className="text-center"
-                                        disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading || !is_item_editable}
+                                        disabled={this.context.isFormDisabled || this.context.isSubmitButtonLoading || !is_item_editable}
                                         style={{ width: '150px', height: '20px', margin: 'auto'}}
                                     />
                                 </td>
@@ -793,7 +812,7 @@ class BootstrapTable extends React.Component {
                                                 }}
                                                 placeholder="Type Order Quantity"
                                                 className="text-center"
-                                                disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading}
+                                                disabled={this.context.isFormDisabled || this.context.isSubmitButtonLoading}
                                                 max="100"
                                                 style={{ width: '80px', height: '20px', margin: 'auto', textAlign:'center' }}
                                             />
@@ -828,7 +847,7 @@ class BootstrapTable extends React.Component {
 
                                     <Button 
                                         style={{ width: '25px', height: '20px', fontSize: '10px', padding: '2px 2px' }}
-                                        disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading} 
+                                        disabled={this.context.isFormDisabled || this.context.isSubmitButtonLoading} 
                                         variant="danger" 
                                         onClick={(e) => this.handleDeleteByItem(e, id, key)}
                                         data-toggle='tooltip'
@@ -893,7 +912,7 @@ class BootstrapTable extends React.Component {
 
                                             <Button 
                                                 style={{ width: '25px', height: '20px', fontSize: '10px', padding: '2px 2px' }}
-                                                disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading} 
+                                                disabled={this.context.isFormDisabled || this.context.isSubmitButtonLoading} 
                                                 variant="danger" 
                                                 onClick={(e) => this.handleDeleteByDueDate(e, dueDate, promiseDate)}
                                                 data-toggle='tooltip'
@@ -912,7 +931,7 @@ class BootstrapTable extends React.Component {
                 </Table>
                 <Col className='d-flex flex-row'>
                     {
-                        !this.context.isConfirmed && 
+                        !this.context.isFormDisabled && 
                         <Button className='mx-1' disabled={this.context.isSubmitButtonLoading} onClick={this.addNewItem}>
                             Add Item
                         </Button>
@@ -924,7 +943,6 @@ class BootstrapTable extends React.Component {
 };
 
 BootstrapTable.contextType = MyContext;
-
 <style scoped>
 </style>
 

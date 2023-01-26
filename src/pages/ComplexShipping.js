@@ -52,8 +52,8 @@ const ComplexShipping = () => (
             <>
               <div className='text-center mx-2'>
                 {
-                  !context.isConfirmed && !context.isSubmitButtonLoading && context.isLoaded && context.itemsByDueDate.length !== 0 &&
-                  <Button disabled={context.isConfirmed} onClick={context.submitOrderDetailsToQAD} variant="primary" size="lg">
+                  !context.isFormDisabled && !context.isSubmitButtonLoading && context.isLoaded && context.itemsByDueDate.length !== 0 &&
+                  <Button disabled={context.isFormDisabled} onClick={context.submitOrderDetailsToQAD} variant="primary" size="lg">
                     Save to QAD
                   </Button>
                 }
