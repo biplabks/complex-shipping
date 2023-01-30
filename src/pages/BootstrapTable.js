@@ -5,9 +5,14 @@ import { Button, Form, Col, Table } from 'react-bootstrap';
 import { findDOMNode } from 'react-dom';
 import MyContext from './MyContext';
 import debounce from "lodash.debounce";
-import $ from 'jquery';
+import { $ }  from 'react-jquery-plugin'
 
 const baseAPIURL = "https://vanna.zh.if.atcsg.net:453/api/v1/"
+
+// $(function() {
+//     $( "#datepicker-1" ).datepicker();
+//     console.log("calling from mounted")
+//  });
 
 class BootstrapTable extends React.Component {
     constructor(props) {
@@ -25,6 +30,13 @@ class BootstrapTable extends React.Component {
         this.onBlurItemInput = debounce(this.onBlurItemInput.bind(this), 500);
     }
 
+    // mounted() {
+    //     $(function() {
+    //         $( "#datepicker-1" ).datepicker();
+    //         console.log("calling from mounted")
+    //      });
+    // }
+
     componentDidMount() {
         this.setState({
             items: this.props.orderDetails,
@@ -40,6 +52,11 @@ class BootstrapTable extends React.Component {
             this.updateSumOfIguByRow();
             this.updateSumOfIguByColumn();
         });
+
+        // $(window).scroll(() => {
+        //     // put your code here
+        //     console.log("Hello world 2")
+        // });
     }
 
     componentDidUpdate(prevProps) {
@@ -677,14 +694,10 @@ class BootstrapTable extends React.Component {
         return (
             // <Container fluid>
             <>
-                {/* onChange={this.onChangeInput} */}
-                {/* <p>Date: <input type="text" id="datepicker" /></p> */}
-                {/* <p>Date: <input ref="datepickerinput" type="text" id="datepicker" onClick={this.handleDatePicker} /></p> */}
+                {/* <p>Enter Date: <input type = "text" id = "datepicker-1" /></p> */}
                 <Table className='text-center' striped bordered hover size="sm" style={{ position: 'relative', borderColor: '#BDC3C7', width: '10%', borderCollapse: 'separate', padding: '0px'}}>
                     {/* change top to 0 when deploying locally and 50px when deploying to vanna */}
                     <thead style={{ position: 'sticky', top: '50px', backgroundColor: '#f5f7f7', zIndex: 1, padding: '0px' }}>
-                    {/* <thead style={{ position: 'sticky', top: 0, backgroundColor: '#f5f7f7', zIndex: 1 }}> */}
-                        {/* <tr style={{ backgroundColor: '#f5f7f7' }}> */}
                         <tr>
                             <th style={{position: 'sticky', left: '0px', padding: '0px', backgroundColor: '#f5f7f7'}}>
                                 {
@@ -707,7 +720,6 @@ class BootstrapTable extends React.Component {
                                             className="text-center"
                                             disabled={this.context.isFormDisabled || this.context.isSubmitButtonLoading}
                                             size='sm'
-                                            //style={{ width: '115px', margin: 'auto'}}
                                             style={{ width: '120px', margin: 'auto'}}
                                             data-toggle='tooltip'
                                             data-placement='top'
@@ -732,7 +744,6 @@ class BootstrapTable extends React.Component {
                                             className="text-center"
                                             disabled={this.context.isFormDisabled || this.context.isSubmitButtonLoading}
                                             size='sm'
-                                            // style={{ width: '115px', margin: 'auto'}}
                                             style={{ width: '120px', margin: 'auto'}}
                                             data-toggle='tooltip'
                                             data-placement='top'
@@ -759,7 +770,6 @@ class BootstrapTable extends React.Component {
                     <tbody>
                         {this.state.items.map(({key, value, id, reference_tag, is_item_editable}) => (
                             <tr key={id} style={{ height: '20px' }}>
-                                {/* <td style={{ position: 'sticky', left: '0px', width: '150px', paddingTop: '9px' }}> */}
                                 <td style={{ position: 'sticky', left: '0px', width: '150px', padding: '0px' }}>
                                     <Form.Control
                                         name="item"
@@ -773,7 +783,6 @@ class BootstrapTable extends React.Component {
                                         style={{ width: '150px', height: '20px', margin: 'auto'}}
                                     />
                                 </td>
-                                {/* <td style={{ position: 'sticky', backgroundColor: 'white', left: '159px', width: '100px', paddingTop: '9px' }}> */}
                                 <td style={{ position: 'sticky', backgroundColor: 'white', left: '152px', width: '100px', padding: '0px' }}>
                                     <Form.Control 
                                         name="reference_tag" 
@@ -786,21 +795,7 @@ class BootstrapTable extends React.Component {
                                 </td>
                                 {
                                     value.map(({order_qty, due_date}) => (
-                                        // <td key={due_date} style={{ width: '100px', paddingTop: '9px' }}>
                                         <td key={due_date} style={{ width: '100px', padding: '0px' }}>
-                                            {/* <Form.Control
-                                                name="order_qty"
-                                                value={order_qty}
-                                                type="number"
-                                                min={0}
-                                                onChange={(e) => this.onChangeOrderQuantityInput(e, id, key, due_date)}
-                                                placeholder="Type Order Quantity"
-                                                className="text-center"
-                                                disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading}
-                                                max="300"
-                                                style={{ width: '80px', height: '20px', margin: 'auto', textAlign:'center' }}
-                                            /> */}
-
                                             <Form.Control
                                                 name="order_qty"
                                                 value={order_qty}
@@ -828,23 +823,6 @@ class BootstrapTable extends React.Component {
                                     </Form.Text>
                                 </td>
                                 <td style={{ width: '200px', padding: '0px' }}>
-                                    {/* <OverlayTrigger
-                                        placement='top'
-                                        overlay={
-                                            <Tooltip>
-                                                Remove
-                                            </Tooltip>
-                                        }
-                                    >
-                                        <Button 
-                                            style={{ width: '25px', height: '20px', fontSize: '10px', padding: '2px 2px' }}
-                                            disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading} 
-                                            variant="danger" 
-                                            onClick={(e) => this.handleDeleteByItem(e, id, key)}>
-                                            x
-                                        </Button>
-                                    </OverlayTrigger> */}
-
                                     <Button 
                                         style={{ width: '25px', height: '20px', fontSize: '10px', padding: '2px 2px' }}
                                         disabled={this.context.isFormDisabled || this.context.isSubmitButtonLoading} 
@@ -893,23 +871,6 @@ class BootstrapTable extends React.Component {
                                 {
                                     this.state.listOfUniqueDueDates.map(({dueDate, promiseDate}) => (
                                         <td key={dueDate} style={{padding: '0px'}}>
-                                            {/* <OverlayTrigger
-                                                placement='top'
-                                                overlay={
-                                                    <Tooltip>
-                                                        Remove
-                                                    </Tooltip>
-                                                }
-                                            >
-                                                <Button 
-                                                    style={{ width: '25px', height: '20px', fontSize: '10px', padding: '2px 2px' }}
-                                                    disabled={this.context.isConfirmed || this.context.isSubmitButtonLoading} 
-                                                    variant="danger" 
-                                                    onClick={(e) => this.handleDeleteByDueDate(e, dueDate, promiseDate)}>
-                                                    x
-                                                </Button>
-                                            </OverlayTrigger> */}
-
                                             <Button 
                                                 style={{ width: '25px', height: '20px', fontSize: '10px', padding: '2px 2px' }}
                                                 disabled={this.context.isFormDisabled || this.context.isSubmitButtonLoading} 

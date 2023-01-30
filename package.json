@@ -16,6 +16,7 @@
     "react-bootstrap-table-next": "^4.0.3",
     "react-bootstrap-table2-editor": "^1.4.0",
     "react-dom": "^18.2.0",
+    "react-jquery-plugin": "^1.1.7",
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4"
   },

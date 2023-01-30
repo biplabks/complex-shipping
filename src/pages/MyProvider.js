@@ -6,8 +6,8 @@ const baseAPIURL = "https://vanna.zh.if.atcsg.net:453/api/v1/"
 
 const baseAPIURLTest = "http://127.0.0.1:5000/api/"
 
-//B3391410
-//window.ssouser = 'B3391410'
+// B3391410
+window.ssouser = 'p5620895'
 
 class MyProvider extends React.Component {
     state = {
@@ -86,7 +86,7 @@ class MyProvider extends React.Component {
             method: 'POST',
             body: JSON.stringify({
                 sales_order_number: this.state.orderNumber,
-                sgid: window.ssouser
+                sgid: window.ssouser.toUpperCase()
                 //sgid: 'B6347379'
                 //sgid: 'B3391410'
             }),
@@ -205,6 +205,8 @@ class MyProvider extends React.Component {
         var is_active_user_security_role_exist = false;
         var is_form_disabled = false;
 
+        var windowSSOUser = window.ssouser.toUpperCase();
+
         if (response['result']['active_user_roles_info']) {
             active_user_sgid = response['result']['active_user_roles_info']['sgid'];
         }
@@ -214,9 +216,9 @@ class MyProvider extends React.Component {
         }
         
         // window.ssouser = 'B3391410'
-        console.log("active_user_sgid: ", active_user_sgid, ", user_status_sgid: ", user_status_sgid, ", window.ssouser: ", window.ssouser)
+        console.log("active_user_sgid: ", active_user_sgid, ", user_status_sgid: ", user_status_sgid, ", window.ssouser: ", windowSSOUser)
         
-        if (window.ssouser && active_user_sgid === window.ssouser && user_status_sgid == window.ssouser) {
+        if (window.ssouser && active_user_sgid === windowSSOUser && user_status_sgid == windowSSOUser) {
             is_active_user_security_role_exist = true
         }
 
