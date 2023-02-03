@@ -194,18 +194,22 @@ class MyProvider extends React.Component {
             return
         }
 
-        console.log("calling from processDataFetch, response: ", response)
+        console.log("calling from processDataFetch, response: ", response, ", this.state.orderNumber: ", this.state.orderNumber)
 
         var resultData = response['result'][this.state.orderNumber]['line_details'];
         var is_confirmed = response['result'][this.state.orderNumber]['is_confirmed'];
         var channel = response['result'][this.state.orderNumber]['channel'];
+        console.log("calling from processDataFetch, response2")
         var active_user_sgid = '';
         var user_status_sgid = '';
         var orderStatusText = '';
         var is_active_user_security_role_exist = false;
         var is_form_disabled = false;
-
+        console.log("calling from processDataFetch, response3")
+        
         var windowSSOUser = window.ssouser.toUpperCase();
+        console.log("calling from processDataFetch, response4")
+        
 
         if (response['result']['active_user_roles_info']) {
             active_user_sgid = response['result']['active_user_roles_info']['sgid'];
@@ -225,6 +229,7 @@ class MyProvider extends React.Component {
         console.log("calling from processDataFetch, response: ", response, ", window.ssouser: ", window.ssouser, ", is_active_user_security_role_exist: ", is_active_user_security_role_exist)
 
         this.destructureItems(resultData);
+        console.log("calling from processDataFetch, response5")
 
         if (is_confirmed) {
             orderStatusText = 'Order modification is not possible because Order is already confirmed!'
@@ -275,7 +280,9 @@ class MyProvider extends React.Component {
             const responses = await Promise.all([this.dataFetch()]);
         
             if (responses[0].status == 200) {
+                console.log("calling from fetchAllData, responses: ", responses)
                 const anotherPromise1 = await responses[0].json();
+                console.log("calling from fetchAllData, anotherPromise1: ", anotherPromise1)
                 this.processDataFetch(anotherPromise1);
             }
         }catch(error) {
@@ -294,6 +301,8 @@ class MyProvider extends React.Component {
         const itemSetMap = new Map()
         // console.log("calling from destructureItems, resultData: ", resultData)
         var itemIndex = 0;
+
+        console.log("calling from destructureItems, result1")
         resultData.forEach(element => {
             if (map.has(element['shipping_date'])) {
                 let arr = []
@@ -323,6 +332,8 @@ class MyProvider extends React.Component {
             }
         })
 
+        console.log("calling from destructureItems, result2")
+
         // console.log("calling from destructureItems, map: ", map)
         // console.log("calling from destructureItems, itemMap: ", itemMap)
         // console.log("calling from destructureItems, itemSetMap: ", itemSetMap)
@@ -338,10 +349,16 @@ class MyProvider extends React.Component {
             })
         })
 
+        console.log("calling from destructureItems, result3")
+
         const mappedResult = Array.from(map).map(([key, value]) => ({key, value}))
         // console.log("calling from destructureItems, mappedResult: ", mappedResult)
 
         const validIguItemsSet = new Set()
+
+        console.log("calling from destructureItems, result4")
+
+        console.log("calling from destructureItems, mappedResult: ", mappedResult)
 
         mappedResult.forEach(element => {
             element['isDateEditable'] = false
@@ -354,13 +371,21 @@ class MyProvider extends React.Component {
                     promiseDate = itemElement['promise_date']
                 }
 
-                if (itemElement['item'].includes('-') && itemElement['description'].toUpperCase() == 'IGU') {
-                    validIguItemsSet.add(itemElement['item'])
+                // if (itemElement['item'].includes('-') && itemElement['description'].toUpperCase() == 'IGU') {
+                //     validIguItemsSet.add(itemElement['item'])
+                // }
+
+                if (itemElement['item'].includes('-')) {
+                    if (itemElement['description'] && itemElement['description'].toUpperCase() == 'IGU') {
+                        validIguItemsSet.add(itemElement['item'])
+                    }
                 }
             })
             element['promiseDate'] = promiseDate
             element['initialPromiseDate'] = promiseDate
         })
+
+        console.log("calling from destructureItems, result5")
 
         mappedResult.forEach(element => {
             var items = element['value']
@@ -847,10 +872,8 @@ class MyProvider extends React.Component {
                                 const itemElement = items[index];
                                 // console.log("itemElement: ", itemElement)
                                 if (itemElement['item'].includes('-')) {
-                                    if (itemElement['description']) {
-                                        if (itemElement['description'].toUpperCase() == 'IGU') {
-                                            iguItemSet.add(itemElement['item'])
-                                        }
+                                    if (itemElement['description'] && itemElement['description'].toUpperCase() == 'IGU') {
+                                        iguItemSet.add(itemElement['item'])
                                     }
                                     else {
                                         const splittedArray = itemElement['item'].split("-");

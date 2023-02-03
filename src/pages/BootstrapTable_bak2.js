@@ -11,7 +11,6 @@ import { $ }  from 'react-jquery-plugin';
 import DatePicker from 'react-datepicker'
 
 import "react-datepicker/dist/react-datepicker.css"
-import "../styles.css";
 
 
 const baseAPIURL = "https://vanna.zh.if.atcsg.net:453/api/v1/"
@@ -984,20 +983,14 @@ class BootstrapTable extends React.Component {
                 
                 <p>lorem hello</p>
                 <button className='button'>click here</button> */}
-                {/* {
-                    !this.context.isFormDisabled && 
-                    <Button className='mx-1' disabled={this.context.isSubmitButtonLoading} onClick={this.addNewDueDate}>
-                        Add Due Date
-                    </Button>
-                } */}
                 <Table className='text-center' striped bordered hover size="sm" style={{ position: 'relative', borderColor: '#BDC3C7', width: '10%', borderCollapse: 'separate', padding: '0px'}}>
                     {/* change top to 0 when deploying locally and 50px when deploying to vanna */}
                     <thead style={{ position: 'sticky', top: '50px', backgroundColor: '#f5f7f7', zIndex: 1, padding: '0px' }}>
                         <tr>
-                            <th style={{position: 'sticky', left: '0px', padding: '0px', backgroundColor: '#f5f7f7', textAlign: 'center'}}>
+                            <th style={{position: 'sticky', left: '0px', padding: '0px', backgroundColor: '#f5f7f7'}}>
                                 {
                                     !this.context.isFormDisabled && 
-                                    <Button style={{height: '26px', padding: '4px'}} className='mx-1' disabled={this.context.isSubmitButtonLoading} onClick={this.addNewDueDate}>
+                                    <Button className='mx-1' disabled={this.context.isSubmitButtonLoading} onClick={this.addNewDueDate}>
                                         Add Due Date
                                     </Button>
                                 }
@@ -1008,18 +1001,6 @@ class BootstrapTable extends React.Component {
                             {
                                 this.state.listOfUniqueDueDates.map(({dueDate, promiseDate}) => (
                                     <th key={dueDate} style={{ padding: '0px' }}>
-                                        {/* <Form.Control
-                                            value={dueDate.replace("T00:00:00.000Z", '')}
-                                            type="date"
-                                            onChange={(e) => this.onChangeDateInput(e, dueDate, promiseDate)}
-                                            className="text-center"
-                                            disabled={this.context.isFormDisabled || this.context.isSubmitButtonLoading}
-                                            size='sm'
-                                            style={{ width: '120px', margin: 'auto'}}
-                                            data-toggle='tooltip'
-                                            data-placement='top'
-                                            title='Due Date'
-                                        /> */}
                                         {/* <DatePicker
                                             value={dueDate.replace("T00:00:00.000Z", '')}
                                             type="date"
@@ -1032,7 +1013,7 @@ class BootstrapTable extends React.Component {
                                             data-placement='top'
                                             title='Due Date'
                                         /> */}
-                                        {/* <DatePicker
+                                        <DatePicker
                                             // selected={new Date(dueDate)}
                                             //selected={new Date(dueDate.replace("T00:00:00.000Z", ''))}
                                             //selected={new Date(dueDate)}
@@ -1047,45 +1028,7 @@ class BootstrapTable extends React.Component {
                                             data-placement='top'
                                             title='Due Date'
                                             dateFormat={"MM/dd/yyyy"}
-                                        /> */}
-
-                                        {/* <DatePicker
-                                            selected={new Date(dueDate.replace("T00:00:00.000Z", 'T18:00:00.000Z'))}
-                                            type="date"
-                                            onChange={(e) => this.onChangeDateInput(e, dueDate, promiseDate)}
-                                            className="text-center"
-                                            disabled={this.context.isFormDisabled || this.context.isSubmitButtonLoading}
-                                            data-toggle='tooltip'
-                                            data-placement='top'
-                                            title='Due Date'
-                                            dateFormat={"MM/dd/yyyy"}
-                                            customInput={
-                                                <input
-                                                  type="text"
-                                                  style={{width: '80px', margin: 'auto'}}
-                                                />
-                                            }
-                                        /> */}
-                                        <div style={{ width: '80px', margin: 'auto'}}>
-                                            <DatePicker
-                                                selected={new Date(dueDate.replace("T00:00:00.000Z", 'T18:00:00.000Z'))}
-                                                type="date"
-                                                onChange={(e) => this.onChangeDateInput(e, dueDate, promiseDate)}
-                                                className="text-center"
-                                                disabled={this.context.isFormDisabled || this.context.isSubmitButtonLoading}
-                                                data-toggle='tooltip'
-                                                data-placement='top'
-                                                title='Due Date'
-                                                dateFormat={"MM/dd/yyyy"}
-                                                customInput={
-                                                    <input
-                                                        type="text"
-                                                        style={{width: '80px', margin: 'auto'}}
-                                                    />
-                                                }
-                                                style={{position: 'static'}}
-                                            />
-                                        </div>
+                                        />
                                     </th>
                                 ))
                             }
@@ -1094,11 +1037,11 @@ class BootstrapTable extends React.Component {
                         </tr>
                         <tr style={{ backgroundColor: '#f5f7f7', padding: '0px' }}>
                             <th style={{position: 'sticky', left: '0px', textAlign: 'center', padding: '0px', backgroundColor: '#f5f7f7'}}></th>
-                            <th style={{position: 'sticky', left: '152px', textAlign: 'right', padding: '0px', backgroundColor: '#f5f7f7' }}>Promise Dates</th>
+                            <th style={{position: 'sticky', left: '152px', width: '100px', textAlign: 'right', padding: '0px', backgroundColor: '#f5f7f7' }}>Promise Dates</th>
                             {
                                 this.state.listOfPromiseDates.map(({promiseDate, promiseDateIndex, dueDate}) => (
                                     <th key={promiseDateIndex} style={{ padding: '0px' }}>
-                                        {/* <DatePicker
+                                        <DatePicker
                                             // value={promiseDate.replace("T00:00:00.000Z", '')}
                                             selected={new Date(promiseDate.replace("T00:00:00.000Z", 'T18:00:00.000Z'))}
                                             type="date"
@@ -1107,29 +1050,11 @@ class BootstrapTable extends React.Component {
                                             disabled={this.context.isFormDisabled || this.context.isSubmitButtonLoading}
                                             size='sm'
                                             // style={{ width: '120px', margin: 'auto'}}
-                                            // style={{ width: '160px', margin: 'auto'}}
+                                            // style={{ width: '60px', margin: 'auto'}}
                                             data-toggle='tooltip'
                                             data-placement='top'
                                             title='Promise Date'
                                             dateFormat={"MM/dd/yyyy"}
-                                        /> */}
-                                        <DatePicker
-                                            selected={new Date(promiseDate.replace("T00:00:00.000Z", 'T18:00:00.000Z'))}
-                                            type="date"
-                                            onChange={(e) => this.onChangePromiseDateInput(e, promiseDateIndex, dueDate)}
-                                            className="text-center"
-                                            disabled={this.context.isFormDisabled || this.context.isSubmitButtonLoading}
-                                            size='sm'
-                                            data-toggle='tooltip'
-                                            data-placement='top'
-                                            title='Promise Date'
-                                            dateFormat={"MM/dd/yyyy"}
-                                            customInput={
-                                                <input
-                                                  type="text"
-                                                  style={{width: '80px'}}
-                                                />
-                                            }
                                         />
                                     </th>
                                 ))
@@ -1142,7 +1067,7 @@ class BootstrapTable extends React.Component {
                             <th style={{position: 'sticky', left: '152px', width: '100px', textAlign: 'center', padding: '0px', backgroundColor: '#f5f7f7' }}>Reference Tag</th>
                             {
                                 this.state.listOfPromiseDates.map(({promiseDate, promiseDateIndex, dueDate}) => (
-                                    <th key={promiseDateIndex} style={{padding: '0px'}}><p style={{ marginTop: '0em', marginBottom: '0em', textAlign: 'center' }}>Quantity</p></th>
+                                    <th key={promiseDateIndex} style={{padding: '0px'}}><p style={{ width: '114px', marginTop: '0em', marginBottom: '0em', textAlign: 'center' }}>Quantity</p></th>
                                 ))
                             }
                             <th style={{padding: '0px'}}><p style={{ width: '114px', marginTop: '0em', marginBottom: '0em', textAlign: 'center' }}>Total Quantity</p></th>
