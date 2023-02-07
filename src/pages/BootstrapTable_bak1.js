@@ -11,29 +11,12 @@ import { $ }  from 'react-jquery-plugin';
 import DatePicker from 'react-datepicker'
 
 import "react-datepicker/dist/react-datepicker.css"
+import "../styles.css";
 
 
 const baseAPIURL = "https://vanna.zh.if.atcsg.net:453/api/v1/"
 
-// $(function() {
-//     $( "#datepicker-1" ).datepicker();
-//     console.log("calling from mounted")
-//  });
-
 class BootstrapTable extends React.Component {
-
-    jQuerycode = () => {
-        $('.button').click(function(){
-            $('p').css('color', 'red')
-        });
-
-        // $( "#datepicker-1" ).datepicker();
-    }
-
-    // testCode = () => {
-    //     $( "#datepicker" ).datepicker();
-    // }
-
     constructor(props) {
         super(props);
         this.state = {
@@ -48,13 +31,6 @@ class BootstrapTable extends React.Component {
         };
         this.onBlurItemInput = debounce(this.onBlurItemInput.bind(this), 500);
     }
-
-    // mounted() {
-    //     $(function() {
-    //         $( "#datepicker-1" ).datepicker();
-    //         console.log("calling from mounted")
-    //      });
-    // }
 
     componentDidMount() {
         this.setState({
@@ -71,14 +47,6 @@ class BootstrapTable extends React.Component {
             this.updateSumOfIguByRow();
             this.updateSumOfIguByColumn();
         });
-
-        // $(window).scroll(() => {
-        //     // put your code here
-        //     console.log("Hello world 2")
-        // });
-
-        this.jQuerycode();
-        // this.testCode();
     }
 
     componentDidUpdate(prevProps) {
@@ -88,12 +56,6 @@ class BootstrapTable extends React.Component {
             });
         }
     }
-
-    // handleDatePicker = () => {
-    //     //datepickerinput
-    //     const el = findDOMNode(this.refs.datepickerinput)
-    //     $(el).datepicker();
-    // }
 
     addNewItem = () => {
         var existingItems = JSON.parse(JSON.stringify(this.state.items));
@@ -198,6 +160,8 @@ class BootstrapTable extends React.Component {
         var existingUniqueDueDates = JSON.parse(JSON.stringify(this.state.listOfUniqueDueDates));
         var existingPromiseDates = JSON.parse(JSON.stringify(this.state.listOfPromiseDates));
 
+        console.log("calling from addNewDueDate, existingItems: ", existingItems)
+
         existingItems.forEach(element => {
             var items = element['value']
             items.push({
@@ -245,8 +209,8 @@ class BootstrapTable extends React.Component {
         
         nextRank = Math.max.apply(null, listOfRanks)
         existingUniqueDueDates.push({
-            "dueDate": nextAvailableDate,
             "id": nextRank+1,
+            "dueDate": nextAvailableDate,
             "promiseDate": nextAvailablePromiseDate
         })
 
@@ -385,6 +349,7 @@ class BootstrapTable extends React.Component {
     updateSumOfIguByRow() {
         let sumOfIgusByRow = []
         let sumOfOrderQuantity = 0
+        console.log("calling from updateSumOfIguByRow, this.state.items: ", this.state.items)
         this.state.items.forEach(item => {
             let items = item['value']
             let sum = 0;
@@ -393,9 +358,16 @@ class BootstrapTable extends React.Component {
             if(item['key'].includes("-"))
             {
                 items.forEach(itemElement => {
-                    // console.log("calling from updateSumOfIguByRow, itemElement: ", itemElement)
-                    if (itemElement['description'] == 'IGU') {
+                    //console.log("calling from updateSumOfIguByRow, itemElement: ", itemElement)
+
+                    if (itemElement['description'] && itemElement['description'].toUpperCase() == 'IGU') {
                         sum += parseInt(itemElement['order_qty'])
+                    }
+                    else {
+                        const splittedArray = item['key'].split("-");
+                        if (splittedArray.length==2) {
+                            sum += parseInt(itemElement['order_qty'])
+                        }
                     }
                 })
             }
@@ -424,8 +396,14 @@ class BootstrapTable extends React.Component {
                     if (itemElement['due_date'] === element['key']) {
                         if(item['key'].includes("-"))
                         {
-                            if (itemElement['description'] == 'IGU') {
+                            if (itemElement['description'] && itemElement['description'].toUpperCase() == 'IGU') {
                                 sum += parseInt(itemElement['order_qty'])
+                            }
+                            else {
+                                const splittedArray = item['key'].split("-");
+                                if (splittedArray.length==2) {
+                                    sum += parseInt(itemElement['order_qty'])
+                                }
                             }
                         }
                     }
@@ -460,16 +438,15 @@ class BootstrapTable extends React.Component {
         return false;
     }
 
-    // onChangeInput = () => {
-    //     console.log("I am here onChangeInput")
-    //     $(function() {
-    //         $( "#datepicker" ).datepicker()
-    //     });
-    // }
-
     onChangeDateInput = (e, dueDateKey, promiseDateKey) => {
-        var newDateKey = e.target.value + 'T00:00:00.000Z'
+        var newDateKey = e.getFullYear() + "-" + (e.getMonth()+1).toString().padStart(2,'0') + "-" + e.getDate().toString().padStart(2,'0') + "T00:00:00.000Z"
         var isDuplicateDateFound = this.checkForDuplicateDate(newDateKey);
+
+        // var newDateKey = new Date(e.getTime() - (e.getTimezoneOffset() * 60000)).toISOString().substring(0,10) + 'T00:00:00.000Z';
+
+        console.log("e: ", e, ", dueDateKey: ", dueDateKey, ", promiseDateKey: ", promiseDateKey, ", newDateKey: ", newDateKey)
+        console.log("year: ", e.getFullYear(), ", month: ", e.getMonth()+1, ", date: ", e.getDate())
+        //return;
 
         if (isDuplicateDateFound) {
             alert("Same date exist in the table!")
@@ -496,6 +473,8 @@ class BootstrapTable extends React.Component {
                 })
             }
         })
+
+        console.log("calling from onChangeDateInput, existingItemsByDueDate: ", existingItemsByDueDate)
 
         var existingUniqueDates = JSON.parse(JSON.stringify(this.state.listOfUniqueDates));
         existingUniqueDates.forEach(element => {
@@ -526,7 +505,12 @@ class BootstrapTable extends React.Component {
     }
 
     onChangePromiseDateInput = (e, keyIndex, dueDateKey) => {
-        var newPromiseDateKey = e.target.value + 'T00:00:00.000Z'
+        // var newPromiseDateKey = e.target.value + 'T00:00:00.000Z'
+
+        // var newPromiseDateKey = e.toISOString().substring(0,10) + 'T00:00:00.000Z'
+        var newPromiseDateKey = e.getFullYear() + "-" + (e.getMonth()+1).toString().padStart(2,'0') + "-" + e.getDate().toString().padStart(2,'0') + "T00:00:00.000Z"
+
+        console.log("calling from onChangePromiseDateInput, e: ", e, ", keyIndex: ", keyIndex, ", dueDateKey: ", dueDateKey, ", newPromiseDateKey: ", newPromiseDateKey)
 
         var existingItem = JSON.parse(JSON.stringify(this.state.items));
         var existingItemsByDueDate = JSON.parse(JSON.stringify(this.context.itemsByDueDate));
@@ -604,6 +588,8 @@ class BootstrapTable extends React.Component {
     }
 
     onChangeOrderQuantityInput = (e, id, key, due_date) => {
+        console.log("calling from onChangeOrderQuantityInput, due_date: ", due_date)
+
         var existingItem = JSON.parse(JSON.stringify(this.state.items));
         var existingItemsByDueDate = JSON.parse(JSON.stringify(this.context.itemsByDueDate));
 
@@ -716,27 +702,14 @@ class BootstrapTable extends React.Component {
         return (
             // <Container fluid>
             <>
-                {/* <p>Enter Date: <input type = "text" id = "datepicker" /></p> */}
-                {/* <p>
-                    <DatePicker 
-                        customInput = {
-                            <input 
-                                type="text"
-                            />
-                        }
-                    />
-                </p>
-                
-                <p>lorem hello</p>
-                <button className='button'>click here</button> */}
                 <Table className='text-center' striped bordered hover size="sm" style={{ position: 'relative', borderColor: '#BDC3C7', width: '10%', borderCollapse: 'separate', padding: '0px'}}>
                     {/* change top to 0 when deploying locally and 50px when deploying to vanna */}
                     <thead style={{ position: 'sticky', top: '50px', backgroundColor: '#f5f7f7', zIndex: 1, padding: '0px' }}>
                         <tr>
-                            <th style={{position: 'sticky', left: '0px', padding: '0px', backgroundColor: '#f5f7f7'}}>
+                            <th style={{position: 'sticky', left: '0px', padding: '0px', backgroundColor: '#f5f7f7', textAlign: 'center'}}>
                                 {
                                     !this.context.isFormDisabled && 
-                                    <Button className='mx-1' disabled={this.context.isSubmitButtonLoading} onClick={this.addNewDueDate}>
+                                    <Button style={{height: '26px', padding: '4px'}} className='mx-1' disabled={this.context.isSubmitButtonLoading} onClick={this.addNewDueDate}>
                                         Add Due Date
                                     </Button>
                                 }
@@ -747,18 +720,26 @@ class BootstrapTable extends React.Component {
                             {
                                 this.state.listOfUniqueDueDates.map(({dueDate, promiseDate}) => (
                                     <th key={dueDate} style={{ padding: '0px' }}>
-                                        <Form.Control
-                                            value={dueDate.replace("T00:00:00.000Z", '')}
-                                            type="date"
-                                            onChange={(e) => this.onChangeDateInput(e, dueDate, promiseDate)}
-                                            className="text-center"
-                                            disabled={this.context.isFormDisabled || this.context.isSubmitButtonLoading}
-                                            size='sm'
-                                            style={{ width: '120px', margin: 'auto'}}
-                                            data-toggle='tooltip'
-                                            data-placement='top'
-                                            title='Due Date'
-                                        />
+                                        <div style={{ width: '80px', margin: 'auto'}}>
+                                            <DatePicker
+                                                selected={new Date(dueDate.replace("T00:00:00.000Z", 'T18:00:00.000Z'))}
+                                                type="date"
+                                                onChange={(e) => this.onChangeDateInput(e, dueDate, promiseDate)}
+                                                className="text-center"
+                                                disabled={this.context.isFormDisabled || this.context.isSubmitButtonLoading}
+                                                data-toggle='tooltip'
+                                                data-placement='top'
+                                                title='Due Date'
+                                                dateFormat={"MM/dd/yyyy"}
+                                                customInput={
+                                                    <input
+                                                        type="text"
+                                                        style={{width: '80px', margin: 'auto'}}
+                                                    />
+                                                }
+                                                style={{position: 'static'}}
+                                            />
+                                        </div>
                                     </th>
                                 ))
                             }
@@ -767,21 +748,27 @@ class BootstrapTable extends React.Component {
                         </tr>
                         <tr style={{ backgroundColor: '#f5f7f7', padding: '0px' }}>
                             <th style={{position: 'sticky', left: '0px', textAlign: 'center', padding: '0px', backgroundColor: '#f5f7f7'}}></th>
-                            <th style={{position: 'sticky', left: '152px', width: '100px', textAlign: 'right', padding: '0px', backgroundColor: '#f5f7f7' }}>Promise Dates</th>
+                            <th style={{position: 'sticky', left: '152px', textAlign: 'right', padding: '0px', backgroundColor: '#f5f7f7' }}>Promise Dates</th>
                             {
                                 this.state.listOfPromiseDates.map(({promiseDate, promiseDateIndex, dueDate}) => (
                                     <th key={promiseDateIndex} style={{ padding: '0px' }}>
-                                        <Form.Control
-                                            value={promiseDate.replace("T00:00:00.000Z", '')}
+                                        <DatePicker
+                                            selected={new Date(promiseDate.replace("T00:00:00.000Z", 'T18:00:00.000Z'))}
                                             type="date"
                                             onChange={(e) => this.onChangePromiseDateInput(e, promiseDateIndex, dueDate)}
                                             className="text-center"
                                             disabled={this.context.isFormDisabled || this.context.isSubmitButtonLoading}
                                             size='sm'
-                                            style={{ width: '120px', margin: 'auto'}}
                                             data-toggle='tooltip'
                                             data-placement='top'
                                             title='Promise Date'
+                                            dateFormat={"MM/dd/yyyy"}
+                                            customInput={
+                                                <input
+                                                  type="text"
+                                                  style={{width: '80px'}}
+                                                />
+                                            }
                                         />
                                     </th>
                                 ))
@@ -794,7 +781,7 @@ class BootstrapTable extends React.Component {
                             <th style={{position: 'sticky', left: '152px', width: '100px', textAlign: 'center', padding: '0px', backgroundColor: '#f5f7f7' }}>Reference Tag</th>
                             {
                                 this.state.listOfPromiseDates.map(({promiseDate, promiseDateIndex, dueDate}) => (
-                                    <th key={promiseDateIndex} style={{padding: '0px'}}><p style={{ width: '114px', marginTop: '0em', marginBottom: '0em', textAlign: 'center' }}>Quantity</p></th>
+                                    <th key={promiseDateIndex} style={{padding: '0px'}}><p style={{ marginTop: '0em', marginBottom: '0em', textAlign: 'center' }}>Quantity</p></th>
                                 ))
                             }
                             <th style={{padding: '0px'}}><p style={{ width: '114px', marginTop: '0em', marginBottom: '0em', textAlign: 'center' }}>Total Quantity</p></th>

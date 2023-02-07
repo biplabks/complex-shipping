@@ -5,6 +5,9 @@ import MyContext from './MyContext';
 import LoadingSpinner from "./LoadingSpinner";
 import BootstrapTable from './BootstrapTable';
 
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faFloppyDisk, faSearch } from '@fortawesome/free-solid-svg-icons'
+
 const ComplexShipping = () => (
   <MyContext.Consumer>
     {context => (
@@ -54,7 +57,7 @@ const ComplexShipping = () => (
                 {
                   !context.isFormDisabled && !context.isSubmitButtonLoading && context.isLoaded && context.itemsByDueDate.length !== 0 &&
                   <Button disabled={context.isFormDisabled} onClick={context.submitOrderDetailsToQAD} variant="primary" size="lg">
-                    Save to QAD
+                    Save to QAD <FontAwesomeIcon icon={faFloppyDisk} />
                   </Button>
                 }
                 {

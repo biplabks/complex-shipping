@@ -7,7 +7,8 @@ const baseAPIURL = "https://vanna.zh.if.atcsg.net:453/api/v1/"
 const baseAPIURLTest = "http://127.0.0.1:5000/api/"
 
 // B3391410
-window.ssouser = 'p5620895'
+// window.ssouser = 'p5620895'
+window.ssouser = 'B6347379'
 
 class MyProvider extends React.Component {
     state = {
@@ -195,6 +196,9 @@ class MyProvider extends React.Component {
         }
 
         console.log("calling from processDataFetch, response: ", response, ", this.state.orderNumber: ", this.state.orderNumber)
+        console.log("typeof(response): ", typeof(response))
+        console.log("stringify response: ", JSON.stringify(response))
+        console.log("type of stringify response: ", typeof(JSON.stringify(response)))
 
         var resultData = response['result'][this.state.orderNumber]['line_details'];
         var is_confirmed = response['result'][this.state.orderNumber]['is_confirmed'];

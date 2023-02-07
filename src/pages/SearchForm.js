@@ -2,6 +2,8 @@
 import { Form,Button } from 'react-bootstrap';
 import React from 'react';
 import MyContext from './MyContext';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faSearch } from '@fortawesome/free-solid-svg-icons'
 
 // const SearchForm = () => (
 //     <MyContext.Consumer>
@@ -61,7 +63,7 @@ const SearchForm = () => (
                         value={context.orderNumber}
                     />
                     <Button disabled={context.isSubmitButtonLoading} type="submit">
-                        Search
+                        Search <FontAwesomeIcon icon={faSearch} />
                     </Button>
                 </Form>
             </React.Fragment>
