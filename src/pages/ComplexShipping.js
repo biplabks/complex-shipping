@@ -9,13 +9,13 @@ import DatePicker from 'react-datepicker'
 import "react-datepicker/dist/react-datepicker.css"
 import "../styles.css";
 
-// const baseAPIURL = "https://vanna.zh.if.atcsg.net:453/api/v1/"
-const baseAPIURL = "https://vanna.zh.if.atcsg.net/api/v1/"
+const baseAPIURL = "https://vanna.zh.if.atcsg.net:453/api/v1/"
+// const baseAPIURL = "https://vanna.zh.if.atcsg.net/api/v1/"
 
 const baseAPIURLTest = "http://127.0.0.1:5000/api/"
 
 // B3391410
-// window.ssouser = 'p5620895'
+window.ssouser = 'p5620895'
 //window.ssouser = 'B6347379'
 
 class ComplexShipping extends React.Component{
