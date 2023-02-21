@@ -8,7 +8,7 @@ const baseAPIURLTest = "http://127.0.0.1:5000/api/"
 
 // B3391410
 // window.ssouser = 'p5620895'
-// window.ssouser = 'B6347379'
+window.ssouser = 'B6347379'
 
 class MyProvider extends React.Component {
     state = {

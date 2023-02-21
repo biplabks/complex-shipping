@@ -13,7 +13,7 @@ import DatePicker from 'react-datepicker'
 import "react-datepicker/dist/react-datepicker.css"
 import "../styles.css";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faAmbulance, faHandsHolding, faPlus, faSearch, faSpa, faTrash, faTrashAlt, faUserPlus } from '@fortawesome/free-solid-svg-icons'
+import { faPlus, faTrashAlt } from '@fortawesome/free-solid-svg-icons'
 
 
 const baseAPIURL = "https://vanna.zh.if.atcsg.net:453/api/v1/"

@@ -12,6 +12,8 @@ import DatePicker from 'react-datepicker'
 
 import "react-datepicker/dist/react-datepicker.css"
 import "../styles.css";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPlus, faTrashAlt } from '@fortawesome/free-solid-svg-icons'
 
 
 const baseAPIURL = "https://vanna.zh.if.atcsg.net:453/api/v1/"
@@ -710,7 +712,7 @@ class BootstrapTable extends React.Component {
                                 {
                                     !this.context.isFormDisabled && 
                                     <Button style={{height: '26px', padding: '4px'}} className='mx-1' disabled={this.context.isSubmitButtonLoading} onClick={this.addNewDueDate}>
-                                        Add Due Date
+                                        <FontAwesomeIcon icon={faPlus} /> Due Date 
                                     </Button>
                                 }
                             </th>
@@ -829,7 +831,7 @@ class BootstrapTable extends React.Component {
                                                 placeholder="Type Order Quantity"
                                                 className="text-center"
                                                 disabled={this.context.isFormDisabled || this.context.isSubmitButtonLoading}
-                                                max="100"
+                                                // max="100"
                                                 style={{ width: '80px', height: '20px', margin: 'auto', textAlign:'center' }}
                                             />
                                         </td>
@@ -852,7 +854,8 @@ class BootstrapTable extends React.Component {
                                         data-toggle='tooltip'
                                         data-placement='top'
                                         title='Remove'>
-                                        x
+                                        {/* x */}
+                                        <FontAwesomeIcon icon={faTrashAlt} />
                                     </Button>
                                 </td>
                             </tr>
@@ -883,11 +886,17 @@ class BootstrapTable extends React.Component {
                                 <td></td>
                             </tr>
                         }
-                        
                         {
                             this.state.dueDatesColspan>=1 && 
                             <tr>
-                                <td style={{ position: 'sticky', backgroundColor: 'white', left: '0px' }}></td>
+                                <td style={{ position: 'sticky', backgroundColor: 'white', left: '0px', padding:'0px' }}>
+                                    {
+                                        !this.context.isFormDisabled && 
+                                        <Button style={{height: '20px', width:'60px', padding: '0px'}} className='mx-1' disabled={this.context.isSubmitButtonLoading} onClick={this.addNewItem}>
+                                            <FontAwesomeIcon icon={faPlus} /> Item
+                                        </Button>
+                                    }
+                                </td>
                                 <td style={{ position: 'sticky', backgroundColor: 'white', left: '152px' }}></td>
                                 {
                                     this.state.listOfUniqueDueDates.map(({dueDate, promiseDate}) => (
@@ -900,7 +909,8 @@ class BootstrapTable extends React.Component {
                                                 data-toggle='tooltip'
                                                 data-placement='top'
                                                 title='Remove'>
-                                                x
+                                                {/* x */}
+                                                <FontAwesomeIcon icon={faTrashAlt} />
                                             </Button>
                                         </td>
                                 ))}
@@ -908,17 +918,16 @@ class BootstrapTable extends React.Component {
                                 <td></td>
                             </tr>
                         }
-                        
                     </tbody>
                 </Table>
-                <Col className='d-flex flex-row'>
+                {/* <Col className='d-flex flex-row'>
                     {
                         !this.context.isFormDisabled && 
                         <Button className='mx-1' disabled={this.context.isSubmitButtonLoading} onClick={this.addNewItem}>
                             Add Item
                         </Button>
                     }
-                </Col>
+                </Col> */}
             </>
         );
     }
